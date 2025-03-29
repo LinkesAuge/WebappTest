@@ -1,0 +1,69 @@
+Typ,Level,Punkte
+Ancient Squad Epic,15,170
+Ancient Squad Epic,20,210
+Basilisk Squad Epic,15,180
+Chimera Squad Epic,20,220
+Citadel,5,84
+Citadel,10,168
+Citadel,15,336
+Citadel,20,672
+Citadel,25,1344
+Citadel,30,2688
+Crypt,5,1050
+Crypt,10,2100
+Crypt,15,4200
+Crypt,20,8400
+Crypt,25,16800
+Crypt Epic,15,5100
+Crypt Epic,20,7224
+Crypt Epic,25,9350
+Crypt Epic,30,11475
+Crypt Epic,35,13600
+Crypt Rare,10,2520
+Crypt Rare,15,3696
+Crypt Rare,20,4158
+Crypt Rare,25,5225
+Crypt Rare,30,6300
+Crypt Rare,35,7350
+Heroic Monster,16,30
+Heroic Monster,17,35
+Heroic Monster,18,40
+Heroic Monster,19,45
+Heroic Monster,20,50
+Heroic Monster,21,160
+Heroic Monster,22,90
+Heroic Monster,23,100
+Heroic Monster,24,110
+Heroic Monster,25,120
+Heroic Monster,26,130
+Heroic Monster,27,140
+Heroic Monster,28,150
+Heroic Monster,29,160
+Heroic Monster,30,170
+Heroic Monster,31,180
+Heroic Monster,32,190
+Heroic Monster,33,200
+Heroic Monster,34,210
+Heroic Monster,35,220
+Heroic Monster,36,230
+Heroic Monster,37,240
+Heroic Monster,38,250
+Heroic Monster,39,260
+Heroic Monster,40,270
+Heroic Monster,41,280
+Heroic Monster,43,300
+Heroic Monster,44,310
+Inferno Squad Epic,15,190
+Story,0,10
+Undead Squad Epic,15,200
+Vault Of The Ancients,15-19,10
+Vault Of The Ancients,20-24,10
+Vault Of The Ancients,25-29,10
+Vault Of The Ancients,30-34,10
+Vault Of The Ancients,35-39,10
+Vault Of The Ancients,40-44,20
+Vault Of The Ancients,45,40
+SOURCE,SCORE_MULTIPLIER,TIER
+SOURCE1,1.5,A
+SOURCE2,1.0,B
+SOURCE3,0.8,C

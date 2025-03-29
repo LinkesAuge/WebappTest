@@ -1,0 +1,77 @@
+# TB Chest Analyzer Project Rules
+
+## JavaScript Patterns
+- The application uses vanilla JavaScript with ES6+ features
+- Global variables are used for state management
+- Function names follow camelCase naming convention
+- The codebase uses an event-driven architecture
+- All view rendering is handled by specific render functions
+- Chart creation is delegated to ApexCharts library
+
+## Data Processing Patterns
+- CSV data is loaded using the Fetch API
+- CSV parsing is handled by PapaParse library
+- Data transformation converts all numeric values to numbers
+- Player data is stored in an array of objects
+- Sort state is tracked separately from the data
+
+## UI/UX Patterns
+- The UI follows a dark fantasy theme inspired by "Total Battle"
+- Navigation uses a tab-like interface in the header
+- Modals are used for expanded chart views
+- Tables support sorting by clicking column headers
+- Charts use a consistent style with the ApexCharts library
+- Cards are used for grouping related information
+
+## Internationalization
+- Text content is stored in language dictionaries
+- The application supports German (default) and English
+- Language preference is stored in localStorage
+- Language switching happens dynamically without page reload
+
+## Error Handling
+- Error states are shown with status messages
+- Network errors during CSV loading show appropriate messages
+- Data processing errors are caught and displayed to the user
+- Empty states are shown when data is not available
+
+## File Structure
+- All code is contained in a single index.html file
+- External dependencies are loaded from CDNs
+- CSV data files are stored alongside the HTML file
+- No build process or server-side components
+
+## Function Organization
+- Functions are grouped by purpose:
+  - Initialization
+  - Data loading
+  - Data processing
+  - View rendering
+  - Event handling
+  - Utility functions
+
+## Performance Considerations
+- Charts are created only when needed
+- Tables use efficient DOM updates
+- Sorting and filtering happens on already-loaded data
+- Large data processing operations include status updates
+
+## Known Project Quirks
+- The application uses class/ID selectors extensively for DOM queries
+- Some functions are quite large and handle multiple responsibilities
+- The codebase uses multiple nested event listeners
+- Chart instances are tracked in a global object
+- There's a JavaScript linter error at lines 2084-2090 that needs fixing
+
+## Developer Workflow
+- Edit index.html directly to modify all aspects of the app
+- Test locally with a web server (no build process needed)
+- CSV files need to be available alongside the HTML file
+- Browser developer tools are essential for debugging
+
+## Code Style Preferences
+- Functions use consistent error handling patterns
+- DOM updates follow a consistent pattern
+- Chart configurations use a consistent structure
+- Table rendering follows a consistent pattern
+- Event listeners use anonymous functions for handlers 
