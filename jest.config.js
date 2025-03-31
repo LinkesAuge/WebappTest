@@ -7,6 +7,9 @@
 module.exports = {
   // The test environment that will be used for testing
   testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons'],
+  },
   
   // Setup files to run before each test file
   setupFilesAfterEnv: ['<rootDir>/tests/helpers/setup.js'],
@@ -14,7 +17,8 @@ module.exports = {
   // Mock files for styles and static assets
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/helpers/styleMock.js',
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)$': '<rootDir>/tests/helpers/fileMock.js'
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)$': '<rootDir>/tests/helpers/fileMock.js',
+    "^@/(.*)$": "<rootDir>/$1"
   },
   
   // Don't transform node_modules except for certain packages
@@ -29,7 +33,7 @@ module.exports = {
   
   // Files to include in coverage reports
   collectCoverageFrom: [
-    'src/**/*.js',
+    'js/**/*.js',
     '!**/node_modules/**',
     '!**/vendor/**'
   ],
@@ -51,5 +55,20 @@ module.exports = {
   // Mock specific modules
   moduleNameMapper: {
     '^canvas$': '<rootDir>/tests/helpers/canvasMock.js'
-  }
+  },
+  
+  testMatch: [
+    '<rootDir>/tests/**/*.test.js',
+    '<rootDir>/tests/**/*.spec.js'
+  ],
+  
+  transform: {
+    "^.+\\.(js|jsx)$": "babel-jest"
+  },
+  
+  coverageDirectory: 'coverage',
+  
+  coverageReporters: ['text', 'lcov', 'html'],
+  
+  verbose: true
 }; 

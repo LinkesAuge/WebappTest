@@ -4,104 +4,93 @@
  * This file is run before each test file to set up the environment.
  */
 
-// Import jest-dom additions
-import '@testing-library/jest-dom';
+// Jest setup file
+const { TextEncoder, TextDecoder } = require('util');
 
-// Set up proper mock for localStorage
-class LocalStorageMock {
-  constructor() {
-    this.store = {};
+// Fix for TextEncoder/TextDecoder 
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+// Global mocks
+global.localStorage = {
+  getItem: jest.fn(() => null),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn()
+};
+
+// Function mocks
+global.parseCsvData = jest.fn(() => ({
+  data: [],
+  meta: { fields: [] },
+  errors: []
+}));
+
+global.processPlayerData = jest.fn(() => []);
+
+global.calculateStats = jest.fn(() => ({
+  playerCount: 0,
+  averageScore: 0,
+  topSources: []
+}));
+
+// i18n function mocks
+global.getLanguagePreference = jest.fn(() => 'en');
+global.setLanguage = jest.fn();
+global.getText = jest.fn(key => key);
+global.updateUIText = jest.fn();
+
+// Chart rendering function mocks
+global.renderTopSourcesChart = jest.fn(() => ({}));
+global.renderScoreDistributionChart = jest.fn(() => ({}));
+global.renderScoreVsChestsChart = jest.fn(() => ({}));
+global.renderPlayerChart = jest.fn(() => ({}));
+
+// Canvas context mock
+global.mockContext = {
+  canvas: {}, // Simplified mock
+  fillRect: jest.fn(),
+  clearRect: jest.fn(),
+  getImageData: jest.fn(),
+  putImageData: jest.fn(),
+  createImageData: jest.fn(),
+  setTransform: jest.fn(),
+  drawImage: jest.fn(),
+  save: jest.fn(),
+  fillText: jest.fn(),
+  restore: jest.fn(),
+  beginPath: jest.fn(),
+  moveTo: jest.fn(),
+  lineTo: jest.fn(),
+  closePath: jest.fn(),
+  stroke: jest.fn(),
+  translate: jest.fn(),
+  scale: jest.fn(),
+  rotate: jest.fn(),
+  arc: jest.fn(),
+  fill: jest.fn()
+};
+
+// Mock for Chart.js
+jest.mock('chart.js', () => ({
+  Chart: class {
+    constructor() {
+      return {
+        destroy: jest.fn(),
+        update: jest.fn()
+      };
+    }
   }
+}));
 
-  clear() {
-    this.store = {};
-  }
-
-  getItem(key) {
-    return this.store[key] || null;
-  }
-
-  setItem(key, value) {
-    this.store[key] = String(value);
-  }
-
-  removeItem(key) {
-    delete this.store[key];
-  }
-
-  get length() {
-    return Object.keys(this.store).length;
-  }
-
-  key(index) {
-    return Object.keys(this.store)[index] || null;
-  }
-}
-
-// Add spies for localStorage methods
-const localStorageMock = new LocalStorageMock();
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-});
-
-// Create spies for tracking localStorage calls
-jest.spyOn(localStorageMock, 'getItem');
-jest.spyOn(localStorageMock, 'setItem');
-jest.spyOn(localStorageMock, 'removeItem');
-jest.spyOn(localStorageMock, 'clear');
-
-// Mock for document.title
-Object.defineProperty(document, 'title', {
-  writable: true,
-  value: 'Chef Score Analytics'
-});
-
-// Mock fetch API
+// Global mocks and setup
 global.fetch = jest.fn(() =>
   Promise.resolve({
-    text: () => Promise.resolve('mock data'),
     ok: true,
-    status: 200,
-    headers: new Map([['last-modified', new Date().toUTCString()]])
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve('')
   })
 );
-
-// Set up global Chart mock (for chart.js)
-global.Chart = jest.fn().mockImplementation(() => ({
-  update: jest.fn(),
-  destroy: jest.fn(),
-  getDatasetMeta: jest.fn(() => ({ hidden: null })),
-  config: {
-    type: 'pie',
-    data: {
-      labels: ['Label 1', 'Label 2', 'Label 3'],
-      datasets: [{
-        data: [10, 20, 30],
-        label: 'Test Dataset'
-      }]
-    },
-    options: {}
-  }
-}));
-
-// Mock matchMedia
-global.matchMedia = jest.fn().mockImplementation(query => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  dispatchEvent: jest.fn()
-}));
-
-// Reset all mocks before each test
-beforeEach(() => {
-  jest.clearAllMocks();
-  localStorage.clear();
-  document.title = 'Chef Score Analytics';
-});
 
 // Mock window.alert
 global.alert = jest.fn();
@@ -123,7 +112,11 @@ document.body.innerHTML = `
   <div id="charts" class="view"></div>
   <div id="analytics" class="view"></div>
 </div>
-`; 
+`;
+
+// Add custom jest matchers
+require('@testing-library/jest-dom');
+
 // Mock Canvas getContext
 HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
   canvas: document.createElement('canvas'),
