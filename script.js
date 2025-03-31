@@ -4061,4 +4061,139 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
   }
+
+  /**
+   * Renders the player performance radar chart.
+   * @param {object} player - The player data object.
+   * @param {string} containerId - The ID of the HTML container element.
+   */
+  function renderPlayerChart(player, containerId = "player-chart-container") {
+    console.log(`Starting renderPlayerChart for ${player?.PLAYER} in #${containerId}`);
+    const instanceKey = containerId === "modal-chart-container" ? "modalChart" : "playerChart";
+    const container = document.getElementById(containerId);
+    
+    if (!container) {
+      console.error(`Player chart container #${containerId} not found`);
+      return;
+    }
+
+    // Ensure previous instance is destroyed safely
+    if (chartInstances[instanceKey]) {
+      try {
+        chartInstances[instanceKey].destroy();
+      } catch (e) {
+        console.warn(`Error destroying previous chart in #${containerId}:`, e);
+      }
+      chartInstances[instanceKey] = null;
+    }
+
+    // Show loading spinner
+    container.innerHTML = '<div class="spinner mx-auto my-8"></div>';
+    
+    if (!player) {
+      console.error("No player data provided for player chart");
+      container.innerHTML = `<p class="text-slate-500 text-sm text-center py-8">${getText("status.noPlayerData")}</p>`;
+      return;
+    }
+
+    try {
+      // Get category keys with scores > 0, excluding core columns
+      const categoryKeys = Object.keys(player)
+        .filter(key => !CORE_COLUMNS.includes(key) && 
+                typeof player[key] === "number" && 
+                player[key] > 0)
+        .sort((keyA, keyB) => (player[keyB] ?? 0) - (player[keyA] ?? 0));
+      
+      // Take top 8 categories for better radar display
+      const topCategories = categoryKeys.slice(0, 8);
+      
+      if (topCategories.length < 3) {
+        // Need at least 3 categories for a meaningful radar chart
+        container.innerHTML = `<p class="text-slate-500 text-sm text-center py-8">${getText("charts.notEnoughDataRadar")}</p>`;
+        return;
+      }
+      
+      const chartLabels = topCategories.map(key => key.replace(/_/g, " "));
+      const chartSeries = [{ 
+        name: player.PLAYER,
+        data: topCategories.map(key => player[key] || 0)
+      }];
+      
+      console.log("PlayerChart Data:", {
+        labels: chartLabels,
+        series: chartSeries,
+        categories: topCategories.length
+      });
+      
+      // Get base options and customize for radar chart
+      const baseOptions = getChartBaseOptions();
+      const options = {
+        ...baseOptions,
+        chart: {
+          ...baseOptions.chart,
+          type: 'radar',
+          toolbar: {
+            show: true,
+            tools: {
+              download: true,
+              selection: false,
+              zoom: false,
+              zoomin: false,
+              zoomout: false,
+              pan: false,
+              reset: true
+            }
+          },
+          height: 350
+        },
+        series: chartSeries,
+        labels: chartLabels,
+        xaxis: {
+          labels: {
+            style: {
+              colors: Array(chartLabels.length).fill(baseOptions.chart.foreColor),
+              fontSize: '11px'
+            }
+          }
+        },
+        yaxis: {
+          show: false
+        },
+        plotOptions: {
+          radar: {
+            size: undefined,
+            polygons: {
+              strokeColors: `hsl(${getCssVariableValue("--border")})`,
+              strokeWidth: 1,
+              connectorColors: `hsl(${getCssVariableValue("--border")})`,
+              fill: {
+                colors: undefined
+              }
+            }
+          }
+        },
+        tooltip: {
+          theme: 'dark',
+          y: {
+            formatter: (val) => NUMERIC_FORMATTER.format(val)
+          }
+        },
+        legend: {
+          show: false // Hide legend since it's only one player
+        }
+      };
+      
+      // Create and render chart
+      chartInstances[instanceKey] = new ApexCharts(container, options);
+      chartInstances[instanceKey].render();
+      
+      // Remove spinner after rendering
+      container.querySelector(".spinner")?.remove();
+      console.log(`Finished renderPlayerChart for ${player.PLAYER} in #${containerId}`);
+    } catch (e) {
+      console.error(`Error setting up player chart in #${containerId}:`, e);
+      container.innerHTML = `<p class="text-red-500 text-sm text-center py-8">${getText("status.chartError")}</p>`;
+      chartInstances[instanceKey] = null;
+    }
+  }
 }); // End DOMContentLoaded listener
