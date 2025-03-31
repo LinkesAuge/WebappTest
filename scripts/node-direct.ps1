@@ -65,28 +65,28 @@ foreach ($arg in $args) {
     }
 }
 
-# Build the Jest command
-$command = "node `"$jestPath`""
+# Build the Jest command arguments (not including the program name)
+$jestArgs = @()
 
 # Add test pattern based on test type
 if ($testType -eq "unit") {
-    $command += " --testMatch=""**/tests/unit/**/*.test.js"""
+    $jestArgs += "--testMatch=`"**/tests/unit/**/*.test.js`""
 }
 elseif ($testType -eq "integration") {
-    $command += " --testMatch=""**/tests/integration/**/*.test.js"""
+    $jestArgs += "--testMatch=`"**/tests/integration/**/*.test.js`""
 }
 elseif ($testType -eq "e2e") {
-    $command += " --testMatch=""**/tests/e2e/**/*.test.js"""
+    $jestArgs += "--testMatch=`"**/tests/e2e/**/*.test.js`""
 }
 
 # Add coverage if needed
 if ($coverageMode) {
-    $command += " --coverage"
+    $jestArgs += "--coverage"
 }
 
 # Add extra args
 foreach ($arg in $extraArgs) {
-    $command += " $arg"
+    $jestArgs += $arg
 }
 
 # Display test header
@@ -97,20 +97,18 @@ Write-Host "`n$BLUE$line$RESET"
 Write-Host "$BLUE    $testHeader    $RESET"
 Write-Host "$BLUE$line$RESET`n"
 
-# Display the command
-Write-Host "Executing: $command`n"
+# Create the command string for display purposes
+$commandDisplay = "& `"$jestPath`" " + ($jestArgs -join " ")
+Write-Host "Executing: $commandDisplay`n"
 
 # Run the command and capture output
 $currentDir = Get-Location
 Set-Location -Path $ProjectDir
 
 try {
-    # Execute the command using Invoke-Expression and capture the exit code
-    $output = Invoke-Expression "& $command"
+    # Execute the jest.cmd batch file directly
+    & $jestPath $jestArgs
     $exitCode = $LASTEXITCODE
-    
-    # Output the result
-    $output
     
     if ($exitCode -eq 0) {
         Write-Host "`n${GREEN}✅ Tests completed successfully!${RESET}"
