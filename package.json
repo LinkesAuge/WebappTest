@@ -4,11 +4,11 @@
   "description": "Analytics dashboard for Chef's Game player performance data",
   "main": "index.html",
   "scripts": {
-    "test": "node scripts/run-tests.js",
-    "test:unit": "node scripts/run-tests.js --unit",
-    "test:integration": "node scripts/run-tests.js --integration",
-    "test:e2e": "node scripts/run-tests.js --e2e",
-    "test:coverage": "node scripts/run-tests.js --coverage",
+    "test": "node scripts/run-tests.js all",
+    "test:unit": "node scripts/run-tests.js unit",
+    "test:integration": "node scripts/run-tests.js integration",
+    "test:e2e": "node scripts/run-tests.js e2e",
+    "test:coverage": "node scripts/run-tests.js all -- --coverage",
     "test:py": "python scripts/run_pytest.py",
     "test:py:unit": "python scripts/run_pytest.py --unit",
     "test:py:integration": "python scripts/run_pytest.py --integration",
@@ -36,6 +36,7 @@
     "babel-jest": "^29.7.0",
     "chart.js": "^4.4.8",
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0"
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^26.0.0"
   }
 }
