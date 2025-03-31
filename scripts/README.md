@@ -142,5 +142,27 @@ This script:
 If you encounter issues running the tests:
 
 1. **Node.js/npm not found**: Ensure both Node.js and npm are installed and in your PATH
+   - Run `.\scripts\fix-npm.ps1` to diagnose and fix npm path issues
+   - If npm is not available, you can use `--force-node-only` flag: `python scripts/run_website_tests.py --force-node-only`
+
 2. **PowerShell execution error**: Run `.\run-tests.ps1` instead of just `run-tests`
-3. **Permission issues**: You may need to run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in PowerShell to allow script execution 
+
+3. **Permission issues**: You may need to run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in PowerShell to allow script execution
+
+## Utility Scripts
+
+### npm Path Fixer
+
+`fix-npm.ps1` - A PowerShell script to diagnose and fix npm PATH issues.
+
+```powershell
+# Run the script
+.\scripts\fix-npm.ps1
+```
+
+The script will:
+- Check if Node.js is installed and accessible
+- Verify if npm is in your PATH
+- Locate npm on your system if it's not in the PATH
+- Offer to add the correct directory to your PATH for the current session
+- Provide recommendations to fix npm installation issues 

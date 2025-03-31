@@ -242,6 +242,11 @@ def parse_arguments():
         action="store_true",
         help="Only check and set up dependencies without running tests",
     )
+    parser.add_argument(
+        "--force-node-only",
+        action="store_true",
+        help="Continue with only Node.js even if npm is not detected",
+    )
 
     return parser.parse_args()
 
@@ -259,7 +264,12 @@ def main():
     log(f"Working directory: {project_dir}", Colors.BLUE)
 
     # Check prerequisites
-    if not ensure_node_installed():
+    node_npm_status = ensure_node_installed()
+    if not node_npm_status and not args.force_node_only:
+        log(
+            "\nTo continue with only Node.js, run with --force-node-only flag",
+            Colors.YELLOW,
+        )
         return 1
 
     # Check and install dependencies
