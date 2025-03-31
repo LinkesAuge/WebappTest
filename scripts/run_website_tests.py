@@ -47,24 +47,33 @@ def ensure_node_installed():
     """Verify that Node.js and npm are installed."""
     print_header("Checking Node.js Installation")
 
+    node_installed = False
+    npm_installed = False
+
+    # Check Node.js
     try:
-        # Check Node.js
         node_version = subprocess.check_output(
             ["node", "--version"], stderr=subprocess.STDOUT, text=True
         ).strip()
         log(f"✓ Node.js is installed: {node_version}", Colors.GREEN)
+        node_installed = True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        log("✗ Node.js is not installed or not in the PATH", Colors.RED)
+        log("Please install Node.js from https://nodejs.org/", Colors.YELLOW)
 
-        # Check npm
+    # Check npm separately
+    try:
         npm_version = subprocess.check_output(
             ["npm", "--version"], stderr=subprocess.STDOUT, text=True
         ).strip()
         log(f"✓ npm is installed: {npm_version}", Colors.GREEN)
-
-        return True
+        npm_installed = True
     except (subprocess.CalledProcessError, FileNotFoundError):
-        log("✗ Node.js or npm is not installed or not in the PATH", Colors.RED)
-        log("Please install Node.js from https://nodejs.org/", Colors.YELLOW)
-        return False
+        log("✗ npm is not installed or not in the PATH", Colors.RED)
+        log("npm should be included with Node.js installation", Colors.YELLOW)
+        log("Try reinstalling Node.js or adding npm to your PATH", Colors.YELLOW)
+
+    return node_installed and npm_installed
 
 
 def ensure_dependencies(project_dir):

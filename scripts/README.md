@@ -44,8 +44,14 @@ npm run test:website:integration
 npm run test:website:e2e
 npm run test:website:coverage
 
-# Using the Windows batch file (Windows only)
+# Using the Windows batch file (from Command Prompt)
 run-tests [options]
+
+# Using the Windows batch file (from PowerShell)
+.\run-tests.bat [options]
+
+# Using the PowerShell script
+.\run-tests.ps1 [options]
 ```
 
 Options:
@@ -129,4 +135,12 @@ This script:
 - Python 3.6+
 - pytest (installed automatically if missing)
 - pytest-cov (for coverage reports, installed automatically if missing)
-- pytest-html (for HTML reports, installed automatically if missing) 
+- pytest-html (for HTML reports, installed automatically if missing)
+
+### Troubleshooting
+
+If you encounter issues running the tests:
+
+1. **Node.js/npm not found**: Ensure both Node.js and npm are installed and in your PATH
+2. **PowerShell execution error**: Run `.\run-tests.ps1` instead of just `run-tests`
+3. **Permission issues**: You may need to run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in PowerShell to allow script execution 
