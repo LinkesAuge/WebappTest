@@ -6,25 +6,39 @@
  */
 
 // Mock for initializeApp function
-export const initializeApp = jest.fn();
+export const initializeApp = jest.fn(() => {
+  // Load mock data
+  if (localStorage.getItem('preferredLanguage')) {
+    global.currentLanguage = localStorage.getItem('preferredLanguage');
+  } else {
+    global.currentLanguage = 'en';
+  }
+  
+  // Initialize app state
+  return true;
+});
 
 // Mock for renderDashboard function
-export const renderDashboard = jest.fn();
+export const renderDashboard = jest.fn(() => {
+  // Mock render dashboard functionality
+  return true;
+});
 
 // Mock for setupEventListeners function
 export const setupEventListeners = jest.fn();
 
 // Mock for player data processing
-export const processPlayerData = jest.fn(rawData => {
-  // Simple implementation that returns converted data
-  return rawData.map(player => ({
-    id: player.id || `player-${Math.floor(Math.random() * 1000)}`,
-    playerName: player.playerName || player.name,
-    totalScore: parseInt(player.totalScore || player.score || 0, 10),
-    chestCount: parseInt(player.chestCount || player.chests || 0, 10),
-    premium: player.premium === 'true' || player.premium === true,
-    lastActive: player.lastActive || new Date().toISOString(),
-    rank: 0, // Will be calculated during sorting
+export const processPlayerData = jest.fn((rawData) => {
+  if (!rawData || !rawData.length) return [];
+  
+  return rawData.map((row, index) => ({
+    id: row.id || `player-${index + 1}`,
+    playerName: row.playerName || row.name || `Player ${index + 1}`,
+    totalScore: row.totalScore || row.score || 0,
+    chestCount: row.chestCount || row.chests || 0,
+    premium: row.premium || row.isPremium || false,
+    lastActive: row.lastActive || new Date().toISOString(),
+    rank: 0  // Will be calculated later
   }));
 });
 
@@ -84,6 +98,23 @@ export const getText = jest.fn((key, replacements) => {
 });
 export const updateUIText = jest.fn();
 
+// Get translation for a key
+export const getTranslation = jest.fn((key) => {
+  if (!key) return '';
+  
+  // Get current language
+  const language = global.currentLanguage || 'en';
+  
+  // Get translations for current language
+  const translations = global.translations || {};
+  const languageTranslations = translations[language] || {};
+  
+  // Get translation or fallback to English or key
+  return languageTranslations[key] || 
+         (translations.en && translations.en[key]) || 
+         key;
+});
+
 // Export them all together for convenience
 export default {
   initializeApp,
@@ -97,4 +128,5 @@ export default {
   setLanguage,
   getText,
   updateUIText,
+  getTranslation,
 }; 

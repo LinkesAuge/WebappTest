@@ -1,42 +1,61 @@
 /**
- * Jest setup file for ChefScore Analytics Dashboard
+ * Jest Setup
  * 
- * This file is run before each test and sets up the testing environment
+ * This file is run before each test file to set up the environment.
  */
 
-// Import Jest DOM utilities to enhance the DOM testing capabilities
+// Import jest-dom additions
 import '@testing-library/jest-dom';
 
-// Create a mock for localStorage
-class LocalStorageMock {
-  constructor() {
-    this.store = {};
-  }
+// Set up mock for localStorage
+const localStorageMock = (() => {
+  let store = {};
+  
+  return {
+    getItem: jest.fn((key) => {
+      return store[key] || null;
+    }),
+    setItem: jest.fn((key, value) => {
+      store[key] = String(value);
+    }),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+    length: 0,
+    key: jest.fn((index) => null)
+  };
+})();
 
-  clear() {
-    this.store = {};
-  }
+// Add localStorage to global
+global.localStorage = localStorageMock;
 
-  getItem(key) {
-    return this.store[key] || null;
-  }
+// Mock for document.title
+Object.defineProperty(document, 'title', {
+  writable: true,
+  value: ''
+});
 
-  setItem(key, value) {
-    this.store[key] = String(value);
-  }
+// Mock fetch API
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    text: () => Promise.resolve('mock data'),
+    ok: true,
+    status: 200,
+    headers: new Map([['last-modified', new Date().toUTCString()]])
+  })
+);
 
-  removeItem(key) {
-    delete this.store[key];
-  }
-}
+// Set up global Chart mock (for chart.js)
+global.Chart = jest.fn().mockImplementation(() => ({
+  update: jest.fn(),
+  destroy: jest.fn(),
+  getDatasetMeta: jest.fn(() => ({ hidden: null }))
+}));
 
-// Set up local storage mock
-global.localStorage = new LocalStorageMock();
-
-// Mock window.alert
-global.alert = jest.fn();
-
-// Mock window.matchMedia
+// Mock matchMedia
 global.matchMedia = jest.fn().mockImplementation(query => ({
   matches: false,
   media: query,
@@ -45,20 +64,19 @@ global.matchMedia = jest.fn().mockImplementation(query => ({
   removeListener: jest.fn(),
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
-  dispatchEvent: jest.fn(),
+  dispatchEvent: jest.fn()
 }));
 
-// Mock chart.js
-jest.mock('chart.js', () => {
-  return {
-    Chart: jest.fn().mockImplementation(() => ({
-      update: jest.fn(),
-      destroy: jest.fn(),
-    })),
-    registerables: [],
-    register: jest.fn(),
-  };
+// Reset all mocks before each test
+beforeEach(() => {
+  jest.clearAllMocks();
+  localStorage.clear();
+  document.body.innerHTML = '';
+  document.title = '';
 });
+
+// Mock window.alert
+global.alert = jest.fn();
 
 // Mock console methods for testing logs
 global.console = {
@@ -77,14 +95,4 @@ document.body.innerHTML = `
   <div id="charts" class="view"></div>
   <div id="analytics" class="view"></div>
 </div>
-`;
-
-// Mock fetch API
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    status: 200,
-    json: () => Promise.resolve({}),
-    text: () => Promise.resolve('')
-  })
-); 
+`; 
