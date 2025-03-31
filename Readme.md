@@ -84,3 +84,96 @@ This specific version operates **entirely client-side**. It fetches its primary 
 ## 4. File Structure (Hosted)
 
 This version requires only two or three files to be hosted together:
+
+# ChefScore Analytics Dashboard
+
+A web application for analyzing chef performance data, scores, and trends.
+
+## Project Status
+
+The ChefScore Analytics Dashboard is currently in development. We've set up the testing infrastructure and are working on implementing the core features.
+
+### Current Status:
+- ✅ Testing infrastructure setup complete
+- ✅ Test types defined (Unit, Integration, E2E)
+- ✅ Basic test structure implemented
+- ⚠️ Some tests are still failing and need fixes
+- 🔄 Ongoing work to implement fixes and complete the testing framework
+
+## Project Structure
+
+```
+/
+├── app/                   # Application source code
+├── scripts/               # Utility scripts 
+├── tests/                 # Test files
+│   ├── e2e/               # End-to-end tests
+│   ├── fixtures/          # Test data and fixtures
+│   ├── helpers/           # Test utilities and mocks
+│   ├── integration/       # Integration tests
+│   └── unit/              # Unit tests
+├── memory-bank/           # Project documentation
+├── .babelrc               # Babel configuration
+├── .eslintrc              # ESLint configuration
+├── jest.config.js         # Jest configuration
+└── package.json           # Package dependencies
+```
+
+## Available Scripts
+
+In the project directory, you can run:
+
+### `npm test`
+
+Runs all the tests. The test types include:
+
+- **Unit Tests**: Test individual functions and components in isolation
+- **Integration Tests**: Test interactions between components
+- **End-to-End Tests**: Test the full application flow
+
+### `npm run test:unit`
+
+Runs only the unit tests.
+
+### `npm run test:integration`
+
+Runs only the integration tests.
+
+### `npm run test:e2e`
+
+Runs only the end-to-end tests.
+
+### `npm run test:coverage`
+
+Runs all tests and generates a coverage report.
+
+## Testing Status
+
+The testing infrastructure is set up, but several tests are still failing. The main issues are:
+
+1. **Chart Rendering Tests**: Need to properly mock the Chart.js library
+2. **Data Processing Tests**: Some type conversion issues in the test mocks
+3. **Mock Functions**: Need to ensure all mock functions are properly implemented
+
+## Testing Architecture
+
+The test architecture follows the approach outlined in `memory-bank/testing.md`. Key features include:
+
+- **Mocking Strategy**: Using Jest mock functions for API calls, localStorage, and external libraries
+- **Test Fixtures**: Sample data in JSON/CSV format for consistent test scenarios
+- **DOM Testing**: Using JSDOM for simulating browser environment
+
+## Troubleshooting
+
+If you encounter issues with running tests:
+
+1. Check that all dependencies are installed (`npm install`)
+2. Ensure your Node.js version is compatible (v14+ recommended)
+3. If encountering path issues on Windows, try using the `--no-cache` flag
+
+## Next Steps
+
+1. Fix failing tests
+2. Implement missing mock functions
+3. Increase test coverage to reach 95%+
+4. Integrate tests with CI/CD pipeline

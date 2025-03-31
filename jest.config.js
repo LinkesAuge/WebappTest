@@ -1,43 +1,55 @@
 /**
- * Jest configuration for ChefScore Analytics Dashboard
+ * Jest Configuration
+ * 
+ * This file configures Jest for the ChefScore Analytics Dashboard tests.
  */
 
 module.exports = {
-  // Set the test environment to jsdom (browser-like environment)
+  // The test environment that will be used for testing
   testEnvironment: 'jsdom',
   
-  // Enable ES modules
-  transform: {
-    // Process JS files with babel-jest
-    '^.+\\.(js|jsx)$': 'babel-jest',
-  },
-  
-  // Setup files run before each test
+  // Setup files to run before each test file
   setupFilesAfterEnv: ['<rootDir>/tests/helpers/setup.js'],
   
-  // Module file extensions for importing
-  moduleFileExtensions: ['js', 'json'],
-  
-  // Module name mapper for CSS/SCSS imports
+  // Mock files for styles and static assets
   moduleNameMapper: {
-    '\\.(css|less|scss|sass)$': '<rootDir>/tests/helpers/mocks.js',
+    '\\.(css|less|scss|sass)$': '<rootDir>/tests/helpers/styleMock.js',
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)$': '<rootDir>/tests/helpers/fileMock.js'
   },
   
-  // Directories where Jest should look for tests
-  testMatch: [
-    '**/tests/**/*.test.js',
+  // Don't transform node_modules except for certain packages
+  transformIgnorePatterns: [
+    '/node_modules/(?!(canvas)/)'
   ],
   
-  // Display individual test results with the test suite hierarchy
-  verbose: true,
+  // Global variables for tests
+  globals: {
+    IS_TEST_ENV: true
+  },
   
-  // Collect coverage information
+  // Files to include in coverage reports
   collectCoverageFrom: [
-    'js/**/*.js',
+    'src/**/*.js',
     '!**/node_modules/**',
-    '!**/vendor/**',
+    '!**/vendor/**'
   ],
   
-  // The directory where Jest should output its coverage files
-  coverageDirectory: 'coverage',
+  // Coverage thresholds
+  coverageThreshold: {
+    global: {
+      statements: 80,
+      branches: 75,
+      functions: 80,
+      lines: 80
+    }
+  },
+  
+  // Mock functions and modules
+  // This is particularly important for the Chart.js canvas context
+  modulePathIgnorePatterns: ['<rootDir>/node_modules/'],
+  
+  // Mock specific modules
+  moduleNameMapper: {
+    '^canvas$': '<rootDir>/tests/helpers/canvasMock.js'
+  }
 }; 

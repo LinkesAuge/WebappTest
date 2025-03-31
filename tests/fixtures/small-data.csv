@@ -1,0 +1,11 @@
+playerId,playerName,totalScore,chestsOpened,level,recipesMastered,restaurantsOwned,lastPlayed,skillTechnique,skillCreativity,skillPresentation,skillEfficiency,premiumStatus
+1001,Chef Alex,980,45,10,12,3,2023-12-15,92,85,90,88,true
+1002,Chef Bailey,820,32,8,9,2,2024-01-05,78,90,82,75,false
+1003,Chef Charlie,1050,51,11,15,4,2023-11-20,95,82,88,91,true
+1004,Chef Dakota,760,28,7,8,1,2024-01-10,72,85,79,68,false
+1005,Chef Emerson,890,38,9,10,2,2023-12-28,85,78,92,80,true
+1006,Chef Finley,950,42,10,11,3,2024-01-02,88,87,84,89,false
+1007,Chef Gray,710,25,6,7,1,2023-12-10,70,82,75,72,false
+1008,Chef Harper,1120,58,12,18,5,2023-11-15,93,91,94,90,true
+1009,Chef Indigo,830,35,8,9,2,2024-01-08,80,79,84,77,false
+1010,Chef Jordan,980,46,10,13,3,2023-12-20,89,86,91,85,true 
