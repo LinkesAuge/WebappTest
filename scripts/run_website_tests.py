@@ -14,6 +14,7 @@ import os
 import platform
 import subprocess
 import sys
+import json
 from pathlib import Path
 
 
@@ -44,7 +45,11 @@ def print_header(text):
 
 
 def ensure_node_installed():
-    """Verify that Node.js and npm are installed."""
+    """Verify that Node.js and npm are installed.
+
+    Returns:
+        tuple: (node_installed, npm_installed) - Boolean flags indicating if each is installed
+    """
     print_header("Checking Node.js Installation")
 
     node_installed = False
@@ -73,11 +78,19 @@ def ensure_node_installed():
         log("npm should be included with Node.js installation", Colors.YELLOW)
         log("Try reinstalling Node.js or adding npm to your PATH", Colors.YELLOW)
 
-    return node_installed and npm_installed
+    return node_installed, npm_installed
 
 
-def ensure_dependencies(project_dir):
-    """Ensure all necessary dependencies are installed."""
+def ensure_dependencies(project_dir, npm_available=True):
+    """Ensure all necessary dependencies are installed.
+
+    Args:
+        project_dir: Path to the project directory
+        npm_available: Whether npm is available
+
+    Returns:
+        bool: True if dependencies are available, False otherwise
+    """
     print_header("Checking Dependencies")
 
     # Check if package.json exists
@@ -89,6 +102,17 @@ def ensure_dependencies(project_dir):
     # Check for node_modules directory
     node_modules = project_dir / "node_modules"
     if not node_modules.exists():
+        if not npm_available:
+            log(
+                "✗ Node modules not found and npm is not available to install them",
+                Colors.RED,
+            )
+            log(
+                "Please install npm or run the script with --force-node-only after installing dependencies",
+                Colors.YELLOW,
+            )
+            return False
+
         log("Node modules not found. Installing dependencies...", Colors.YELLOW)
         try:
             subprocess.run(
@@ -106,13 +130,22 @@ def ensure_dependencies(project_dir):
     else:
         log("✓ Node modules found", Colors.GREEN)
 
-    # Check for testing libraries
+    # Check for jest
     jest_path = (
         node_modules
         / ".bin"
         / ("jest.cmd" if platform.system() == "Windows" else "jest")
     )
+
     if not jest_path.exists():
+        if not npm_available:
+            log("✗ Jest not found and npm is not available to install it", Colors.RED)
+            log(
+                "Please install npm or run the script with --force-node-only after installing dependencies",
+                Colors.YELLOW,
+            )
+            return False
+
         log("Jest not found. Installing testing dependencies...", Colors.YELLOW)
         try:
             subprocess.run(
@@ -140,8 +173,39 @@ def ensure_dependencies(project_dir):
     return True
 
 
-def run_tests(project_dir, args):
-    """Run the specified JavaScript tests."""
+def get_jest_config_from_package(package_json_path):
+    """Extract Jest configuration from package.json.
+
+    Args:
+        package_json_path: Path to package.json
+
+    Returns:
+        dict: Jest configuration or empty dict if not found
+    """
+    try:
+        with open(package_json_path, "r") as f:
+            package_data = json.load(f)
+
+        # Check for Jest config
+        if "jest" in package_data:
+            return package_data["jest"]
+    except Exception as e:
+        log(
+            f"Warning: Could not read jest config from package.json: {str(e)}",
+            Colors.YELLOW,
+        )
+
+    return {}
+
+
+def run_tests(project_dir, args, npm_available=True):
+    """Run the specified JavaScript tests.
+
+    Args:
+        project_dir: Path to the project directory
+        args: Command line arguments
+        npm_available: Whether npm is available
+    """
     # Determine test type
     test_type = None
     if args.unit:
@@ -158,13 +222,43 @@ def run_tests(project_dir, args):
     else:
         print_header(f"Running All Tests")
 
-    # Build the command
-    if test_type:
-        command = ["npm", "run", f"test:{test_type}"]
-    elif args.coverage:
-        command = ["npm", "run", "test:coverage"]
+    # Get the Jest binary path
+    jest_bin = (
+        project_dir
+        / "node_modules"
+        / ".bin"
+        / ("jest.cmd" if platform.system() == "Windows" else "jest")
+    )
+
+    # Build the command based on npm availability
+    command = []
+
+    if npm_available:
+        # Use npm when available
+        if test_type:
+            command = ["npm", "run", f"test:{test_type}"]
+        elif args.coverage:
+            command = ["npm", "run", "test:coverage"]
+        else:
+            command = ["npm", "test"]
     else:
-        command = ["npm", "test"]
+        # Direct Jest execution when npm is not available
+        log("npm not available, using Jest directly", Colors.YELLOW)
+
+        # Base command
+        command = ["node", str(jest_bin)]
+
+        # Add test pattern based on test type
+        if test_type == "unit":
+            command.extend(["--testMatch", "**/tests/unit/**/*.test.js"])
+        elif test_type == "integration":
+            command.extend(["--testMatch", "**/tests/integration/**/*.test.js"])
+        elif test_type == "e2e":
+            command.extend(["--testMatch", "**/tests/e2e/**/*.test.js"])
+
+        # Add coverage if needed
+        if args.coverage:
+            command.append("--coverage")
 
     # Add extra arguments if needed
     extra_args = []
@@ -173,8 +267,11 @@ def run_tests(project_dir, args):
     if args.watch:
         extra_args.append("--watch")
 
-    if extra_args:
+    if extra_args and npm_available:
         command.extend(["--", *extra_args])
+    elif extra_args:
+        # When using Jest directly, don't use the -- separator
+        command.extend(extra_args)
 
     log(f"Executing: {' '.join(command)}", Colors.BOLD)
     print()
@@ -264,16 +361,21 @@ def main():
     log(f"Working directory: {project_dir}", Colors.BLUE)
 
     # Check prerequisites
-    node_npm_status = ensure_node_installed()
-    if not node_npm_status and not args.force_node_only:
+    node_installed, npm_installed = ensure_node_installed()
+
+    if not node_installed:
+        log("Node.js is required to run the tests.", Colors.RED)
+        return 1
+
+    if not npm_installed and not args.force_node_only:
         log(
-            "\nTo continue with only Node.js, run with --force-node-only flag",
+            "\nTo continue with only Node.js (without npm), run with --force-node-only flag",
             Colors.YELLOW,
         )
         return 1
 
     # Check and install dependencies
-    if not ensure_dependencies(project_dir):
+    if not ensure_dependencies(project_dir, npm_installed):
         return 1
 
     # If --setup flag is provided, exit after setting up dependencies
@@ -282,7 +384,7 @@ def main():
         return 0
 
     # Run the tests
-    success = run_tests(project_dir, args)
+    success = run_tests(project_dir, args, npm_installed)
 
     return 0 if success else 1
 

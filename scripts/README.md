@@ -143,7 +143,9 @@ If you encounter issues running the tests:
 
 1. **Node.js/npm not found**: Ensure both Node.js and npm are installed and in your PATH
    - Run `.\scripts\fix-npm.ps1` to diagnose and fix npm path issues
-   - If npm is not available, you can use `--force-node-only` flag: `python scripts/run_website_tests.py --force-node-only`
+   - If npm is not available, you can use one of these alternatives:
+     - Python script with flag: `python scripts/run_website_tests.py --force-node-only`
+     - Direct Jest runner: `.\scripts\node-direct.ps1`
 
 2. **PowerShell execution error**: Run `.\run-tests.ps1` instead of just `run-tests`
 
@@ -165,4 +167,33 @@ The script will:
 - Verify if npm is in your PATH
 - Locate npm on your system if it's not in the PATH
 - Offer to add the correct directory to your PATH for the current session
-- Provide recommendations to fix npm installation issues 
+- Provide recommendations to fix npm installation issues
+
+### PowerShell Direct Jest Runner
+
+`node-direct.ps1` - A PowerShell script that runs Jest directly using Node.js, without requiring npm.
+
+```powershell
+# Run all tests with the direct runner
+.\scripts\node-direct.ps1
+
+# Run specific test types
+.\scripts\node-direct.ps1 --unit
+.\scripts\node-direct.ps1 --integration
+.\scripts\node-direct.ps1 --e2e
+.\scripts\node-direct.ps1 --coverage
+
+# Add Jest options
+.\scripts\node-direct.ps1 --verbose --watch
+```
+
+This script is especially useful when:
+- npm is not available in your PATH
+- You have Node.js installed but npm is missing or not working
+- You want to bypass npm to run tests directly
+
+The script automatically:
+- Detects if Node.js is installed
+- Checks if the node_modules directory exists
+- Verifies Jest is available 
+- Runs Jest directly with Node.js 
