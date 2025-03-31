@@ -15,7 +15,13 @@
     "test:py:validation": "python scripts/run_pytest.py --validation",
     "test:py:coverage": "python scripts/run_pytest.py --coverage",
     "test:all": "python scripts/run_all_tests.py",
-    "test:all:coverage": "python scripts/run_all_tests.py --coverage"
+    "test:all:coverage": "python scripts/run_all_tests.py --coverage",
+    "test:website": "python scripts/run_website_tests.py",
+    "test:website:unit": "python scripts/run_website_tests.py --unit",
+    "test:website:integration": "python scripts/run_website_tests.py --integration",
+    "test:website:e2e": "python scripts/run_website_tests.py --e2e",
+    "test:website:coverage": "python scripts/run_website_tests.py --coverage",
+    "test:setup": "python scripts/run_website_tests.py --setup"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.16",

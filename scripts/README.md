@@ -29,6 +29,36 @@ Options:
 - `--watch` - Run tests in watch mode
 - `--verbose` - Show detailed test output
 
+### Website Test Runner (Python)
+
+`run_website_tests.py` - A Python script specifically for running JavaScript tests for the website.
+
+```bash
+# Run directly with Python
+python scripts/run_website_tests.py [options]
+
+# Or using npm scripts
+npm run test:website
+npm run test:website:unit
+npm run test:website:integration
+npm run test:website:e2e
+npm run test:website:coverage
+
+# Using the Windows batch file (Windows only)
+run-tests [options]
+```
+
+Options:
+- `--unit` - Run only unit tests
+- `--integration` - Run only integration tests
+- `--e2e` - Run only end-to-end tests
+- `--coverage` - Run tests with coverage reporting
+- `--watch` - Run tests in watch mode
+- `--verbose` - Show detailed test output
+- `--setup` - Only check and set up dependencies without running tests
+
+This script automatically checks for Node.js and npm, installs dependencies if needed, and runs the tests in a single command.
+
 ### Python Test Runner
 
 `run_pytest.py` - A Python script for running Python tests with pytest.
