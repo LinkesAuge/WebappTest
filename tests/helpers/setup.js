@@ -74,10 +74,14 @@ global.mockContext = {
 // Mock for Chart.js
 jest.mock('chart.js', () => ({
   Chart: class {
-    constructor() {
+    constructor(ctx, config) {
+      this.ctx = ctx;
+      this.config = config;
+      
       return {
         destroy: jest.fn(),
-        update: jest.fn()
+        update: jest.fn(),
+        config: config
       };
     }
   }

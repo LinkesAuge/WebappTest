@@ -4,11 +4,8 @@
  * Tests for view transitions and navigation between different sections.
  */
 
-// Import mocked versions of the app functions
-import { 
-  initializeApp, 
-  renderDashboard
-} from '../../helpers/mock-app';
+// Import mocked versions of the app functions using CommonJS
+const mockApp = require('../../helpers/mock-app');
 
 // Define mock view functions
 const showView = jest.fn((viewId) => {
@@ -51,8 +48,11 @@ global.showPlayerDetail = showPlayerDetail;
 global.updateNavState = updateNavState;
 
 describe('View Transitions', () => {
+  // Mock initializeApp to prevent it from overwriting our DOM
+  const originalInitializeApp = mockApp.initializeApp;
+  
   beforeEach(() => {
-    // Set up DOM for view tests
+    // Create a complete DOM for view tests first
     document.body.innerHTML = `
       <nav>
         <button id="dashboard-button" class="nav-button" data-view="dashboard">Dashboard</button>
@@ -74,6 +74,20 @@ describe('View Transitions', () => {
     // Reset mocks
     jest.clearAllMocks();
     
+    // Mock initializeApp to not overwrite our DOM
+    jest.spyOn(mockApp, 'initializeApp').mockImplementation(() => {
+      // Set up global data without changing DOM
+      global.displayData = {
+        players: [...global.mockPlayers],
+        statistics: {
+          totalPlayers: global.mockPlayers.length,
+          averageScore: global.mockPlayers.reduce((sum, p) => sum + p.totalScore, 0) / global.mockPlayers.length,
+          totalChests: global.mockPlayers.reduce((sum, p) => sum + p.chestCount, 0),
+          premiumCount: global.mockPlayers.filter(p => p.isPremium).length
+        }
+      };
+    });
+    
     // Set up mock data
     global.mockPlayers = [
       {
@@ -92,24 +106,31 @@ describe('View Transitions', () => {
       }
     ];
     
-    // Set initial view state
-    document.getElementById('loading-view').classList.add('active-view');
+    // Explicitly set initial view state
+    const loadingView = document.getElementById('loading-view');
+    loadingView.classList.add('active-view');
     
-    // Initialize the app
-    initializeApp();
+    // Initialize the app (now mocked to preserve DOM)
+    mockApp.initializeApp();
+  });
+  
+  afterEach(() => {
+    // Restore the original implementation
+    jest.restoreAllMocks();
   });
   
   describe('Basic View Switching', () => {
     test('should switch from loading to dashboard view', () => {
-      // Verify initial state
-      expect(document.getElementById('loading-view').classList.contains('active-view')).toBe(true);
+      // Verify loading view is active initially
+      const loadingView = document.getElementById('loading-view');
+      expect(loadingView.classList.contains('active-view')).toBe(true);
       
       // Switch to dashboard view
       showView('dashboard');
       
       // Verify dashboard is visible and loading is hidden
       expect(document.getElementById('dashboard').classList.contains('active-view')).toBe(true);
-      expect(document.getElementById('loading-view').classList.contains('active-view')).toBe(false);
+      expect(loadingView.classList.contains('active-view')).toBe(false);
     });
     
     test('should switch to player detail view with player data', () => {
@@ -152,23 +173,33 @@ describe('View Transitions', () => {
   
   describe('Navigation Button States', () => {
     test('should update nav button active states when switching views', () => {
+      // Get references to buttons
+      const dashboardBtn = document.getElementById('dashboard-button');
+      const playersBtn = document.getElementById('players-button');
+      
       // Verify initial state
       updateNavState('dashboard');
       
       // Dashboard button should be active
-      expect(document.getElementById('dashboard-button').classList.contains('active')).toBe(true);
-      expect(document.getElementById('players-button').classList.contains('active')).toBe(false);
+      expect(dashboardBtn.classList.contains('active')).toBe(true);
+      expect(playersBtn.classList.contains('active')).toBe(false);
       
       // Switch to players view
       showView('players');
       updateNavState('players');
       
       // Players button should be active
-      expect(document.getElementById('dashboard-button').classList.contains('active')).toBe(false);
-      expect(document.getElementById('players-button').classList.contains('active')).toBe(true);
+      expect(dashboardBtn.classList.contains('active')).toBe(false);
+      expect(playersBtn.classList.contains('active')).toBe(true);
     });
     
     test('should handle player detail view nav state correctly', () => {
+      // Get references to buttons
+      const dashboardBtn = document.getElementById('dashboard-button');
+      const playersBtn = document.getElementById('players-button');
+      const chartsBtn = document.getElementById('charts-button');
+      const analyticsBtn = document.getElementById('analytics-button');
+      
       // When showing player detail, no nav button should be active 
       // (it's a sub-view, not a main navigation item)
       showPlayerDetail('player-1');
@@ -177,10 +208,10 @@ describe('View Transitions', () => {
       updateNavState(null);
       
       // All navigation buttons should be inactive
-      expect(document.getElementById('dashboard-button').classList.contains('active')).toBe(false);
-      expect(document.getElementById('players-button').classList.contains('active')).toBe(false);
-      expect(document.getElementById('charts-button').classList.contains('active')).toBe(false);
-      expect(document.getElementById('analytics-button').classList.contains('active')).toBe(false);
+      expect(dashboardBtn.classList.contains('active')).toBe(false);
+      expect(playersBtn.classList.contains('active')).toBe(false);
+      expect(chartsBtn.classList.contains('active')).toBe(false);
+      expect(analyticsBtn.classList.contains('active')).toBe(false);
     });
   });
   

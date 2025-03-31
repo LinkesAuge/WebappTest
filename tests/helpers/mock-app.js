@@ -75,7 +75,7 @@ const mockPlayers = [
 ];
 
 // Initialize the app
-export function initializeApp() {
+function initializeApp() {
   // Reset app state
   Object.assign(mockAppState, {
     currentView: 'dashboard',
@@ -192,7 +192,7 @@ export function initializeApp() {
 }
 
 // Render the dashboard
-export function renderDashboard() {
+function renderDashboard() {
   // Show dashboard view
   document.querySelectorAll('.view').forEach(view => view.classList.remove('active-view'));
   document.getElementById('dashboard').classList.add('active-view');
@@ -211,7 +211,7 @@ export function renderDashboard() {
 }
 
 // Render players table based on current filters and sort
-export function renderPlayersTable() {
+function renderPlayersTable() {
   const tableBody = document.getElementById('player-table-body');
   tableBody.innerHTML = '';
   
@@ -260,7 +260,7 @@ export function renderPlayersTable() {
 }
 
 // Show player detail
-export function showPlayerDetail(player) {
+function showPlayerDetail(player) {
   // Set selected player in app state
   mockAppState.selectedPlayer = player;
   
@@ -287,7 +287,7 @@ export function showPlayerDetail(player) {
 }
 
 // Filter players based on search string
-export function filterPlayers(players, filterValue) {
+function filterPlayers(players, filterValue) {
   if (!filterValue) return players;
   
   const lowerFilter = filterValue.toLowerCase();
@@ -297,7 +297,7 @@ export function filterPlayers(players, filterValue) {
 }
 
 // Sort players based on field and direction
-export function sortPlayers(players, field, direction) {
+function sortPlayers(players, field, direction) {
   return [...players].sort((a, b) => {
     let comparison = 0;
     
@@ -314,7 +314,7 @@ export function sortPlayers(players, field, direction) {
 }
 
 // Attach dashboard event listeners
-export function attachDashboardEventListeners() {
+function attachDashboardEventListeners() {
   // Filter input
   const filterInput = document.getElementById('player-filter');
   filterInput.addEventListener('input', (e) => {
@@ -366,7 +366,7 @@ export function attachDashboardEventListeners() {
 }
 
 // Mock render chart function
-export function renderPlayerChart(player, containerId) {
+function renderPlayerChart(player, containerId) {
   // Just a mock - the actual chart rendering is tested separately
   return { 
     type: 'radar',
@@ -450,7 +450,7 @@ const translations = {
 };
 
 // Initialize language
-export function initializeLanguage() {
+function initializeLanguage() {
   // Check localStorage for saved preference
   const savedLanguage = localStorage.getItem('tbAnalyzerLanguage');
   if (savedLanguage && translations[savedLanguage]) {
@@ -461,7 +461,7 @@ export function initializeLanguage() {
 }
 
 // Change language
-export function changeLanguage(langCode) {
+function changeLanguage(langCode) {
   if (!translations[langCode]) {
     console.error(`Language not supported: ${langCode}`);
     langCode = 'en'; // Fallback to English
@@ -510,8 +510,18 @@ export function changeLanguage(langCode) {
   });
 }
 
-// Export the app state and other helpers for testing
-export {
+// Export using CommonJS format
+module.exports = {
+  initializeApp,
+  renderDashboard,
+  renderPlayersTable,
+  showPlayerDetail,
+  filterPlayers,
+  sortPlayers,
+  attachDashboardEventListeners,
+  renderPlayerChart,
+  changeLanguage,
+  initializeLanguage,
   mockAppState,
   mockPlayers,
   translations

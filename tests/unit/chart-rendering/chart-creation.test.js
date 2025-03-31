@@ -5,13 +5,13 @@
  */
 
 // Import Chart.js for mocking
-import { Chart } from 'chart.js';
+const { Chart } = require('chart.js');
 
 // Import mocked versions of the app functions
-import { 
+const { 
   initializeApp,
   renderDashboard
-} from '../../helpers/mock-app';
+} = require('../../helpers/mock-app');
 
 // Define the chart functions that will be tested
 const getChartBaseOptions = jest.fn(() => {

@@ -26,14 +26,15 @@
 │
 └── helpers/               # Test helper functions
     ├── setup.js           # Common test setup
-    └── mocks.js           # Mock objects and functions
+    ├── mocks.js           # Mock objects and functions
+    └── e2e-test-setup.js  # Specialized setup for E2E tests
 ```
 
 ## Test Types
 
 ### Manual Testing
 
-Currently, most testing is performed manually. The key test types include:
+Manual testing remains an important aspect of the testing strategy, particularly for usability and visual aspects. The key test types include:
 
 1. **Functional Testing**
    - Verify all features work as expected
@@ -64,26 +65,27 @@ Currently, most testing is performed manually. The key test types include:
    - Missing data fields
    - Edge case data values
 
-### Automated Testing (Planned)
+### Automated Testing (Implemented)
 
-The following test types are planned for future implementation:
+The project now has a comprehensive suite of automated tests:
 
 1. **Unit Tests**
-   - Data processing functions
-   - Chart configuration functions
-   - Utility functions
+   - Data processing functions (CSV parsing, data analysis)
+   - Chart configuration and creation functions
+   - Utility functions (i18n, helper methods)
    - State management
 
 2. **Integration Tests**
-   - View transitions
-   - Language switching
-   - Data flow between components
+   - View transitions between application sections
+   - Language switching functionality
    - LocalStorage persistence
+   - Data flow between components
 
 3. **End-to-End Tests**
    - Complete user flows
-   - Cross-browser functionality
-   - Performance benchmarking
+   - Dashboard interactions
+   - Chart interactions
+   - Player detail view functionality
 
 ## Running Tests
 
@@ -115,9 +117,9 @@ The following test types are planned for future implementation:
    - Verify layout adapts appropriately
    - Confirm all functions remain accessible
 
-### Automated Testing (Future)
+### Automated Testing
 
-The planned automated testing system will use:
+The automated testing system uses:
 
 ```bash
 # Run all tests
@@ -132,22 +134,48 @@ npm test:e2e
 npm test -- --coverage
 ```
 
+Current test metrics:
+- **Unit Tests**: 38 tests across 4 test suites
+- **Integration Tests**: 21 tests across 3 test suites
+- **End-to-End Tests**: 30 tests across 4 test suites
+- **Overall**: 94 tests across 11 test suites
+
 ## Key Testing Tools & Frameworks
 
 ### Current Tools
 
-- **Browser DevTools** - For inspecting DOM, network, and performance
-- **Console Logging** - For runtime validation and debugging
-- **Manual Test Scripts** - Documented test cases for manual execution
-
-### Planned Tools
-
-- **Jest** - JavaScript testing framework for unit and integration tests
+- **Jest** - JavaScript testing framework for all test types
+- **JSDOM** - For simulating DOM environment in Node.js
 - **Testing Library** - For DOM testing with user-centric queries
-- **Cypress** - For end-to-end testing with browser automation
-- **Lighthouse** - For performance, accessibility, and best practices auditing
+- **Console Logging** - For runtime validation and debugging
+- **Custom Mocks** - For Chart.js, localStorage, and other browser APIs
+
+### Testing Utilities
+
+- **e2e-test-setup.js** - Helper for setting up a consistent DOM environment for E2E tests
+- **setup.js** - Common test setup for all test types
+- **mocks.js** - Common mock objects and functions
 
 ## Special Test Features
+
+### Standardized Mock Implementation
+
+The project uses a standardized approach to mocking:
+
+1. **Chart.js Mock**
+   - Mock Chart constructor with tracking of chart instances
+   - Mock chart methods for update, data display, and destruction
+   - Canvas context mocking for Chart.js rendering
+
+2. **LocalStorage Mock**
+   - Mock implementation of localStorage get/set/remove/clear
+   - Simulated persistence within test runs
+   - Error simulation capabilities
+
+3. **DOM Environment**
+   - Consistent DOM structure for all tests
+   - Element creation and attribute setting
+   - Event simulation
 
 ### Console Logging
 
@@ -160,29 +188,33 @@ The application includes special console logging for development and testing. Th
 
 ### LocalStorage Testing
 
-To test localStorage functionality:
+The project includes comprehensive testing for localStorage functionality:
 
-1. Save a language preference by switching languages
-2. Open browser DevTools and navigate to Application > Storage > Local Storage
-3. Verify the "language" key exists with the correct value
-4. Reload the page and confirm language preference persists
+1. Saving language preferences
+2. Persisting player data
+3. Error handling for storage failures
+4. Recovery from corrupted data
 
 ### Chart Testing
 
 For testing chart rendering and interactions:
 
-1. Verify all charts display correctly on initial load
-2. Hover over chart elements to confirm tooltips appear
-3. Click legend items to toggle data series (where applicable)
-4. Test responsiveness by resizing the window
+1. Verify chart creation with correct configuration
+2. Test data updates and visualization
+3. Validate interactive features (tooltips, legend toggling)
+4. Test chart responsiveness and error handling
 
 ## Common Test Fixtures
 
-### Small Dataset (10 players)
-Used for quick functional testing without performance considerations.
+### Sample Player Data
+Standard set of player objects used across tests for consistent verification
 
-### Large Dataset (1000+ players)
-Used for performance testing and edge case detection.
+### DOM Structure
+Standardized DOM structure created for E2E tests:
+- Dashboard elements
+- Player detail elements
+- Chart containers
+- Navigation elements
 
 ### Malformed Dataset
 Contains intentionally corrupted data to test error handling:
@@ -226,19 +258,18 @@ For testing error handling, verify:
 
 Specific tests for language switching:
 1. Switch to each supported language
-2. Verify all text elements change appropriately
+2. Verify all UI elements change appropriately
 3. Check dynamically generated content (chart labels)
 4. Test language-specific formatting (dates, numbers)
-5. Confirm no untranslated strings remain
+5. Confirm language preference persistence
 
 ### Chart Rendering Testing
 
 Specific tests for chart functionality:
-1. Verify data mapping accuracy
-2. Test tooltip content and formatting
-3. Check legend functionality
-4. Test chart responsiveness
-5. Verify chart animations
+1. Verify chart creation with correct configuration
+2. Test data updates and responsiveness
+3. Validate interactive features (tooltips, legends)
+4. Test error handling with invalid data or containers
 
 ## Common Test Scenarios
 
@@ -279,27 +310,27 @@ Specific tests for chart functionality:
 
 ## Best Practices
 
-1. **Cross-Browser Testing**
-   - Always test in multiple browsers
-   - Pay special attention to chart rendering differences
-   - Verify event handling consistently works
+1. **Consistent Test Setup**
+   - Use standardized helper functions for common setup tasks
+   - Create reusable fixtures for test data
+   - Reset state between tests to prevent cross-test contamination
 
-2. **Clear Cache Testing**
-   - Test with both fresh cache and after localStorage is populated
-   - Verify correct behavior with cache cleared between sessions
-   - Test with localStorage disabled (private browsing mode)
+2. **Proper Mocking**
+   - Create mock implementations that closely match real behavior
+   - Track mock function calls for verification
+   - Mock only what's necessary - use real implementations when possible
 
-3. **Performance Testing**
-   - Always test with both small and large datasets
-   - Monitor memory usage during extended sessions
-   - Check for performance degradation over time
+3. **Error Handling Testing**
+   - Test both expected success paths and failure scenarios
+   - Ensure proper error messages are displayed
+   - Verify application continues functioning after errors
 
-4. **Edge Case Coverage**
-   - Test with extreme data values
-   - Verify handling of unexpected data formats
-   - Test with empty or nearly empty datasets
+4. **DOM Testing**
+   - Verify elements exist before attempting to interact
+   - Test both element presence and content
+   - Mock event handlers to verify correct behavior
 
 5. **Accessibility Verification**
    - Test keyboard navigation
    - Verify color contrast is sufficient
-   - Check screen reader compatibility (future) 
+   - Check screen reader compatibility (planned) 

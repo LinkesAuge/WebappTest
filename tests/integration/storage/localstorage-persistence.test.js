@@ -7,6 +7,26 @@
 // Mock storage key
 const STORAGE_KEY = 'tbAnalyzerData';
 
+// Set up localStorage mock with Jest functions that simulate real behavior
+const storageMock = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn(key => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    removeItem: jest.fn(key => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    })
+  };
+})();
+
+// Set mocks before tests run
+Object.defineProperty(window, 'localStorage', { value: storageMock });
+
 // Create mock storage functions
 const saveDataToLocalStorage = jest.fn(() => {
   try {

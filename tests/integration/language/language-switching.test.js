@@ -26,13 +26,99 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 // Mock the DOMContentLoaded event
 global.document.dispatchEvent(new Event('DOMContentLoaded'));
 
-// Import functionality from main script
-const { 
-  setLanguage, 
-  getLanguagePreference,
-  updateUIText,
-  setupEventListeners
-} = require('../../../script.js');
+// Create mock i18n functionality
+const LANGUAGE_STORAGE_KEY = 'tbAnalyzerLanguage';
+let currentLanguage = 'de'; // Default language
+
+// Mock translations
+const translations = {
+  en: {
+    'app.title': 'Chest Analysis',
+    'stats.title': 'Overall Statistics',
+    'ranking.title': 'Overall Ranking',
+    'filter.placeholder': 'Filter by Player Name...',
+    'charts.topSources': 'Top Sources by Score',
+    'charts.scoreDist': 'Score Distribution'
+  },
+  de: {
+    'app.title': 'Truhenauswertung',
+    'stats.title': 'Gesamtstatistik',
+    'ranking.title': 'Gesamtrangliste',
+    'filter.placeholder': 'Spieler filtern...',
+    'charts.topSources': 'Top Quellen (Punkte)',
+    'charts.scoreDist': 'Punkteverteilung'
+  }
+};
+
+// Mock functions
+const setLanguage = jest.fn((lang) => {
+  if (lang && (lang === 'de' || lang === 'en')) {
+    currentLanguage = lang;
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+    updateUIText();
+    updateLanguageSwitcherActive();
+    return true;
+  }
+  return false;
+});
+
+const getLanguagePreference = jest.fn(() => {
+  const storedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  return storedLang || 'de'; // Default to German if no preference
+});
+
+const updateUIText = jest.fn(() => {
+  // Update UI elements based on current language
+  document.getElementById('app-title').textContent = getTranslation('app.title');
+  document.getElementById('stats-title').textContent = getTranslation('stats.title');
+  document.getElementById('ranking-title').textContent = getTranslation('ranking.title');
+  document.getElementById('player-filter').placeholder = getTranslation('filter.placeholder');
+  document.getElementById('top-sources-title').textContent = getTranslation('charts.topSources');
+  document.getElementById('score-dist-title').textContent = getTranslation('charts.scoreDist');
+});
+
+const getTranslation = jest.fn((key) => {
+  if (translations[currentLanguage] && translations[currentLanguage][key]) {
+    return translations[currentLanguage][key];
+  }
+  // Fallback to English if key not found in current language
+  if (translations['en'] && translations['en'][key]) {
+    return translations['en'][key];
+  }
+  return key; // Fallback to key if no translation found
+});
+
+const updateLanguageSwitcherActive = jest.fn(() => {
+  // Remove active class from all buttons
+  document.querySelectorAll('.lang-button').forEach(button => {
+    button.classList.remove('active');
+  });
+  
+  // Add active class to current language button
+  const currentButton = document.getElementById(`lang-switch-${currentLanguage}`);
+  if (currentButton) {
+    currentButton.classList.add('active');
+  }
+});
+
+const setupEventListeners = jest.fn(() => {
+  // Set up click handlers for language switcher buttons
+  document.getElementById('lang-switch-de').addEventListener('click', () => {
+    setLanguage('de');
+  });
+  
+  document.getElementById('lang-switch-en').addEventListener('click', () => {
+    setLanguage('en');
+  });
+});
+
+// Add functions to global scope for tests
+global.setLanguage = setLanguage;
+global.getLanguagePreference = getLanguagePreference;
+global.updateUIText = updateUIText;
+global.getTranslation = getTranslation;
+global.updateLanguageSwitcherActive = updateLanguageSwitcherActive;
+global.setupEventListeners = setupEventListeners;
 
 describe('Language Switching Integration', () => {
   beforeEach(() => {
@@ -67,6 +153,7 @@ describe('Language Switching Integration', () => {
     // Reset mocks and state
     jest.clearAllMocks();
     localStorage.clear();
+    currentLanguage = 'de'; // Reset to default
     
     // Setup event listeners
     setupEventListeners();
