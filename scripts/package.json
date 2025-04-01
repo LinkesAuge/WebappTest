@@ -1,0 +1,19 @@
+{
+  "name": "chefscore-scripts",
+  "version": "1.0.0",
+  "description": "Utility scripts for ChefScore Analytics Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "update": "node update_weeks_json.js",
+    "watch": "node watch_data_directory.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "private": true
+} 

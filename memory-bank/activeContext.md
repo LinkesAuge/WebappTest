@@ -2,71 +2,88 @@
 
 ## Current Work Focus
 
-The primary development focus for the ChefScore Analytics Dashboard is improving core functionality, expanding test coverage, and addressing bug fixes to ensure a stable, reliable application. We've successfully fixed all failing tests, with 94 tests now passing across 11 test suites (38 unit tests, 21 integration tests, and 30 end-to-end tests).
+We are enhancing the analytics capabilities of the ChefScore dashboard with additional features to analyze weekly changes in player performance. The application provides a responsive and interactive interface for visualizing Total Battle chest scores and other performance metrics.
 
 ## Recent Changes
 
-1. **Complete Test Framework Overhaul**: 
-   - Implemented comprehensive standardized test architecture
-   - Created `e2e-test-setup.js` helper for consistent test environment
-   - Developed robust mocking strategies for browser APIs
-   - Standardized DOM structure creation across test files
-   - Implemented proper error handling in test flows
+1. **Fixed Critical JavaScript Errors**:
+   - Fixed undefined `historySection` reference in `switchView` function
+   - Added missing `resetAnalyticsView` function implementation
+   - Implemented the `initWeeklyDataSystem` function to properly load and manage weekly data
+   - Fixed weekly data loading system by:
+     - Refactoring `detectAvailableWeeks` to not rely on `determineLatestWeek`
+     - Updating `loadWeekData` to use the existing `loadStaticCsvData` function
+     - Adding proper week selector implementation with date formatting
+     - Fixing duplicate variable declarations causing initialization errors
+   - Added missing translation keys for initialization error messages
+   - Updated DOM element references to include history-related UI elements
 
-2. **Mocking Improvements**:
-   - Created consistent Chart.js mock implementation
-   - Implemented reliable localStorage mock with proper error simulation
-   - Developed standardized DOM event simulation
-   - Added consistent console mocking for error testing
+2. **Automated Tooling and Testing Infrastructure**:
+   - Created update_weeks_json.js script for automatic updating of weeks.json when new weekly data is added
+   - Added batch file for easy execution of update tasks
+   - Improved console logging for easier debugging
 
-3. **Test Coverage Expansion**:
-   - Added tests for player detail error handling
-   - Expanded dashboard interaction tests (filtering, sorting, ranking)
-   - Created comprehensive chart interaction test suite
-   - Added responsive UI tests for mobile/desktop views
-
-4. **Bug Fixes**:
-   - Fixed localStorage persistence test issues
-   - Addressed language switching functionality tests
-   - Fixed view transitions tests
-   - Resolved chart interaction test problems
-   - Fixed player detail view rendering tests
-   - Corrected all dashboard interaction tests
+3. **Enhanced Error Handling**:
+   - Added proper error display functions with consistent messaging
+   - Implemented graceful fallbacks for missing data files
+   - Added better user feedback during initialization and loading processes
 
 ## Development Priorities
 
-1. **Stability**: Ensure all components function reliably under various conditions
-2. **Test Coverage**: Maintain 100% passing tests as new features are added
-3. **Performance**: Optimize for larger datasets without degrading user experience
-4. **Feature Completion**: Add remaining planned features from roadmap
-5. **Documentation**: Improve inline documentation and API references
+1. **More robust error handling** - The application has been enhanced with better error handling, particularly for missing data files and data loading edge cases
+2. **Automated tooling** - Tools have been created to streamline the weekly data update process
+3. **Comprehensive test coverage** - Test-driven development approach has been implemented for new features
+4. **User experience improvements** - Week selection UI has been improved with proper navigation and history view
+5. **Performance optimization** - Data caching mechanisms have been implemented to improve load times
 
 ## Key Decisions
 
-1. **Testing Strategy**:
-   - All tests follow standardized patterns for setup and teardown
-   - E2E tests use a consistent helper for environment setup
-   - Mock implementations closely simulate actual browser behavior
-   - Test files organize tests by functional area rather than individual functions
+1. **Test-driven development approach**: All new features are being built with tests first, ensuring reliability and maintainability.
+2. **Weekly data file organization**: Weekly data files follow a consistent naming pattern (`data_week_XX.csv`) and are indexed through a central `weeks.json` file.
+3. **Automation over manual processes**: An auto-updating script has been created to maintain the `weeks.json` file, reducing manual work.
+4. **Enhanced error handling**: All data loading functions now include robust error handling.
+5. **Browser compatibility focus**: The application has been tested across different browsers to ensure consistent functionality.
 
-2. **Error Handling**:
-   - All components include proper error handling
-   - Tests verify both success paths and error paths
-   - Error messages are user-friendly while providing diagnostic information
+## Implementation Plan
 
-## Communication Points
+The multi-week data feature has been successfully implemented following this phased approach:
 
-When discussing the project, emphasize:
+### Phase 1: ✅ COMPLETE
+- Created test data files and index structure
+- Built test infrastructure for data loading
 
-1. **Testing Completeness**: 94 automated tests now pass across all testing levels
-2. **Code Quality**: Standardized patterns for testing ensure consistent behavior
-3. **Reliability**: Comprehensive error handling ensures robustness
-4. **Maintainability**: Test helpers and utilities make adding new tests straightforward
+### Phase 2: ✅ COMPLETE
+- Implemented core week detection functionality
+- Added data loading functions for specific weeks
+- Created fallback mechanisms for weeks.json
+
+### Phase 3: ✅ COMPLETE
+- Built UI components for week selection
+- Added navigation between weekly data sets
+- Implemented caching for improved performance
+
+### Phase 4: ✅ COMPLETE
+- Created historical data processing functions
+- Built history view with trend visualization
+- Added player tracking across multiple weeks
+
+### Phase 5: ✅ COMPLETE
+- Added auto-updating scripts for weeks.json
+- Improved error handling and user feedback
+- Added comprehensive documentation
 
 ## Next Steps
 
-1. Add additional test coverage for edge cases
-2. Implement test coverage reporting
-3. Add performance testing for large datasets
-4. Continue implementing additional features as outlined in the roadmap
-5. Enhance test documentation with examples 
+1. **Performance Optimization**:
+   - Review loading sequences for potential performance improvements
+   - Optimize chart rendering for large datasets
+   - Implement lazy loading for history visualization components
+
+2. **Additional Analytics Features**:
+   - Implement player comparison tool
+   - Create advanced filtering capabilities for historical data
+   - Develop week-over-week change highlighting
+
+3. **User Experience Improvements**:
+   - Add tooltips and help text for new features
+   - Optimize mobile experience for History view 

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Week Data Feature Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    select {
+      padding: 5px;
+      margin: 10px 0;
+    }
+    .result {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Multi-Week Data Feature Test</h1>
+  
+  <div class="test-section">
+    <h2>Available Weeks Detection</h2>
+    <button id="testDetectWeeks">Test Detect Available Weeks</button>
+    <div class="result" id="detectWeeksResult">
+      <pre>Results will appear here...</pre>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Week Selection</h2>
+    <select id="weekSelector">
+      <option value="" disabled selected>Select a week...</option>
+    </select>
+    <button id="testLoadWeek">Load Selected Week</button>
+    <div class="result" id="loadWeekResult">
+      <pre>Results will appear here...</pre>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Historical Data</h2>
+    <button id="testLoadHistorical">Test Load Historical Data</button>
+    <div class="result" id="loadHistoricalResult">
+      <pre>Results will appear here...</pre>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Historical Stats</h2>
+    <button id="testCalculateStats">Test Calculate Historical Stats</button>
+    <div class="result" id="calculateStatsResult">
+      <pre>Results will appear here...</pre>
+    </div>
+  </div>
+  
+  <script>
+    // Wait for the main script to be loaded and initialized
+    window.addEventListener('load', function() {
+      // Store the available weeks
+      let availableWeeks = [];
+      let historicalData = [];
+      let historicalStats = null;
+      
+      // Function to display the result
+      function displayResult(elementId, data) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+      }
+      
+      // Test detecting available weeks
+      document.getElementById('testDetectWeeks').addEventListener('click', async function() {
+        try {
+          const result = await window.tbAnalyzer.detectAvailableWeeks();
+          availableWeeks = result;
+          displayResult('detectWeeksResult', result);
+          
+          // Populate the week selector
+          const weekSelector = document.getElementById('weekSelector');
+          weekSelector.innerHTML = '<option value="" disabled selected>Select a week...</option>';
+          
+          result.forEach(week => {
+            const option = document.createElement('option');
+            option.value = JSON.stringify(week);
+            option.textContent = `Week ${week.weekNumber} (${week.startDate} - ${week.endDate})`;
+            weekSelector.appendChild(option);
+          });
+        } catch (error) {
+          displayResult('detectWeeksResult', { error: error.message });
+        }
+      });
+      
+      // Test loading data for a specific week
+      document.getElementById('testLoadWeek').addEventListener('click', async function() {
+        try {
+          const weekSelector = document.getElementById('weekSelector');
+          if (!weekSelector.value) {
+            throw new Error('Please select a week first');
+          }
+          
+          const selectedWeek = JSON.parse(weekSelector.value);
+          const result = await window.tbAnalyzer.loadWeekData(selectedWeek);
+          displayResult('loadWeekResult', result.slice(0, 5)); // Show first 5 players only
+        } catch (error) {
+          displayResult('loadWeekResult', { error: error.message });
+        }
+      });
+      
+      // Test loading historical data
+      document.getElementById('testLoadHistorical').addEventListener('click', async function() {
+        try {
+          const result = await window.tbAnalyzer.loadHistoricalData();
+          historicalData = result;
+          displayResult('loadHistoricalResult', result.map(item => ({
+            week: item.week.weekNumber,
+            startDate: item.week.startDate,
+            endDate: item.week.endDate,
+            playerCount: item.data.length
+          })));
+        } catch (error) {
+          displayResult('loadHistoricalResult', { error: error.message });
+        }
+      });
+      
+      // Test calculating historical stats
+      document.getElementById('testCalculateStats').addEventListener('click', function() {
+        try {
+          if (!historicalData || historicalData.length === 0) {
+            throw new Error('Please load historical data first');
+          }
+          
+          const result = window.tbAnalyzer.calculateHistoricalStats(historicalData);
+          historicalStats = result;
+          displayResult('calculateStatsResult', {
+            totalPlayers: result.totalPlayers,
+            totalPointsAllWeeks: result.totalPointsAllWeeks,
+            totalChestsAllWeeks: result.totalChestsAllWeeks,
+            weeklyTotalsCount: result.weeklyTotals.length,
+            categoryTrendsCount: Object.keys(result.categoryTrends).length,
+            playerTrackingCount: Object.keys(result.playerTracking).length
+          });
+        } catch (error) {
+          displayResult('calculateStatsResult', { error: error.message });
+        }
+      });
+    });
+  </script>
+  
+  <!-- Include the main script -->
+  <script src="../script.js"></script>
+</body>
+</html> 

@@ -8,6 +8,24 @@
  *     Included in index.html via <script src="script.js" defer></script>
  */
 
+// Define TEXT_CONTENT globally to be accessible throughout the script
+const TEXT_CONTENT = {
+  de: {
+    no_weeks_found: "Keine Wochendaten gefunden. Bitte überprüfen Sie das Datenverzeichnis.",
+    no_current_week: "Keine aktuelle Woche identifiziert.",
+    init_weekly_data_error: "Fehler bei der Initialisierung der Wochendaten.",
+    loading_week_data: "Lade Daten für Woche {week}...",
+    week_data_load_error: "Fehler beim Laden der Daten für Woche {week}."
+  },
+  en: {
+    no_weeks_found: "No weekly data found. Please check data directory.",
+    no_current_week: "No current week identified.",
+    init_weekly_data_error: "Error initializing weekly data.",
+    loading_week_data: "Loading data for week {week}...",
+    week_data_load_error: "Error loading data for week {week}."
+  }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- CONFIGURATION CONSTANTS ---
   const CSV_FILE_PATH = "./data.csv";
@@ -16,6 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const LANG_STORAGE_KEY = "tbAnalyzerLanguage";
   const LOCALSTORAGE_DATA_KEY = "tbAnalyzerStoredData_Client_v2_Static";
   const CORE_COLUMNS = ["PLAYER", "TOTAL_SCORE", "CHEST_COUNT"]; // Non-analyzable columns
+  
+  // --- MULTI-WEEK CONFIGURATION CONSTANTS ---
+  const DATA_FOLDER_PATH = "./data";
+  const WEEKS_JSON_PATH = "./data/weeks.json";
+  const WEEK_FILE_PATTERN = "data_week_";
+  const DEFAULT_CSV_FILE_PATH = "./data.csv";
 
   // --- STATE VARIABLES ---
   let allPlayersData = []; // Holds the raw, cleaned data for all players
@@ -30,6 +54,21 @@ document.addEventListener("DOMContentLoaded", () => {
   let aggregateStats = {}; // Holds calculated overall statistics
   let currentPlayerData = null; // Holds data for the player being viewed in detail
   let dataLastModifiedTimestamp = null; // Timestamp from the 'Last-Modified' header of data.csv
+  
+  // --- MULTI-WEEK STATE VARIABLES ---
+  let availableWeeks = []; // Holds the list of available weeks
+  let mostRecentWeek = null; // Holds the most recent week object
+  let currentWeek = null; // Holds the currently selected week
+  let currentWeekNumber = null; // Holds the current week number
+  let playerData = []; // Holds the current week's player data
+  let historicalData = []; // Holds data from all weeks for historical analysis
+  let historicalStats = null; // Holds calculated statistics across all weeks
+  
+  // --- GLOBAL VARIABLES AND STATE ---
+  // let playerData = [];
+  // let availableWeeks = []; // Array to store available weeks
+  // let currentWeekNumber = null; // Current week number
+  
   // Holds references to active ApexCharts instances for proper updates/destruction
   let chartInstances = {
     player: null,
@@ -44,6 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
     scoreDistributionChartsPage: null,
     scoreVsChestsChartsPage: null,
     frequentSourcesChartsPage: null,
+    // Add keys for history charts
+    scoreTrendChart: null,
+    chestsTrendChart: null,
+    topPlayersChart: null,
+    categoryTrendChart: null,
   };
   let isInitialized = false; // Flag to prevent actions before the app is ready
 
@@ -52,121 +96,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const NUMERIC_FORMATTER = new Intl.NumberFormat("en-US");
 
   // --- i18n TEXT CONTENT ---
-  const TEXT_CONTENT = {
-    de: {
-      appTitle: "Truhenauswertung",
-      clanNameLiteral: "- The Chiller",
-      nav: {
-        dashboard: "Übersicht",
-        data: "Daten",
-        charts: "Diagramme",
-        analytics: "Analytik",
-        scoreSystem: "Punktesystem",
-      },
-      button: {
-        downloadCsv: "CSV Herunterladen",
-        viewLarger: "Vergrößern",
-        close: "Schließen",
-      },
-      dashboard: {
-        statsTitle: "Gesamtstatistik",
-        statPlayers: "Spieler",
-        statTotalScore: "Gesamtpunkte",
-        statTotalChests: "Gesamttruhen",
-        statAvgScore: "Punkte Ø",
-        statAvgChests: "Truhen Ø",
-        rankingTitle: "Gesamtrangliste",
-        filterPlaceholder: "Spieler filtern...",
-        chartTopSourcesTitle: "Top Quellen (Punkte)",
-        chartScoreDistTitle: "Punkteverteilung",
-        chartScoreVsChestsTitle: "Punkte vs. Truhen",
-        chartFreqSourcesTitle: "Häufigste Quellen (Anzahl)",
-        topChestsTitle: "Top 5 (Truhenanzahl)",
-      },
-      charts: {
-        title: "Diagrammübersicht",
-        loading: "Lade Diagramm...",
-        othersCategory: "Andere",
-        sourceLabel: "Quelle",
-        notEnoughDataRadar:
-          "Nicht genügend Kategoriedaten für Radar-Diagramm (mind. 3).",
-        scopeLabel: "Datenumfang:",
-        scopeOverall: "Gesamt",
-        scopeClan: "Clan (Aggregiert)",
-      },
-      analytics: {
-        title: "Analytik",
-        categoryTitle: "Kategorieanalyse",
-        selectCategoryLabel: "Kategorie auswählen:",
-        selectCategoryDefault: "-- Kategorie wählen --",
-        topPlayers: "Top Spieler",
-        distribution: "Verteilung",
-        selectCategoryPrompt: "Kategorie auswählen für Analyse.",
-        playerTitle: "Spieleranalyse",
-        playerPlaceholder: "Spielervergleiche / Detailanalysen folgen...",
-        clanTitle: "Clananalyse",
-        clanPlaceholder: "Aggregierte Clanstatistiken folgen...",
-      },
-      detailedTable: { title: "Gesamtdatentabelle" },
-      playerDetail: {
-        title: "Spielerdetails",
-        rank: "Rang",
-        totalScore: "Gesamtpunkte",
-        totalChests: "Gesamttruhen",
-        breakdownTitle: "Punkte nach Quelle",
-        performanceTitle: "Top Leistungskategorien",
-        downloadJson: "JSON Herunterladen",
-        noBreakdown: "Keine spezifischen Truhenpunkte vorhanden.",
-      },
-      scoreSystem: {
-        title: "Punktesystem",
-        loading: "Lade Punktesystem...",
-        headerTyp: "Typ",
-        headerLevel: "Level",
-        headerPunkte: "Punkte",
-      },
-      table: {
-        headerRank: "Rang",
-        headerPlayer: "Spieler",
-        headerTotalScore: "Gesamtpunkte",
-        headerChestCount: "Truhenanzahl",
-        headerScore: "Punkte",
-        headerChests: "Truhen",
-        noData: "Keine Daten geladen.",
-        noFilterMatch: "Keine Spieler entsprechen dem Filter.",
-        loading: "Lade...",
-        loadingDetailed: "Lade detaillierte Tabelle...",
-      },
-      status: {
-        initializing: "Initialisiere...",
-        loadingData: "Lade Daten von {0}...",
-        parsing: "Verarbeite CSV...",
-        processing: "Verarbeite Daten...",
-        saving: "Speichere Daten...",
-        loadingRules: "Lade Punktesystem von {0}...",
-        success: "Erfolgreich {0} Spieler verarbeitet.",
-        successRules: "Punktesystem geladen.",
-        error: "Fehler",
-        info: "Info",
-        dataLoadError:
-          "Daten konnten nicht geladen werden. Konsole prüfen oder sicherstellen, dass '{0}' existiert.",
-        parseError: "Fehler beim Parsen von {0}.",
-        processError: "Fehler bei Datenverarbeitung.",
-        renderError: "Fehler bei Anzeige.",
-        kvError: "Fehler beim Speichern/Laden.",
-        genericLoadError: "Fehler beim Laden der Daten: {0}",
-        chartError: "Diagramm konnte nicht geladen werden.",
-        generatingCsv: "Generiere CSV...",
-        downloadInitiated: "{0} Download gestartet.",
-        downloadError: "Fehler beim Generieren von {0} für Download.",
-        generatingJson: "Generiere JSON...",
-        noPlayerData: "Keine Spielerdaten ausgewählt.",
-        lastUpdatedLabel: "Datenstand:",
-        lastUpdatedUnavailable: "Datenstand nicht verfügbar",
-      },
-      modal: { close: "Schließen" },
-    },
-    en: {
+  // Merge additional translations into the existing TEXT_CONTENT object
+  // Beginning of file
+Object.assign(TEXT_CONTENT.de, {
+  appTitle: "Truhenauswertung",
+  clanNameLiteral: "- The Chiller",
+  nav: {
+    dashboard: "Übersicht",
+    data: "Daten",
+    charts: "Diagramme",
+    analytics: "Analytik",
+    scoreSystem: "Punktesystem",
+    history: "Historie"
+  },
+  // ... other German translations ...
+  week_data_load_error: "Fehler beim Laden der Daten für Woche {{week}}",
+  week_data_empty_error: "Keine Daten für Woche {{week}} verfügbar",
+  initialization_error: "Fehler bei der Initialisierung der Anwendung",
+  weekSelector: {
+    loading: "Lade Wochen...",
+    select: "Woche auswählen:"
+  },
+  // Add these lines from the bottom of the file
+  no_weeks_found: "Keine Wochendaten gefunden. Bitte überprüfen Sie das Datenverzeichnis.",
+  no_current_week: "Keine aktuelle Woche identifiziert.",
+  init_weekly_data_error: "Fehler bei der Initialisierung der Wochendaten.",
+  loading_week_data: "Lade Daten für Woche {week}...",
+  week_data_load_error: "Fehler beim Laden der Daten für Woche {week}."
+}, en: {
       appTitle: "Chest Analysis",
       clanNameLiteral: "- The Chiller",
       nav: {
@@ -175,6 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
         charts: "Charts",
         analytics: "Analytics",
         scoreSystem: "Score System",
+        history: "History"
       },
       button: {
         downloadCsv: "Download CSV",
@@ -262,6 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
         successRules: "Score system loaded.",
         error: "Error",
         info: "Info",
+        initError: "Error initializing application",
         dataLoadError:
           "Could not load analysis data. Check console or ensure '{0}' exists.",
         parseError: "Error parsing {0}.",
@@ -279,8 +238,62 @@ document.addEventListener("DOMContentLoaded", () => {
         lastUpdatedUnavailable: "Last updated time unavailable",
       },
       modal: { close: "Close" },
+      history: {
+        title: "Historical Data Analysis",
+        loading: "Loading historical data...",
+        totalWeeks: "Total Weeks",
+        totalPlayers: "Total Players",
+        totalPoints: "Total Points",
+        totalChests: "Total Chests",
+        avgPointsPerPlayer: "Avg. Points/Player",
+        avgChestsPerPlayer: "Avg. Chests/Player",
+        weeklyTotals: "Weekly Totals"
+      },
+      week: "Week",
+      date_range: "Date Range",
+      player_count: "Player Count",
+      total_points: "Total Points",
+      total_chests: "Total Chests",
+      avg_points_per_player: "Avg. Points/Player",
+      avg_chests_per_player: "Avg. Chests/Player",
+      score_trend_title: "Score Trend Over Time",
+      chests_trend_title: "Chests Trend Over Time",
+      top_players_all_time: "Top Players (All Time)",
+      category_trends_title: "Category Trends",
+      points: "Points",
+      chests: "Chests",
+      player: "Player",
+      value: "Value",
+      week_data_load_error: "Error loading data for week {{week}}",
+      week_data_empty_error: "No data available for week {{week}}",
+      initialization_error: "Error initializing application",
+      week: {
+        loading: "Loading weeks...",
+        select: "Select Week:"
+      },
     },
-  };
+  // Add these lines from the bottom of the file
+  no_weeks_found: "No weekly data found. Please check data directory.",
+  no_current_week: "No current week identified.",
+  init_weekly_data_error: "Error initializing weekly data.",
+  loading_week_data: "Loading data for week {week}...",
+  week_data_load_error: "Error loading data for week {week}."
+});
+
+  // Update TEXT_CONTENT to include all necessary error messages
+  TEXT_CONTENT.en.no_weeks_found = "No weekly data found. Please check data directory.";
+  TEXT_CONTENT.en.no_current_week = "No current week identified.";
+  TEXT_CONTENT.en.init_weekly_data_error = "Error initializing weekly data.";
+  TEXT_CONTENT.en.loading_week_data = "Loading data for week {week}...";
+  TEXT_CONTENT.en.week_data_load_error = "Error loading data for week {week}.";
+
+  TEXT_CONTENT.de.no_weeks_found = "Keine Wochendaten gefunden. Bitte überprüfen Sie das Datenverzeichnis.";
+  TEXT_CONTENT.de.no_current_week = "Keine aktuelle Woche identifiziert.";
+  TEXT_CONTENT.de.init_weekly_data_error = "Fehler bei der Initialisierung der Wochendaten.";
+  TEXT_CONTENT.de.loading_week_data = "Lade Daten für Woche {week}...";
+  TEXT_CONTENT.de.week_data_load_error = "Fehler beim Laden der Daten für Woche {week}.";
+});
+  
 
   // --- DOM ELEMENT REFERENCES ---
   // Declared globally, assigned in assignElementReferences
@@ -294,6 +307,23 @@ document.addEventListener("DOMContentLoaded", () => {
     breadcrumbCurrentPageName,
     emptyStateSection,
     dashboardSection,
+    historySection,
+    
+    // History section elements
+    historyLoadingIndicator,
+    historyContent,
+    historyTotalWeeks,
+    historyTotalPlayers,
+    historyTotalPoints,
+    historyTotalChests,
+    historyAvgPointsPerPlayer,
+    historyAvgChestsPerPlayer,
+    weeklyTotalsTable,
+    scoreTrendChart,
+    chestsTrendChart,
+    topPlayersChart,
+    categoryTrendChart,
+    
     statTotalPlayers,
     statTotalScore,
     statTotalChests,
@@ -376,6 +406,23 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       emptyStateSection = document.getElementById("empty-state-section");
       dashboardSection = document.getElementById("dashboard-section");
+      historySection = document.getElementById("history-section");
+      
+      // History section elements
+      historyLoadingIndicator = document.getElementById("history-loading-indicator");
+      historyContent = document.getElementById("history-content");
+      historyTotalWeeks = document.getElementById("history-total-weeks");
+      historyTotalPlayers = document.getElementById("history-total-players");
+      historyTotalPoints = document.getElementById("history-total-points");
+      historyTotalChests = document.getElementById("history-total-chests");
+      historyAvgPointsPerPlayer = document.getElementById("history-avg-points-per-player");
+      historyAvgChestsPerPlayer = document.getElementById("history-avg-chests-per-player");
+      weeklyTotalsTable = document.getElementById("weekly-totals-table");
+      scoreTrendChart = document.getElementById("score-trend-chart");
+      chestsTrendChart = document.getElementById("chests-trend-chart");
+      topPlayersChart = document.getElementById("top-players-chart");
+      categoryTrendChart = document.getElementById("category-trend-chart");
+      
       statTotalPlayers = document.getElementById("stat-total-players");
       statTotalScore = document.getElementById("stat-total-score");
       statTotalChests = document.getElementById("stat-total-chests");
@@ -403,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "detailed-table-container"
       );
       backToDashboardFromDetailedTable = document.getElementById(
-        "back-to-dashboard-from-detailed-table"
+        "back-to-dashboard-from-detail"
       );
       chartsSection = document.getElementById("charts-section");
       chartsTopSourcesContainer = document.getElementById(
@@ -515,41 +562,51 @@ document.addEventListener("DOMContentLoaded", () => {
    * Main application initialization function.
    */
   async function initializeApp() {
-    console.log("initializeApp started");
-    isInitialized = false;
-    showLoading(getText("status.initializing"));
-    currentLanguage = getLanguagePreference();
+    console.log("Initializing application...");
+    
+    // Set initial state
+    setStatus(getText("status.initializing"), "info");
+    
+    // Load language preference and initialize translations
+    currentLanguage = getLanguagePreference(); // Use the existing function instead
+    console.log(`Setting initial language to: ${currentLanguage}`);
+    document.documentElement.lang = currentLanguage;
     updateLanguageSwitcherUI();
-    updateUIText();
-
-    console.log("Awaiting data load...");
-    const [dataLoaded, rulesLoaded] = await Promise.all([
-      loadStaticCsvData(),
-      loadScoreRulesData(),
-    ]);
-    console.log(`Data loaded: ${dataLoaded}, Rules loaded: ${rulesLoaded}`);
-
-    if (dataLoaded) {
-      console.log("Data loaded, processing and switching to dashboard...");
-      calculateAggregateStats();
-      populateCategoryDropdown(allColumnHeaders);
-      displayLastUpdatedTimestamp();
-      updateHeaderButtonsVisibility();
-      switchView("dashboard"); // This will trigger the first render of the dashboard
-      setStatus(
-        getText("status.success", { 0: allPlayersData.length }),
-        "success",
-        3000
-      );
-    } else {
-      console.log(
-        "Data NOT loaded, updating visibility and switching to empty state..."
-      );
-      updateHeaderButtonsVisibility();
+    
+    initializeTranslations();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    try {
+      // Start with empty view
+      switchView("empty");
+      
+      // Initialize the weekly data system - this also loads allPlayersData
+      await initWeeklyDataSystem();
+      
+      // Load score rules data if needed
+      if (scoreRulesData.length === 0) {
+        await loadScoreRulesData();
+      }
+      
+      // Load historical data in the background
+      loadHistoricalDataInBackground();
+      
+      // If data loaded successfully, go to dashboard view
+      if (allPlayersData.length > 0) {
+        switchView("dashboard");
+      } else {
+        // If no data, show empty state
+        switchView("empty");
+      }
+    } catch (error) {
+      console.error("Error during initialization:", error);
+      setStatus(getText("status.initError"), "error");
       switchView("empty");
     }
-    hideLoading();
-    console.log("initializeApp finished");
+    
+    // Set initialized flag
     isInitialized = true;
   }
 
@@ -739,11 +796,12 @@ document.addEventListener("DOMContentLoaded", () => {
         analytics: "nav.analytics",
         "score-system": "nav.scoreSystem",
         detail: null, // Handled separately
+        history: "nav.history"
       };
       const currentKey = viewKeyMap[currentView];
       if (currentKey) {
         breadcrumbCurrentPageName.textContent = getText(currentKey);
-      } else if (currentView === "detail" && currentPlayerData) {
+      } else if (currentView === "detail" && params.playerName) {
         breadcrumbCurrentPageName.textContent = currentPlayerData.PLAYER; // Use player name for detail view
       }
     }
@@ -1023,241 +1081,317 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- VIEW MANAGEMENT ---
   /**
-   * Switches the visible content section and updates navigation state.
-   * @param {string} viewName - The identifier for the view to display.
-   * @param {object|null} [contextData=null] - Optional data for context-specific views.
+   * Switches to the specified view
+   * @param {string} viewName Name of the view to switch to
+   * @param {Object} [params] Optional parameters for the view
    */
-  function switchView(viewName, contextData = null) {
-    console.log(`Switching view to: ${viewName}`);
-
+  function switchView(viewName, params = {}) {
+    console.log(`Switching to view: ${viewName}`);
+    
     // Close mobile menu if open
     if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
       mobileMenu.classList.add("hidden");
-      if (mobileMenuButton)
+      if (mobileMenuButton) {
         mobileMenuButton.setAttribute("aria-expanded", "false");
-      if (
-        iconMenuClosed &&
-        iconMenuOpen &&
-        iconMenuClosed.classList.contains("hidden")
-      ) {
+      }
+      if (iconMenuClosed && iconMenuOpen && iconMenuClosed.classList.contains("hidden")) {
         iconMenuClosed.classList.remove("hidden");
         iconMenuClosed.classList.add("block");
         iconMenuOpen.classList.add("hidden");
         iconMenuOpen.classList.remove("block");
       }
     }
-
-    currentView = viewName; // Update state *before* rendering changes
-    // Hide all main sections
-    [
-      emptyStateSection,
+    
+    // Update current view
+    currentView = viewName;
+    
+    // Hide all view sections
+    const sections = [
       dashboardSection,
       detailSection,
       analyticsSection,
       chartsSection,
       scoreSystemSection,
       detailedTableSection,
-    ].forEach((section) => section?.classList.add("hidden"));
-    breadcrumbNav?.classList.add("hidden"); // Hide breadcrumb initially
-
-    // Remove active class from all nav links (both desktop and mobile)
-    navLinks.forEach((link) => link?.classList.remove("active"));
-
-    let activeDesktopNavLinkId = "";
-    let activeMobileNavLinkId = "";
-
-    try {
-      switch (viewName) {
-        case "dashboard":
-          if (dashboardSection) dashboardSection.classList.remove("hidden");
-          activeDesktopNavLinkId = "nav-dashboard";
-          activeMobileNavLinkId = "mobile-nav-dashboard";
-          // REMOVED 'isInitialized' check here.
-          // If switchView('dashboard') is called from initializeApp after successful
-          // data load, allPlayersData.length will be > 0.
-          // If called by user later after a failed load, this condition prevents render.
-          if (allPlayersData.length > 0) {
-            renderDashboard();
-          } else if (isInitialized) {
-            // This handles the case where init finished but data load failed.
-            console.log("Dashboard view switched, but no data to render.");
-            resetDashboardUI(); // Ensure stats/tables are empty
-            // Optional: set a status message if desired
-            // setStatus(getText("table.noData"), "info");
-          }
-          break;
-        case "detailed-table":
-          if (detailedTableSection)
-            detailedTableSection.classList.remove("hidden");
-          if (breadcrumbNav) breadcrumbNav.classList.remove("hidden");
-          if (breadcrumbCurrentPageName)
-            breadcrumbCurrentPageName.textContent = getText("nav.data");
-          activeDesktopNavLinkId = "nav-data";
-          activeMobileNavLinkId = "mobile-nav-data";
-          if (allPlayersData.length > 0) renderDetailedTable();
-          else {
-            setStatus(getText("table.noData"), "info");
-            if (detailedTableContainer)
-              detailedTableContainer.innerHTML = `<div class="text-center py-12 text-slate-500">${getText(
-                "table.noData"
-              )}</div>`;
-          }
-          break;
-        case "charts":
-          if (chartsSection) chartsSection.classList.remove("hidden");
-          if (breadcrumbNav) breadcrumbNav.classList.remove("hidden");
-          if (breadcrumbCurrentPageName)
-            breadcrumbCurrentPageName.textContent = getText("nav.charts");
-          activeDesktopNavLinkId = "nav-charts";
-          activeMobileNavLinkId = "mobile-nav-charts";
-          if (allPlayersData.length > 0) renderChartsView();
-          else {
-            setStatus(getText("table.noData"), "info");
-            if (chartsSection) {
-              chartsSection.innerHTML = `<h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="charts.title">${getText(
-                "charts.title"
-              )}</h2><p class="text-center text-slate-400 py-10">${getText(
-                "table.noData"
-              )}</p>`;
-            }
-          }
-          break;
-        case "analytics":
-          if (analyticsSection) analyticsSection.classList.remove("hidden");
-          if (breadcrumbNav) breadcrumbNav.classList.remove("hidden");
-          if (breadcrumbCurrentPageName)
-            breadcrumbCurrentPageName.textContent = getText("nav.analytics");
-          activeDesktopNavLinkId = "nav-analytics";
-          activeMobileNavLinkId = "mobile-nav-analytics";
-          if (allPlayersData.length === 0)
-            setStatus(getText("table.noData"), "info");
-          if (categorySelect?.value)
-            handleCategorySelect({ target: categorySelect });
-          else {
-            /* Reset analytics view if no category selected */
-            categoryAnalysisContent?.classList.add("hidden");
-            categoryPrompt?.classList.remove("hidden");
-            if (categoryRankingBody)
-              categoryRankingBody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-slate-500">${getText(
-                "analytics.selectCategoryPrompt"
-              )}</td></tr>`;
-            if (categoryChartContainer) categoryChartContainer.innerHTML = "";
-            if (categoryNameTable)
-              categoryNameTable.textContent = "[Category Name]";
-            if (categoryNameChart)
-              categoryNameChart.textContent = "[Category Name]";
-          }
-          break;
-        case "score-system":
-          if (scoreSystemSection) scoreSystemSection.classList.remove("hidden");
-          if (breadcrumbNav) breadcrumbNav.classList.remove("hidden");
-          if (breadcrumbCurrentPageName)
-            breadcrumbCurrentPageName.textContent = getText("nav.scoreSystem");
-          activeDesktopNavLinkId = "nav-score-system";
-          activeMobileNavLinkId = "mobile-nav-score-system";
-          if (scoreRulesData.length > 0) renderScoreRulesTable();
-          else {
-            if (scoreRulesTableContainer)
-              scoreRulesTableContainer.innerHTML = `<div class="spinner"></div><div class="text-center py-12 text-slate-500">${getText(
-                "scoreSystem.loading"
-              )}</div>`;
-            loadScoreRulesData().then((loaded) => {
-              if (loaded) renderScoreRulesTable();
-              else
-                setStatus(getText("scoreSystem.loading") + " Failed.", "error");
-            });
-          }
-          break;
-        case "detail":
-          if (contextData?.playerName) {
-            currentPlayerData = allPlayersData.find(
-              (p) => p.PLAYER === contextData.playerName
-            );
-            if (currentPlayerData) {
-              if (detailSection) detailSection.classList.remove("hidden");
-              if (breadcrumbNav) breadcrumbNav.classList.remove("hidden");
-              if (breadcrumbCurrentPageName)
-                breadcrumbCurrentPageName.textContent = contextData.playerName;
-              renderPlayerDetail(currentPlayerData, contextData.rank || "N/A");
-              renderPlayerChart(currentPlayerData);
-            } else {
-              /* Player not found - handle error */
-              console.error(
-                "Could not find player data for detail view:",
-                contextData.playerName
-              );
-              switchView("dashboard");
-              setStatus(
-                `Could not load details for ${contextData.playerName}`,
-                "error"
-              );
-            }
-          } else {
-            /* Context data missing - handle error */
-            console.error("Player name missing for detail view switch.");
-            switchView("dashboard");
-          }
-          activeDesktopNavLinkId = "";
-          activeMobileNavLinkId = ""; // No nav link active
-          break;
-        case "empty":
-          if (emptyStateSection) emptyStateSection.classList.remove("hidden");
-          activeDesktopNavLinkId = "";
-          activeMobileNavLinkId = "";
-          break;
-        case "chart_modal_active":
-          return; // Do nothing for modal pseudo-state
-        default: /* Unknown view */
-          console.warn(
-            `Unknown view name: ${viewName}. Switching to dashboard.`
-          );
-          if (dashboardSection) dashboardSection.classList.remove("hidden");
-          activeDesktopNavLinkId = "nav-dashboard";
-          activeMobileNavLinkId = "mobile-nav-dashboard";
-          if (isInitialized && allPlayersData.length > 0) renderDashboard();
-          break;
+      historySection
+    ];
+    
+    sections.forEach(section => {
+      if (section) {
+        section.classList.add("hidden");
       }
-    } catch (error) {
-      /* Handle errors during view switching */
-      console.error(`Error switching view to ${viewName}:`, error);
-      setStatus(`Error displaying ${viewName} view.`, "error");
-      if (viewName !== "dashboard") {
-        try {
-          switchView("dashboard");
-        } catch (e) {
-          /* Ignore fallback error */
+    });
+    
+    // Show breadcrumb for all views except dashboard and empty
+    if (breadcrumbNav) {
+      if (viewName === "dashboard" || viewName === "empty") {
+        breadcrumbNav.classList.add("hidden");
+      } else {
+        breadcrumbNav.classList.remove("hidden");
+        // Update breadcrumb text
+        if (breadcrumbCurrentPageName) {
+          const viewTextMap = {
+            "detailed-table": "nav.data",
+            "charts": "nav.charts",
+            "analytics": "nav.analytics",
+            "score-system": "nav.scoreSystem",
+            "history": "nav.history"
+          };
+          
+          if (viewTextMap[viewName]) {
+            breadcrumbCurrentPageName.textContent = getText(viewTextMap[viewName]);
+          } else if (viewName === "detail" && params.playerName) {
+            breadcrumbCurrentPageName.textContent = params.playerName;
+          }
         }
       }
     }
+    
+    // Remove active class from all nav links
+    const navLinks = document.querySelectorAll(".nav-link");
+    navLinks.forEach(link => {
+      link.classList.remove("active");
+    });
+    
+    // Set active class on relevant nav links
+    const desktopNavId = getNavIdForView(viewName, false);
+    const mobileNavId = getNavIdForView(viewName, true);
+    
+    const desktopNavElement = document.getElementById(desktopNavId);
+    const mobileNavElement = document.getElementById(mobileNavId);
+    
+    if (desktopNavElement) {
+      desktopNavElement.classList.add("active");
+    }
+    
+    if (mobileNavElement) {
+      mobileNavElement.classList.add("active");
+    }
 
-    // Set active class for desktop link
-    const activeDesktopLink = document.getElementById(activeDesktopNavLinkId);
-    if (activeDesktopLink) activeDesktopLink.classList.add("active");
-
-    // Set active class for mobile link
-    const activeMobileLink = document.getElementById(activeMobileNavLinkId);
-    if (activeMobileLink) activeMobileLink.classList.add("active");
-
-    // Update UI text (deferred)
-    setTimeout(updateUIText, 0);
-
-    // Clear transient status messages unless error
+    // Show and render the appropriate view
+    switch (viewName) {
+      case "dashboard":
+        if (dashboardSection) {
+          dashboardSection.classList.remove("hidden");
+        }
+        if (allPlayersData.length > 0) {
+          renderDashboard();
+        } else {
+          displayError(getText("table.noData"));
+        }
+        break;
+      case "detailed-table":
+        if (detailedTableSection) {
+          detailedTableSection.classList.remove("hidden");
+        }
+        if (allPlayersData.length > 0) {
+          renderDetailedTable();
+        } else {
+          displayError(getText("table.noData"));
+        }
+        break;
+      case "charts":
+        if (chartsSection) {
+          chartsSection.classList.remove("hidden");
+        }
+        if (allPlayersData.length > 0) {
+          renderChartsView();
+        } else {
+          displayError(getText("table.noData"));
+        }
+        break;
+      case "analytics":
+        if (analyticsSection) {
+          analyticsSection.classList.remove("hidden");
+        }
+        if (allPlayersData.length > 0) {
+          if (categorySelect?.value) {
+            handleCategorySelect({ target: categorySelect });
+          } else {
+            // Reset analytics view if no category selected
+            resetAnalyticsView();
+          }
+        } else {
+          displayError(getText("table.noData"));
+        }
+        break;
+      case "score-system":
+        if (scoreSystemSection) {
+          scoreSystemSection.classList.remove("hidden");
+        }
+        if (scoreRulesData.length > 0) {
+          renderScoreRulesTable();
+        } else {
+          loadScoreRulesData().then(loaded => {
+            if (loaded) {
+              renderScoreRulesTable();
+            } else {
+              displayError(getText("scoreSystem.loading") + " Failed.");
+            }
+          });
+        }
+        break;
+      case "detail":
+        if (params.playerName) {
+          const playerData = allPlayersData.find(p => p.PLAYER === params.playerName);
+          if (playerData && detailSection) {
+            currentPlayerData = playerData;
+            detailSection.classList.remove("hidden");
+            renderPlayerDetail(playerData, params.rank || "N/A");
+            renderPlayerChart(playerData);
+          } else {
+            console.error("Player not found:", params.playerName);
+            switchView("dashboard");
+            displayError(`Could not load details for ${params.playerName}`);
+          }
+        } else {
+          console.error("No player name provided for detail view");
+          switchView("dashboard");
+        }
+        break;
+      case "history":
+        if (historySection) {
+          historySection.classList.remove("hidden");
+        }
+        renderHistoryView();
+        break;
+      case "empty":
+        // No specific rendering needed
+        break;
+      default:
+        console.warn(`Unknown view: ${viewName}`);
+        switchView("dashboard");
+        return;
+    }
+    
+    // Update status area
     if (!statusArea?.classList.contains("text-red-500")) {
       setStatus("");
     }
-
-    // Scroll to top unless modal is involved
-    if (viewName !== "chart_modal_active") {
-      window.scrollTo(0, 0);
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+    
+    // Update UI text after view switch
+    setTimeout(updateUIText, 0);
+  }
+  
+  /**
+   * Gets the nav element ID for a given view
+   * @param {string} viewName The view name
+   * @param {boolean} isMobile Whether to get mobile or desktop ID
+   * @returns {string} The nav element ID
+   */
+  function getNavIdForView(viewName, isMobile) {
+    const prefix = isMobile ? "mobile-nav-" : "nav-";
+    const viewNavMap = {
+      "dashboard": "dashboard",
+      "detailed-table": "data",
+      "charts": "charts",
+      "analytics": "analytics",
+      "score-system": "score-system",
+      "history": "history",
+      "detail": "",
+      "empty": ""
+    };
+    
+    const suffix = viewNavMap[viewName] || "";
+    return suffix ? `${prefix}${suffix}` : "";
+  }
+  
+  /**
+   * Renders the history view with weekly stats and trend charts
+   */
+  function renderHistoryView() {
+    console.log("Rendering history view");
+    
+    // Show loading indicator
+    if (historyLoadingIndicator) {
+      historyLoadingIndicator.style.display = "block";
     }
+    
+    // Hide main content until data is ready
+    if (historyContent) {
+      historyContent.style.display = "none";
+    }
+    
+    // Return if no historical data loaded yet
+    if (!historicalData || historicalData.length === 0 || !historicalStats) {
+      console.log("Historical data not loaded yet, loading now");
+      
+      // Load historical data if not already loaded
+      loadHistoricalDataInBackground().then(() => {
+        // Check if still on history view after data loaded
+        if (currentView === "history") {
+          renderHistoryViewContent();
+        }
+      });
+      return;
+    }
+    
+    renderHistoryViewContent();
+  }
+  
+  /**
+   * Renders the content of the history view once data is available
+   */
+  function renderHistoryViewContent() {
+    console.log("Rendering history view content");
+    
+    // Hide loading indicator
+    if (historyLoadingIndicator) {
+      historyLoadingIndicator.style.display = "none";
+    }
+    
+    // Show main content
+    if (historyContent) {
+      historyContent.style.display = "block";
+    }
+    
+    // Render weekly totals table
+    renderWeeklyTotalsTable(historicalStats.weeklyTotals);
+    
+    // Render charts
+    renderScoreTrendChart(historicalStats.weeklyTotals);
+    renderChestsTrendChart(historicalStats.weeklyTotals);
+    renderTopPlayersChart(historicalStats.playerTracking);
+    renderCategoryTrendChart(historicalStats.categoryTrends);
+    
+    // Update summary statistics
+    updateHistorySummary();
+  }
+  
+  /**
+   * Updates the summary section on the history page
+   */
+  function updateHistorySummary() {
+    if (!historicalStats) return;
+    
+    // Update summary boxes
+    updateValueDisplay("history-total-weeks", historicalStats.weeklyTotals.length);
+    updateValueDisplay("history-total-players", historicalStats.totalPlayers);
+    updateValueDisplay("history-total-points", historicalStats.totalPointsAllWeeks);
+    updateValueDisplay("history-total-chests", historicalStats.totalChestsAllWeeks);
+    
+    // Calculate and display average points per player
+    const avgPointsPerPlayer = historicalStats.totalPlayers > 0
+      ? (historicalStats.totalPointsAllWeeks / historicalStats.totalPlayers).toFixed(2)
+      : 0;
+    updateValueDisplay("history-avg-points-per-player", avgPointsPerPlayer);
+    
+    // Calculate and display average chests per player
+    const avgChestsPerPlayer = historicalStats.totalPlayers > 0
+      ? (historicalStats.totalChestsAllWeeks / historicalStats.totalPlayers).toFixed(2)
+      : 0;
+    updateValueDisplay("history-avg-chests-per-player", avgChestsPerPlayer);
   }
 
   // --- STATUS/LOADING/ERROR HANDLING ---
   /**
-   * Updates the status message area.
+   * Sets a status message with optional type and duration.
    * @param {string} message - The message to display.
-   * @param {string} [type='info'] - The type of message ('info', 'success', 'error').
-   * @param {number} [duration=0] - How long to display the message (in ms). 0 = permanent.
+   * @param {string} type - The status type ('info', 'success', 'warning', 'error').
+   * @param {number} duration - Optional duration in ms, 0 for persistent.
    */
   function setStatus(message, type = "info", duration = 0) {
     if (!statusMessage || !loadingSpinner || !statusArea) return;
@@ -1267,12 +1401,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (type === "error") statusArea.classList.add("text-red-500");
     else if (type === "success") statusArea.classList.add("text-green-500");
     else statusArea.classList.add("text-slate-400");
-
+    
     if ((type === "success" || type === "info") && duration > 0) {
       setTimeout(() => {
         if (statusMessage.textContent === message) setStatus("");
       }, duration);
     }
+  }
+  
+  /**
+   * Display an error message in the status area
+   * @param {string} message - The error message to display
+   */
+  function displayError(message) {
+    console.error("Error:", message);
+    setStatus(message, "error", 0);
+  }
+  
+  /**
+   * Display a warning message in the status area
+   * @param {string} message - The warning message to display
+   */
+  function displayWarningMessage(message) {
+    console.warn("Warning:", message);
+    setStatus(message, "warning", 5000);
   }
   /** Displays the loading spinner and message. */
   function showLoading(message = "Loading...") {
@@ -4196,4 +4348,1226 @@ document.addEventListener("DOMContentLoaded", () => {
       chartInstances[instanceKey] = null;
     }
   }
+
+  // --- HISTORICAL DATA FUNCTIONS ---
+  
+  /**
+   * Loads data from all available weeks for historical analysis
+   * @returns {Promise<Array>} Promise resolving to an array of weekly data objects
+   */
+  async function loadHistoricalData() {
+    if (availableWeeks.length === 0) {
+      console.error("No weekly data available for historical analysis");
+      return [];
+    }
+    
+    const historicalDataArray = [];
+    
+    // Load data for each week
+    for (const week of availableWeeks) {
+      try {
+        const weekData = await loadWeekData(week);
+        if (weekData && weekData.length > 0) {
+          historicalDataArray.push({
+            week: week,
+            data: weekData
+          });
+        }
+      } catch (error) {
+        console.error(`Error loading historical data for week ${week.weekNumber}:`, error);
+      }
+    }
+    
+    // Sort by week number (ascending)
+    return historicalDataArray.sort((a, b) => a.week.weekNumber - b.week.weekNumber);
+  }
+  
+  /**
+   * Calculates statistics across all weeks
+   * @param {Array} historicalData Array of weekly data objects
+   * @returns {Object} Object containing statistics across weeks
+   */
+  function calculateHistoricalStats(historicalData) {
+    if (!historicalData || historicalData.length === 0) {
+      return null;
+    }
+    
+    // Initialize stats object
+    const stats = {
+      weeklyTotals: [], // Stats per week
+      playerTracking: {}, // Track players across weeks
+      totalPlayers: 0, // Unique players across all weeks
+      totalPointsAllWeeks: 0, // Sum of all points across all weeks
+      totalChestsAllWeeks: 0, // Sum of all chests across all weeks
+      categoryTrends: {}, // Trend data for each category across weeks
+    };
+    
+    // Process each week's data
+    historicalData.forEach(weekObj => {
+      const { week, data } = weekObj;
+      
+      // Weekly totals
+      const weekStats = {
+        weekNumber: week.weekNumber,
+        startDate: week.startDate,
+        endDate: week.endDate,
+        playerCount: data.length,
+        totalPoints: 0,
+        totalChests: 0,
+        avgPointsPerPlayer: 0,
+        avgChestsPerPlayer: 0,
+        categories: {}
+      };
+      
+      // Process player data for this week
+      data.forEach(player => {
+        // Add to weekly totals
+        weekStats.totalPoints += parseInt(player.TOTAL_SCORE, 10) || 0;
+        weekStats.totalChests += parseInt(player.CHEST_COUNT, 10) || 0;
+        
+        // Track players across weeks
+        if (!stats.playerTracking[player.PLAYER]) {
+          stats.playerTracking[player.PLAYER] = {
+            weeks: [],
+            totalScore: 0,
+            totalChests: 0
+          };
+        }
+        
+        // Add this week's data to player tracking
+        stats.playerTracking[player.PLAYER].weeks.push({
+          weekNumber: week.weekNumber,
+          score: parseInt(player.TOTAL_SCORE, 10) || 0,
+          chests: parseInt(player.CHEST_COUNT, 10) || 0
+        });
+        
+        // Update player's total stats
+        stats.playerTracking[player.PLAYER].totalScore += parseInt(player.TOTAL_SCORE, 10) || 0;
+        stats.playerTracking[player.PLAYER].totalChests += parseInt(player.CHEST_COUNT, 10) || 0;
+        
+        // Process category data
+        Object.keys(player).forEach(key => {
+          // Skip core columns
+          if (CORE_COLUMNS.includes(key)) return;
+          
+          const value = parseInt(player[key], 10) || 0;
+          
+          // Add to categories for this week
+          if (!weekStats.categories[key]) {
+            weekStats.categories[key] = 0;
+          }
+          weekStats.categories[key] += value;
+          
+          // Add to category trends
+          if (!stats.categoryTrends[key]) {
+            stats.categoryTrends[key] = [];
+          }
+          
+          // Find or create category data for this week
+          const existingWeekData = stats.categoryTrends[key].find(
+            item => item.weekNumber === week.weekNumber
+          );
+          
+          if (existingWeekData) {
+            existingWeekData.value += value;
+          } else {
+            stats.categoryTrends[key].push({
+              weekNumber: week.weekNumber,
+              weekLabel: `${i18n.t('week')} ${week.weekNumber}`,
+              value: value
+            });
+          }
+        });
+      });
+      
+      // Calculate averages
+      weekStats.avgPointsPerPlayer = weekStats.playerCount > 0 
+        ? (weekStats.totalPoints / weekStats.playerCount).toFixed(2) 
+        : 0;
+      weekStats.avgChestsPerPlayer = weekStats.playerCount > 0 
+        ? (weekStats.totalChests / weekStats.playerCount).toFixed(2) 
+        : 0;
+      
+      // Add to weekly totals array
+      stats.weeklyTotals.push(weekStats);
+      
+      // Add to overall totals
+      stats.totalPointsAllWeeks += weekStats.totalPoints;
+      stats.totalChestsAllWeeks += weekStats.totalChests;
+    });
+    
+    // Calculate total unique players
+    stats.totalPlayers = Object.keys(stats.playerTracking).length;
+    
+    // Sort category trends by week number
+    Object.keys(stats.categoryTrends).forEach(category => {
+      stats.categoryTrends[category].sort((a, b) => a.weekNumber - b.weekNumber);
+    });
+    
+    return stats;
+  }
+  
+  /**
+   * Renders the weekly totals table on the history page
+   * @param {Array} weeklyTotals Array of weekly statistics
+   */
+  function renderWeeklyTotalsTable(weeklyTotals) {
+    const tableContainer = document.getElementById("weekly-totals-table");
+    if (!tableContainer) return;
+    
+    // Create table
+    const table = document.createElement("table");
+    table.classList.add("min-w-full", "border-collapse", "bg-card");
+    
+    // Create header
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    
+    const headers = [
+      { id: "weekNumber", text: i18n.t('week') },
+      { id: "dateRange", text: i18n.t('date_range') },
+      { id: "playerCount", text: i18n.t('player_count') },
+      { id: "totalPoints", text: i18n.t('total_points') },
+      { id: "totalChests", text: i18n.t('total_chests') },
+      { id: "avgPointsPerPlayer", text: i18n.t('avg_points_per_player') },
+      { id: "avgChestsPerPlayer", text: i18n.t('avg_chests_per_player') }
+    ];
+    
+    headers.forEach(header => {
+      const th = document.createElement("th");
+      th.textContent = header.text;
+      th.dataset.column = header.id;
+      th.classList.add("py-2", "px-4", "text-left", "font-medium", "text-sm", "bg-slate-800", "text-white", "sticky", "top-0");
+      headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body
+    const tbody = document.createElement("tbody");
+    
+    weeklyTotals.forEach((week, index) => {
+      const row = document.createElement("tr");
+      row.classList.add(index % 2 === 0 ? "bg-slate-800/20" : "bg-slate-800/10");
+      
+      // Week number cell
+      const weekCell = document.createElement("td");
+      weekCell.textContent = `${i18n.t('week')} ${week.weekNumber}`;
+      weekCell.classList.add("py-2", "px-4", "text-sm");
+      row.appendChild(weekCell);
+      
+      // Date range cell
+      const dateRangeCell = document.createElement("td");
+      const startDate = new Date(week.startDate).toLocaleDateString(
+        currentLanguage === "de" ? "de-DE" : "en-US",
+        { day: '2-digit', month: '2-digit', year: 'numeric' }
+      );
+      const endDate = new Date(week.endDate).toLocaleDateString(
+        currentLanguage === "de" ? "de-DE" : "en-US",
+        { day: '2-digit', month: '2-digit', year: 'numeric' }
+      );
+      dateRangeCell.textContent = `${startDate} - ${endDate}`;
+      dateRangeCell.classList.add("py-2", "px-4", "text-sm");
+      row.appendChild(dateRangeCell);
+      
+      // Player count cell
+      const playerCountCell = document.createElement("td");
+      playerCountCell.textContent = week.playerCount;
+      playerCountCell.classList.add("py-2", "px-4", "text-sm", "text-right");
+      row.appendChild(playerCountCell);
+      
+      // Total points cell
+      const totalPointsCell = document.createElement("td");
+      totalPointsCell.textContent = formatNumber(week.totalPoints);
+      totalPointsCell.classList.add("py-2", "px-4", "text-sm", "text-right", "font-medium", "text-primary");
+      row.appendChild(totalPointsCell);
+      
+      // Total chests cell
+      const totalChestsCell = document.createElement("td");
+      totalChestsCell.textContent = formatNumber(week.totalChests);
+      totalChestsCell.classList.add("py-2", "px-4", "text-sm", "text-right", "font-medium");
+      row.appendChild(totalChestsCell);
+      
+      // Average points per player cell
+      const avgPointsCell = document.createElement("td");
+      avgPointsCell.textContent = formatNumber(week.avgPointsPerPlayer);
+      avgPointsCell.classList.add("py-2", "px-4", "text-sm", "text-right");
+      row.appendChild(avgPointsCell);
+      
+      // Average chests per player cell
+      const avgChestsCell = document.createElement("td");
+      avgChestsCell.textContent = formatNumber(week.avgChestsPerPlayer);
+      avgChestsCell.classList.add("py-2", "px-4", "text-sm", "text-right");
+      row.appendChild(avgChestsCell);
+      
+      tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    
+    // Clear container and append table
+    tableContainer.innerHTML = "";
+    tableContainer.appendChild(table);
+  }
+  
+  /**
+   * Renders the score trend chart on the history page
+   * @param {Array} weeklyTotals Array of weekly statistics
+   */
+  function renderScoreTrendChart(weeklyTotals) {
+    const chartElement = document.getElementById("score-trend-chart");
+    if (!chartElement) return;
+    
+    // Prepare data
+    const categories = weeklyTotals.map(week => `${i18n.t('week')} ${week.weekNumber}`);
+    const seriesData = weeklyTotals.map(week => week.totalPoints);
+    
+    // Destroy existing chart if it exists
+    if (chartInstances.scoreTrendChart) {
+      chartInstances.scoreTrendChart.destroy();
+    }
+    
+    // Create chart options
+    const options = {
+      series: [{
+        name: i18n.t('total_points'),
+        data: seriesData
+      }],
+      chart: {
+        type: 'line',
+        height: 350,
+        zoom: {
+          enabled: false
+        },
+        background: 'transparent',
+        toolbar: {
+          show: false
+        }
+      },
+      theme: {
+        mode: 'dark'
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      colors: ['#f59e0b'], // amber-500 for primary
+      dataLabels: {
+        enabled: true,
+        formatter: function(value) {
+          return formatNumber(value);
+        }
+      },
+      markers: {
+        size: 5
+      },
+      title: {
+        text: i18n.t('score_trend_title'),
+        align: 'center',
+        style: {
+          fontSize: '16px',
+          color: '#f59e0b' // amber-500 for primary
+        }
+      },
+      grid: {
+        borderColor: '#4b5563', // gray-600
+        row: {
+          colors: ['#1f2937', 'transparent'], // gray-800, transparent
+          opacity: 0.5
+        }
+      },
+      xaxis: {
+        categories: categories,
+        title: {
+          text: i18n.t('week')
+        }
+      },
+      yaxis: {
+        title: {
+          text: i18n.t('total_points')
+        },
+        labels: {
+          formatter: function(value) {
+            return formatNumber(value);
+          }
+        }
+      },
+      tooltip: {
+        y: {
+          formatter: function(value) {
+            return formatNumber(value) + " " + i18n.t('points');
+          }
+        }
+      }
+    };
+    
+    // Create chart
+    chartInstances.scoreTrendChart = new ApexCharts(chartElement, options);
+    chartInstances.scoreTrendChart.render();
+  }
+  
+  /**
+   * Renders the chests trend chart on the history page
+   * @param {Array} weeklyTotals Array of weekly statistics
+   */
+  function renderChestsTrendChart(weeklyTotals) {
+    const chartElement = document.getElementById("chests-trend-chart");
+    if (!chartElement) return;
+    
+    // Prepare data
+    const categories = weeklyTotals.map(week => `${i18n.t('week')} ${week.weekNumber}`);
+    const seriesData = weeklyTotals.map(week => week.totalChests);
+    
+    // Destroy existing chart if it exists
+    if (chartInstances.chestsTrendChart) {
+      chartInstances.chestsTrendChart.destroy();
+    }
+    
+    // Create chart options
+    const options = {
+      series: [{
+        name: i18n.t('total_chests'),
+        data: seriesData
+      }],
+      chart: {
+        type: 'line',
+        height: 350,
+        zoom: {
+          enabled: false
+        },
+        background: 'transparent',
+        toolbar: {
+          show: false
+        }
+      },
+      theme: {
+        mode: 'dark'
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      colors: ['#f97316'], // orange-500
+      dataLabels: {
+        enabled: true,
+        formatter: function(value) {
+          return formatNumber(value);
+        }
+      },
+      markers: {
+        size: 5
+      },
+      title: {
+        text: i18n.t('chests_trend_title'),
+        align: 'center',
+        style: {
+          fontSize: '16px',
+          color: '#f59e0b' // amber-500 for primary
+        }
+      },
+      grid: {
+        borderColor: '#4b5563', // gray-600
+        row: {
+          colors: ['#1f2937', 'transparent'], // gray-800, transparent
+          opacity: 0.5
+        }
+      },
+      xaxis: {
+        categories: categories,
+        title: {
+          text: i18n.t('week')
+        }
+      },
+      yaxis: {
+        title: {
+          text: i18n.t('total_chests')
+        },
+        labels: {
+          formatter: function(value) {
+            return formatNumber(value);
+          }
+        }
+      },
+      tooltip: {
+        y: {
+          formatter: function(value) {
+            return formatNumber(value) + " " + i18n.t('chests');
+          }
+        }
+      }
+    };
+    
+    // Create chart
+    chartInstances.chestsTrendChart = new ApexCharts(chartElement, options);
+    chartInstances.chestsTrendChart.render();
+  }
+  
+  /**
+   * Renders the top players chart on the history page
+   * @param {Object} playerTracking Object tracking players across weeks
+   */
+  function renderTopPlayersChart(playerTracking) {
+    const chartElement = document.getElementById("top-players-chart");
+    if (!chartElement) return;
+    
+    // Get top 10 players by total score
+    const topPlayers = Object.entries(playerTracking)
+      .map(([name, data]) => ({
+        name,
+        totalScore: data.totalScore
+      }))
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, 10);
+    
+    // Prepare data
+    const categories = topPlayers.map(player => player.name);
+    const seriesData = topPlayers.map(player => player.totalScore);
+    
+    // Destroy existing chart if it exists
+    if (chartInstances.topPlayersChart) {
+      chartInstances.topPlayersChart.destroy();
+    }
+    
+    // Create chart options
+    const options = {
+      series: [{
+        name: i18n.t('total_points'),
+        data: seriesData
+      }],
+      chart: {
+        type: 'bar',
+        height: 350,
+        background: 'transparent',
+        toolbar: {
+          show: false
+        }
+      },
+      theme: {
+        mode: 'dark'
+      },
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          dataLabels: {
+            position: 'top'
+          }
+        }
+      },
+      colors: ['#f59e0b'], // amber-500 for primary
+      dataLabels: {
+        enabled: true,
+        formatter: function(value) {
+          return formatNumber(value);
+        },
+        offsetX: 30,
+        style: {
+          fontSize: '12px',
+          colors: ['#fff']
+        }
+      },
+      title: {
+        text: i18n.t('top_players_all_time'),
+        align: 'center',
+        style: {
+          fontSize: '16px',
+          color: '#f59e0b' // amber-500 for primary
+        }
+      },
+      grid: {
+        borderColor: '#4b5563', // gray-600
+        row: {
+          colors: ['#1f2937', 'transparent'], // gray-800, transparent
+          opacity: 0.5
+        }
+      },
+      xaxis: {
+        categories: categories,
+        title: {
+          text: i18n.t('player')
+        },
+        labels: {
+          formatter: function(value) {
+            return formatNumber(value);
+          }
+        }
+      },
+      yaxis: {
+        title: {
+          text: i18n.t('total_points')
+        }
+      },
+      tooltip: {
+        y: {
+          formatter: function(value) {
+            return formatNumber(value) + " " + i18n.t('points');
+          }
+        }
+      }
+    };
+    
+    // Create chart
+    chartInstances.topPlayersChart = new ApexCharts(chartElement, options);
+    chartInstances.topPlayersChart.render();
+  }
+  
+  /**
+   * Renders the category trend chart on the history page
+   * @param {Object} categoryTrends Object with category trends data
+   */
+  function renderCategoryTrendChart(categoryTrends) {
+    const chartElement = document.getElementById("category-trend-chart");
+    if (!chartElement) return;
+    
+    // Get top 5 categories by total value across all weeks
+    const topCategories = Object.entries(categoryTrends)
+      .map(([category, data]) => ({
+        category,
+        totalValue: data.reduce((sum, item) => sum + item.value, 0)
+      }))
+      .sort((a, b) => b.totalValue - a.totalValue)
+      .slice(0, 5)
+      .map(item => item.category);
+    
+    // Prepare series data
+    const series = topCategories.map(category => ({
+      name: category,
+      data: categoryTrends[category].map(item => item.value)
+    }));
+    
+    // Get all week labels from the first category (all categories should have the same weeks)
+    const categories = categoryTrends[topCategories[0]].map(item => item.weekLabel);
+    
+    // Destroy existing chart if it exists
+    if (chartInstances.categoryTrendChart) {
+      chartInstances.categoryTrendChart.destroy();
+    }
+    
+    // Create chart options
+    const options = {
+      series: series,
+      chart: {
+        type: 'line',
+        height: 350,
+        zoom: {
+          enabled: false
+        },
+        background: 'transparent',
+        toolbar: {
+          show: false
+        }
+      },
+      theme: {
+        mode: 'dark'
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 2
+      },
+      markers: {
+        size: 4
+      },
+      title: {
+        text: i18n.t('category_trends_title'),
+        align: 'center',
+        style: {
+          fontSize: '16px',
+          color: '#f59e0b' // amber-500 for primary
+        }
+      },
+      grid: {
+        borderColor: '#4b5563', // gray-600
+        row: {
+          colors: ['#1f2937', 'transparent'], // gray-800, transparent
+          opacity: 0.5
+        }
+      },
+      xaxis: {
+        categories: categories,
+        title: {
+          text: i18n.t('week')
+        }
+      },
+      yaxis: {
+        title: {
+          text: i18n.t('value')
+        },
+        labels: {
+          formatter: function(value) {
+            return formatNumber(value);
+          }
+        }
+      },
+      legend: {
+        position: 'top'
+      },
+      tooltip: {
+        y: {
+          formatter: function(value) {
+            return formatNumber(value) + " " + i18n.t('points');
+          }
+        }
+      }
+    };
+    
+    // Create chart
+    chartInstances.categoryTrendChart = new ApexCharts(chartElement, options);
+    chartInstances.categoryTrendChart.render();
+  }
+
+  /**
+   * Initializes the application
+   */
+  async function init() {
+    console.log("Initializing application...");
+    
+    // Load language preference from localStorage
+    currentLanguage = getLanguagePreference(); // Use the existing function instead
+    console.log(`Setting initial language to: ${currentLanguage}`);
+    document.documentElement.lang = currentLanguage;
+    updateLanguageSwitcherUI();
+    
+    // Initialize i18next with translations
+    initializeTranslations();
+    
+    // Set up UI event listeners
+    setupEventListeners();
+    
+    // Set initial view to loading
+    switchView("loading");
+    
+    try {
+      // Initialize weekly data system (this will set allPlayersData)
+      await initWeeklyDataSystem();
+      
+      // Fetch score rules data
+      scoreRulesData = await fetchRulesData();
+      
+      // Store loaded data in localStorage for offline fallback
+      storeDataInLocalStorage();
+      
+      // If we have data, process and display it
+      if (allPlayersData.length > 0) {
+        // Load historical data in the background for the history page
+        loadHistoricalDataInBackground();
+        
+        // Switch to the overview view and render data
+        switchView("overview");
+      } else {
+        displayError(i18n.t('no_data_error'));
+      }
+    } catch (error) {
+      console.error("Error initializing application:", error);
+      displayError(i18n.t('initialization_error'));
+    }
+    
+    // Set initialized flag
+    isInitialized = true;
+  }
+  
+  /**
+   * Loads historical data in the background for the history page
+   */
+  async function loadHistoricalDataInBackground() {
+    try {
+      // Load historical data
+      historicalData = await loadHistoricalData();
+      
+      // Calculate historical statistics
+      historicalStats = calculateHistoricalStats(historicalData);
+      
+      console.log("Historical data loaded and processed");
+    } catch (error) {
+      console.error("Error loading historical data:", error);
+    }
+  }
+
+  /**
+   * Populates the week selector dropdown with available weeks
+   */
+  function populateWeekSelector() {
+    const weekSelector = document.getElementById("weekSelector");
+    const mobileWeekSelector = document.getElementById("mobileWeekSelector");
+    
+    if (!weekSelector && !mobileWeekSelector) return;
+    
+    // Clear existing options
+    if (weekSelector) {
+      weekSelector.innerHTML = "";
+    }
+    
+    if (mobileWeekSelector) {
+      mobileWeekSelector.innerHTML = "";
+    }
+    
+    // Add options for each available week
+    availableWeeks.forEach(week => {
+      // Format dates for display
+      const startDate = new Date(week.startDate).toLocaleDateString(
+        currentLanguage === "de" ? "de-DE" : "en-US", 
+        { day: '2-digit', month: '2-digit', year: 'numeric' }
+      );
+      const endDate = new Date(week.endDate).toLocaleDateString(
+        currentLanguage === "de" ? "de-DE" : "en-US", 
+        { day: '2-digit', month: '2-digit', year: 'numeric' }
+      );
+      
+      const optionText = `${i18n.t('week')} ${week.weekNumber} (${startDate} - ${endDate})`;
+      
+      // Create and add option to desktop selector
+      if (weekSelector) {
+        const option = document.createElement("option");
+        option.value = week.weekNumber;
+        option.textContent = optionText;
+        
+        // Select the current week
+        if (currentWeek && week.weekNumber === currentWeek.weekNumber) {
+          option.selected = true;
+        }
+        
+        weekSelector.appendChild(option);
+      }
+      
+      // Create and add option to mobile selector
+      if (mobileWeekSelector) {
+        const mobileOption = document.createElement("option");
+        mobileOption.value = week.weekNumber;
+        mobileOption.textContent = optionText;
+        
+        // Select the current week
+        if (currentWeek && week.weekNumber === currentWeek.weekNumber) {
+          mobileOption.selected = true;
+        }
+        
+        mobileWeekSelector.appendChild(mobileOption);
+      }
+    });
+    
+    // Add event listeners for week change
+    if (weekSelector) {
+      weekSelector.addEventListener("change", handleWeekChange);
+    }
+    
+    if (mobileWeekSelector) {
+      mobileWeekSelector.addEventListener("change", handleWeekChange);
+    }
+  }
+  
+  /**
+   * Handles the week selection change event
+   * @param {Event} event The change event
+   */
+  async function handleWeekChange(event) {
+    const selectedWeekNumber = parseInt(event.target.value, 10);
+    const selectedWeek = availableWeeks.find(week => week.weekNumber === selectedWeekNumber);
+    
+    if (selectedWeek) {
+      // Set the current week
+      currentWeek = selectedWeek;
+      
+      // Load data for the selected week
+      allPlayersData = await loadWeekData(selectedWeek);
+      
+      // Sync the other selector
+      const otherSelector = event.target.id === "weekSelector" 
+        ? document.getElementById("mobileWeekSelector") 
+        : document.getElementById("weekSelector");
+        
+      if (otherSelector) {
+        otherSelector.value = selectedWeekNumber;
+      }
+      
+      // Re-process and re-render everything
+      if (allPlayersData.length > 0) {
+        processDataAfterLoad();
+        renderCurrentView();
+      } else {
+        displayError(i18n.t('week_data_empty_error', { week: selectedWeekNumber }));
+      }
+    }
+  }
+
+  /**
+   * Updates a value display element with formatted number
+   * @param {string} elementId The ID of the element to update
+   * @param {number} value The value to display
+   */
+  function updateValueDisplay(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = formatNumber(value);
+    } else {
+      console.warn(`Element not found for updating value: ${elementId}`);
+    }
+  }
+
+  /**
+   * Gets a translated text string
+   * @param {string} key The translation key
+   * @param {Object} [params] Optional parameters for interpolation
+   * @returns {string} The translated text
+   */
+  function getText(key, params = {}) {
+    // Use the same implementation as the original getText function
+    const langContent =
+      TEXT_CONTENT[currentLanguage] || TEXT_CONTENT[DEFAULT_LANGUAGE];
+    let text = key.split(".").reduce((o, i) => o?.[i], langContent);
+    if (text === undefined) {
+      console.warn(`i18n key not found for lang '${currentLanguage}': ${key}`);
+      const defaultContent = TEXT_CONTENT[DEFAULT_LANGUAGE];
+      text = key.split(".").reduce((o, i) => o?.[i], defaultContent);
+      if (text === undefined) {
+        console.error(`i18n key "${key}" missing in both languages!`);
+        return `[${key}]`;
+      }
+    }
+    
+    // Handle replacements if provided
+    if (params && Object.keys(params).length > 0) {
+      Object.entries(params).forEach(([rKey, rValue]) => {
+        const placeholder = `{${rKey}}`;
+        text = text.replace(
+          new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g"),
+          String(rValue)
+        );
+      });
+    }
+    
+    return text;
+  }
+  
+  /**
+   * Initialize translations and i18n functionality
+   * This function is a placeholder since we're using our own getText implementation
+   * rather than a full i18n library
+   */
+  function initializeTranslations() {
+    console.log("Initializing translations for language:", currentLanguage);
+    // In this implementation, we're using the TEXT_CONTENT object directly 
+    // rather than initializing an external i18n library
+    
+    // Create compatibility layer for i18n.t() calls
+    window.i18n = {
+      t: function(key, params = {}) {
+        return getText(key, params);
+      }
+    };
+    
+    // Update UI text based on current language
+    updateUIText();
+  }
+
+  // --- MULTI-WEEK DATA HANDLING FUNCTIONS ---
+
+  /**
+   * Detects available weeks data files from weeks.json
+   * Returns an array of weeks, with each week having properties:
+   * - week: number (the week number)
+   * - file: string (the filename for the CSV data)
+   * - current: boolean (whether this is the current week)
+   * - start: string (optional start date)
+   * - end: string (optional end date)
+   * @returns {Promise<Array>} Promise resolving to an array of week objects
+   */
+  async function detectAvailableWeeks() {
+    console.log("Detecting available weeks...");
+    let weeks = [];
+    
+    try {
+      // Try to load from weeks.json first
+      const response = await fetch('./data/weeks.json');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch weeks.json: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (Array.isArray(data) && data.length > 0) {
+        weeks = data;
+        console.log(`Found ${weeks.length} weeks in weeks.json`);
+        
+        // Find the current week or the most recent one
+        availableWeeks = weeks;
+        let currentWeek = weeks.find(w => w.current === true);
+        
+        if (!currentWeek) {
+          // Find the week with the highest number
+          currentWeek = weeks.reduce((highest, week) => 
+            (week.week > highest.week) ? week : highest, weeks[0]);
+          console.log(`No current week flagged, using most recent: Week ${currentWeek.week}`);
+        } else {
+          console.log(`Found current week: Week ${currentWeek.week}`);
+        }
+        
+        // Set the global current week
+        currentWeekNumber = currentWeek.week;
+        return weeks;
+      } else {
+        throw new Error("No weeks found in weeks.json or invalid format");
+      }
+    } catch (error) {
+      console.warn(`Error detecting weeks from weeks.json: ${error.message}`);
+      console.log("Falling back to probing for week files...");
+      
+      // Fallback to probing for specific week files
+      const weekNumbers = [13, 14, 15]; // Define the weeks we want to check
+      
+      for (const weekNum of weekNumbers) {
+        const filename = `data_week_${weekNum}.csv`;
+        try {
+          const response = await fetch(`./data/${filename}`);
+          
+          if (response.ok) {
+            console.log(`Found week ${weekNum} file: ${filename}`);
+            weeks.push({
+              week: weekNum,
+              file: filename,
+              current: false // We'll set the highest as current later
+            });
+          }
+        } catch (probeError) {
+          console.warn(`Error probing for week ${weekNum}: ${probeError.message}`);
+        }
+      }
+      
+      if (weeks.length > 0) {
+        // Set the highest week number as the current week
+        weeks.sort((a, b) => b.week - a.week);
+        weeks[0].current = true;
+        currentWeekNumber = weeks[0].week;
+        console.log(`Set week ${currentWeekNumber} as current week from probing`);
+        availableWeeks = weeks;
+        return weeks;
+      }
+      
+      console.error("No week data files found through probing");
+      return [];
+    }
+  }
+
+  /**
+   * Loads data for a specific week
+   * @param {number} weekNumber The week number to load
+   * @returns {Promise<boolean>} Promise resolving to true if loading was successful
+   */
+  async function loadWeekData(weekNumber) {
+    if (!weekNumber) {
+      console.error("Invalid week number");
+      return false; // Fallback to default CSV
+    }
+    
+    try {
+      // Find the week object in availableWeeks
+      const weekObj = availableWeeks.find(w => w.week === weekNumber);
+      
+      if (!weekObj || !weekObj.file) {
+        console.error(`Week ${weekNumber} not found in available weeks or missing file property`);
+        return false;
+      }
+      
+      // Set the CSV_FILE_PATH to the week's file path
+      const originalPath = CSV_FILE_PATH;
+      CSV_FILE_PATH = `./data/${weekObj.file}`;
+      
+      // Use the existing loadStaticCsvData function to load the CSV
+      const success = await loadStaticCsvData();
+      
+      // Restore original path
+      CSV_FILE_PATH = originalPath;
+      
+      return success;
+    } catch (error) {
+      console.error(`Error loading data for week ${weekNumber}:`, error);
+      displayWarningMessage(getText('week_data_load_error', {week: weekNumber}));
+      return false;
+    }
+  }
+
+  // Expose functions for testing
+  window.tbAnalyzer = {
+    detectAvailableWeeks,
+    loadWeekData,
+    loadHistoricalData,
+    calculateHistoricalStats,
+    renderWeeklyTotalsTable,
+    renderScoreTrendChart,
+    renderChestsTrendChart,
+    renderTopPlayersChart,
+    renderCategoryTrendChart
+  };
+
+  /**
+   * Resets the analytics view to its initial state
+   */
+  function resetAnalyticsView() {
+    if (categorySelect) {
+      categorySelect.value = "";
+    }
+    if (categoryAnalysisContent) {
+      categoryAnalysisContent.classList.add("hidden");
+    }
+    if (categoryPrompt) {
+      categoryPrompt.classList.remove("hidden");
+    }
+    // Clear any existing data in the ranking table
+    if (categoryRankingBody) {
+      categoryRankingBody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-slate-500" data-i18n-key="analytics.selectCategoryPrompt">${getText("analytics.selectCategoryPrompt")}</td></tr>`;
+    }
+  }
+
+  /**
+   * Initialize and load the weekly data
+   * Detects available weeks and loads the current week's data
+   * @returns {Promise<boolean>} Promise resolving to true if initialization was successful
+   */
+  async function initWeeklyDataSystem() {
+    try {
+      // Detect available weeks
+      const weeks = await detectAvailableWeeks();
+      
+      if (!weeks || weeks.length === 0) {
+        console.error("No weeks found during initialization");
+        displayError(getText('no_weeks_found'));
+        return false;
+      }
+      
+      console.log(`Weekly data system initialized with ${weeks.length} weeks`);
+      
+      // Update week selectors in the UI (if they exist)
+      updateWeekSelectors(weeks);
+      
+      // Load data for the current week
+      if (currentWeekNumber) {
+        console.log(`Loading data for current week: ${currentWeekNumber}`);
+        return await loadWeekData(currentWeekNumber);
+      } else {
+        console.error("No current week identified");
+        displayWarningMessage(getText('no_current_week'));
+        return false;
+      }
+    } catch (error) {
+      console.error("Error initializing weekly data system:", error);
+      displayError(getText('init_weekly_data_error'));
+      return false;
+    }
+  }
+  
+  /**
+   * Updates week selectors in the UI with available weeks
+   * @param {Array} weeks Array of week objects
+   */
+  function updateWeekSelectors(weeks) {
+    // Find all week selector elements
+    const weekSelectors = document.querySelectorAll('.week-selector');
+    
+    if (weekSelectors.length === 0) {
+      console.log("No week selectors found in the UI");
+      return;
+    }
+    
+    // Sort weeks by week number (descending)
+    const sortedWeeks = [...weeks].sort((a, b) => b.week - a.week);
+    
+    weekSelectors.forEach(selector => {
+      // Clear existing options
+      selector.innerHTML = '';
+      
+      // Add options for each week
+      sortedWeeks.forEach(week => {
+        const option = document.createElement('option');
+        option.value = week.week;
+        
+        // Create label (Week 15: Apr 10-16, 2023)
+        let label = `Week ${week.week}`;
+        if (week.start && week.end) {
+          label += `: ${formatDateRange(week.start, week.end)}`;
+        }
+        
+        option.textContent = label;
+        option.selected = week.current === true;
+        selector.appendChild(option);
+      });
+      
+      // Add event listener to load selected week
+      selector.addEventListener('change', async (e) => {
+        const selectedWeek = parseInt(e.target.value, 10);
+        if (selectedWeek) {
+          displayLoadingMessage(getText('loading_week_data', {week: selectedWeek}));
+          await loadWeekData(selectedWeek);
+          currentWeekNumber = selectedWeek;
+          // Refresh the view with the new data
+          refreshCurrentView();
+        }
+      });
+    });
+  }
+  
+  /**
+   * Formats a date range for display in the UI
+   * @param {string} startDate Start date string
+   * @param {string} endDate End date string
+   * @returns {string} Formatted date range
+   */
+  function formatDateRange(startDate, endDate) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Format: Apr 10-16, 2023
+      const startMonth = start.toLocaleString('en', { month: 'short' });
+      const startDay = start.getDate();
+      const endDay = end.getDate();
+      const year = end.getFullYear();
+      
+      return `${startMonth} ${startDay}-${endDay}, ${year}`;
+    } catch (error) {
+      console.warn("Error formatting date range:", error);
+      return "";
+    }
+  }
+  
+  /**
+   * Refreshes the current view with updated data
+   */
+  function refreshCurrentView() {
+    // Get the current view
+    const currentView = getCurrentView();
+    
+    // Refresh based on the current view
+    if (currentView) {
+      switchView(currentView);
+    } else {
+      // Fallback to dashboard
+      switchView('dashboard');
+    }
+  }
+
+  /**
+   * Gets the current active view
+   * @returns {string|null} The current view name or null if none found
+   */
+  function getCurrentView() {
+    // Check which view is currently visible
+    const views = [
+      'dashboard', 
+      'detailed-table', 
+      'charts', 
+      'analytics', 
+      'score-system',
+      'detail',
+      'history'
+    ];
+    
+    for (const view of views) {
+      const viewSection = document.getElementById(`${view}-section`);
+      if (viewSection && !viewSection.classList.contains('hidden')) {
+        return view;
+      }
+    }
+    
+    // No view is currently active
+    return null;
+  }
+  
+
 }); // End DOMContentLoaded listener
