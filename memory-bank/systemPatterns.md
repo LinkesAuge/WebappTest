@@ -188,4 +188,135 @@ function processData(data, type) {
 2. **Graceful Degradation**: Display alternate content when data is missing
 3. **User Feedback**: Show error messages when operations fail
 4. **Error Boundaries**: Contain errors within components without crashing the application
-5. **Defensive Programming**: Use null checks and type validation to prevent runtime errors 
+5. **Defensive Programming**: Use null checks and type validation to prevent runtime errors
+
+## Multi-Week Data Architecture
+
+### Weekly Data Structure
+
+The application implements a robust multi-week data system with the following architecture:
+
+1. **Data Storage**:
+   - Weekly data is stored in CSV files in the `data/` directory
+   - Files follow the naming convention `data_week_{XX}.csv` (e.g., `data_week_12.csv`)
+   - A central `weeks.json` file maps week numbers to data files
+
+2. **Data Format**:
+   ```json
+   // Structure of weeks.json
+   [
+     {
+       "week": "12",      // Week number (string)
+       "file": "data_week_12.csv"  // CSV filename 
+     },
+     ...
+   ]
+   ```
+
+3. **Date Handling**:
+   - Week date ranges are calculated dynamically using the `getWeekDateRange` function
+   - Uses ISO week number standards based on the current year
+   - No need to manually specify date ranges in weeks.json
+
+4. **Error Resilience**:
+   - Multiple fallback mechanisms for missing or corrupt `weeks.json`
+   - Hardcoded fallback data in both `main.js` and `history.js`
+   - Robust error handling and logging throughout
+
+### Week Selection Flow
+
+The week selection system follows this workflow:
+
+1. **Initialization**:
+   - `loadAvailableWeeks()` loads the week configuration from `weeks.json`
+   - If loading fails, fallback data is used
+   - `initializeWeeklyData()` determines the latest week and sets it as default
+
+2. **UI Population**:
+   - `populateWeekSelector()` builds the week selector dropdown
+   - Week options include week numbers and dynamically calculated date ranges
+   - "Latest" option is highlighted for the most recent week
+
+3. **Week Switching**:
+   - `switchWeek()` handles changing the active week
+   - Loads the appropriate CSV file using the `file` property
+   - Updates the UI with new data via `updateUIWithWeekData()`
+
+4. **Data Loading**:
+   - CSV files are parsed into player objects
+   - Data is formatted for display in tables and charts
+   - Totals and averages are calculated for dashboard statistics
+
+5. **Error Handling**:
+   - Graceful recovery from missing files
+   - Appropriate user feedback for data loading issues
+   - Detailed console logging for debugging
+
+## Module Organization
+
+The application uses a modular architecture with clear separation of concerns:
+
+1. **Core Modules**:
+   - `main.js`: Entry point and application initialization
+   - `config.js`: Application settings and constants
+   - `state.js`: Global state management
+   - `i18n.js`: Internationalization utilities
+
+2. **Data Management**:
+   - `dataLoading.js`: Functions for loading data from files
+   - `dataProcessing.js`: Data transformation and analysis
+
+3. **UI Management**:
+   - `dom.js`: DOM manipulation utilities
+   - `uiUpdates.js`: Functions for updating UI elements
+   - `listeners.js`: Event handling
+
+4. **Visualization**:
+   - `charts.js`: Chart creation and management
+   - `history.js`: Historical data visualization
+
+## State Management
+
+The application uses a centralized state management approach:
+
+1. **Global State Variables**:
+   - Defined in `state.js` and imported where needed
+   - Includes `availableWeeks`, `currentWeek`, `historicalData`, etc.
+
+2. **State Initialization**:
+   - Initial state loading in `initializeApp()`
+   - Data loading from files or localStorage
+   - Weekly data initialization via `initializeWeeklyData()`
+
+3. **State Updates**:
+   - Direct mutation of state objects
+   - Event-driven updates via UI interactions
+   - Data-driven updates from file loading
+
+4. **State Persistence**:
+   - Key data saved to localStorage
+   - Loaded on application start if available
+
+## Error Handling Strategy
+
+The application implements a robust error handling approach:
+
+1. **Graceful Degradation**:
+   - Functions return fallback values rather than throwing errors
+   - UI shows appropriate messages for missing data
+   - Application continues to function with partial data
+
+2. **Layered Recovery**:
+   - Multiple fallback mechanisms for critical data
+   - Alternative data sources when primary sources fail
+   - Progressive enhancement of features based on available data
+
+3. **User Feedback**:
+   - Clear error messages for user-facing issues
+   - Loading indicators during asynchronous operations
+   - Empty states for missing data scenarios
+
+4. **Debugging Support**:
+   - Detailed console logging at all error points
+   - Stack traces for unexpected errors
+   - Feature detection and environmental logging 

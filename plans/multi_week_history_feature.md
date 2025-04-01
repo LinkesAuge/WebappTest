@@ -19,6 +19,106 @@ Currently, the application:
 4. Provide a new "History" view with cross-week analysis
 5. Maintain backward compatibility with the existing implementation
 
+## Data Structure and Week Format
+
+### Weekly Data Files
+
+The multi-week system uses a standardized approach for storing and accessing weekly data:
+
+#### 1. CSV File Format
+Weekly data is stored in CSV files with a consistent naming pattern:
+```
+data_week_{XX}.csv
+```
+Where `{XX}` is the week number (e.g., `data_week_12.csv`).
+
+These files should be placed in the `data/` directory.
+
+#### 2. weeks.json Configuration
+
+The application uses a central configuration file (`data/weeks.json`) that maps week numbers to their data files:
+
+```json
+[
+  {
+    "week": "12",
+    "file": "data_week_12.csv"
+  },
+  {
+    "week": "13",
+    "file": "data_week_13.csv"
+  },
+  {
+    "week": "14",
+    "file": "data_week_14.csv"
+  }
+]
+```
+
+Each entry requires:
+- `week`: The week number as a string
+- `file`: The CSV filename for that week
+
+#### 3. Date Range Calculation
+
+Date ranges for each week are calculated dynamically based on the week number:
+- Uses ISO week numbering standard
+- Calculates based on the current year
+- No need to manually specify start/end dates in weeks.json
+
+#### 4. Adding New Weeks
+
+To add a new week to the system:
+1. Create a CSV file with player data following the naming convention
+2. Add an entry to `weeks.json` with the week number and filename
+3. The application will automatically detect and include the new week
+
+#### 5. Fallback Mechanisms
+
+The system includes robust fallback handling:
+- If `weeks.json` is missing or corrupted, hardcoded fallbacks are used
+- Multiple layers of error handling ensure the application keeps working
+- Detailed logging helps diagnose any issues
+
+### Implementation Details
+
+The weekly data system is implemented across these key modules:
+- `dataLoading.js`: Loads weeks.json and CSV files
+- `history.js`: Manages week selection and UI updates
+- `utils.js`: Handles date calculations
+- `main.js`: Orchestrates initialization and fallbacks
+
+## Functional Requirements
+
+### Week Selection
+1. Implement a dropdown menu for selecting specific weeks
+2. Add "Latest" option to easily jump to most recent week
+3. Include week navigation buttons (prev/next)
+4. Show date range for each week in the selector
+5. Persist selected week across page refreshes
+
+### Data Loading
+1. Create a weeks.json file to track available weeks
+2. Load weekly data from CSV files
+3. Update UI when week changes
+4. Show loading indicator during data load
+5. Handle missing weeks gracefully with appropriate messages
+
+### History View
+1. Add a new "History" navigation item
+2. Create a History view with:
+   - Summary of all historical data
+   - Trend charts for scores, chests, and players
+   - Week-over-week comparisons
+   - Top performers across all weeks
+
+### Historical Visualizations
+1. Score trend chart (line)
+2. Chests collected trend chart (line)
+3. Player count trend chart (bar)
+4. Top player performance across weeks (radar)
+5. Category trends over time (line)
+
 ## Technical Design
 
 ### 1. Data Organization
