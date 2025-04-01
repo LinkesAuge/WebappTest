@@ -5,7 +5,7 @@
 
 import { elements, showView, hideModal } from './dom.js';
 import { setLanguage } from './i18n.js';
-import { currentView, sortState, resetState } from './state.js';
+import * as state from './state.js';
 import { filterTable } from './uiUpdates.js';
 import * as history from './history.js';
 import { renderPlayerDetails } from './dataProcessing.js';
@@ -70,8 +70,8 @@ function setupNavigationListeners() {
         
         const viewId = item.getAttribute('data-view');
         if (viewId) {
-          // Update state
-          currentView = viewId;
+          // Update state - use state module to access currentView
+          state.currentView = viewId;
           
           // Show the selected view
           showView(viewId);
@@ -137,14 +137,14 @@ function setupTableSortingListeners() {
         if (!column) return;
         
         // Update sort state
-        if (sortState.column === column) {
+        if (state.sortState.column === column) {
           // Same column, toggle direction
-          sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+          state.sortState.direction = state.sortState.direction === 'asc' ? 'desc' : 'asc';
         } else {
           // New column, default to descending for numerical columns
           const defaultDirection = ['PLAYER'].includes(column) ? 'asc' : 'desc';
-          sortState.column = column;
-          sortState.direction = defaultDirection;
+          state.sortState.column = column;
+          state.sortState.direction = defaultDirection;
         }
         
         // Re-render the table with new sort
@@ -397,7 +397,7 @@ function setupRefreshButtonListeners() {
       event.preventDefault();
       
       // Reset state
-      resetState();
+      state.resetState();
       
       // Reload data
       document.dispatchEvent(new CustomEvent('reloadData'));

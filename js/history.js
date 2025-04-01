@@ -9,6 +9,9 @@ import { getText } from './i18n.js';
 import { formatDateRange } from './utils.js';
 import { renderDashboardCharts } from './charts.js';
 import { availableWeeks, historicalData, currentWeek } from './state.js';
+import * as state from './state.js';
+import * as uiUpdates from './uiUpdates.js';
+import * as charts from './charts.js';
 
 // Track chart instances to properly destroy and recreate them
 export const chartInstances = {
@@ -1116,9 +1119,9 @@ export function populateWeekSelector() {
   try {
     console.log('Populating week selector...');
     
-    // Check if the week selector element exists - FIXED: use weekSelector not weekSelect
-    const weekSelect = document.getElementById('weekSelector');
-    if (!weekSelect) {
+    // Check if the week selector element exists
+    const weekSelector = document.getElementById('weekSelector');
+    if (!weekSelector) {
       console.error('Week selector element not found');
       return;
     }
@@ -1129,7 +1132,7 @@ export function populateWeekSelector() {
     const latestWeekIndicator = elements.latestWeekIndicator;
     
     // Clear previous options
-    weekSelect.innerHTML = '';
+    weekSelector.innerHTML = '';
     
     // Check if there are available weeks
     if (!availableWeeks || availableWeeks.length === 0) {
@@ -1139,7 +1142,7 @@ export function populateWeekSelector() {
       option.textContent = getText('weekSelector.noWeeks');
       option.disabled = true;
       option.selected = true;
-      weekSelect.appendChild(option);
+      weekSelector.appendChild(option);
       
       // Disable navigation buttons
       if (prevWeekBtn) prevWeekBtn.disabled = true;
@@ -1202,13 +1205,13 @@ export function populateWeekSelector() {
     });
     
     // Add the options to the select element
-    weekSelect.appendChild(fragment);
+    weekSelector.appendChild(fragment);
 
     // Also populate the mobile week selector if it exists
-    const mobileWeekSelect = document.getElementById('mobileWeekSelector');
-    if (mobileWeekSelect) {
+    const mobileWeekSelector = document.getElementById('mobileWeekSelector');
+    if (mobileWeekSelector) {
       // Clone the options to the mobile selector
-      mobileWeekSelect.innerHTML = weekSelect.innerHTML;
+      mobileWeekSelector.innerHTML = weekSelector.innerHTML;
     }
     
     // Handle navigation button states
@@ -1225,19 +1228,19 @@ export function populateWeekSelector() {
  */
 function updateWeekSelectorNavigation() {
   try {
-    const weekSelect = document.getElementById('weekSelector');
+    const weekSelector = document.getElementById('weekSelector');
     const prevWeekBtn = document.getElementById('prevWeekBtn');
     const nextWeekBtn = document.getElementById('nextWeekBtn');
     const latestWeekIndicator = document.getElementById('latestWeekIndicator');
     
-    if (!weekSelect || !prevWeekBtn || !nextWeekBtn) {
+    if (!weekSelector || !prevWeekBtn || !nextWeekBtn) {
       console.warn('Week selector navigation elements not found');
       return;
     }
     
     // Get the selected index and option count
-    const selectedIndex = weekSelect.selectedIndex;
-    const optionCount = weekSelect.options.length;
+    const selectedIndex = weekSelector.selectedIndex;
+    const optionCount = weekSelector.options.length;
     
     console.log(`Week selector navigation: index ${selectedIndex}, count ${optionCount}`);
     
@@ -1289,10 +1292,11 @@ export async function handleWeekChange(event) {
     showLoading(getText('weekSelector.loading', { week: selectedWeekId }));
     
     try {
-      // Load the selected week's data
-      const weekData = await loadWeekData(selectedWeek);
+      // Load the selected week's data - pass the file property, not the whole object
+      console.log(`Loading data for week ${selectedWeekId} from file: ${selectedWeek.file}`);
+      const weekData = await loadWeekData(selectedWeek.file);
       
-      if (!weekData || weekData.length === 0) {
+      if (!weekData) {
         console.warn(`No data available for week ${selectedWeekId}`);
         showError(getText('weekSelector.noData', { week: selectedWeekId }));
         return;
@@ -1307,28 +1311,21 @@ export async function handleWeekChange(event) {
       };
       
       // Update the UI with the new data
-      document.dispatchEvent(new CustomEvent('weekChanged', { 
-        detail: { 
-          week: selectedWeek, 
-          data: weekData 
-        } 
-      }));
+      updateUIWithWeekData(weekData);
       
-      // Update navigation button states
+      // Update navigation buttons
       updateWeekSelectorNavigation();
       
-      console.log(`Successfully loaded data for week ${selectedWeekId}`);
+      // Hide loading indicator
+      hideLoading();
+      
+      console.log(`Successfully switched to week ${selectedWeekId}`);
     } catch (error) {
       console.error(`Error loading data for week ${selectedWeekId}:`, error);
       showError(getText('weekSelector.loadError', { week: selectedWeekId }));
-    } finally {
-      // Hide loading indicator
-      hideLoading();
     }
   } catch (error) {
     console.error('Error handling week change:', error);
-    hideLoading();
-    showError(getText('status.error'));
   }
 }
 
@@ -1506,6 +1503,7 @@ export async function initializeWeeklyData() {
     
     // Determine the latest week
     const latestWeek = determineLatestWeek(availableWeeks);
+    console.log('Latest week determined:', latestWeek);
     
     // Initialize currentWeek if it doesn't exist or ensure it's an object
     if (!currentWeek) {
@@ -1516,6 +1514,7 @@ export async function initializeWeeklyData() {
     
     // Update the week selector (if it exists)
     populateWeekSelector();
+    console.log('Week selector populated');
     
     // Select the latest week if no week is currently selected
     if (latestWeek) {
@@ -1527,26 +1526,41 @@ export async function initializeWeeklyData() {
         
         // Load and set data for this week
         if (latestWeek.file) {
+          console.log(`Loading week data from file: ${latestWeek.file}`);
           const weekData = await loadWeekData(latestWeek.file);
           if (weekData) {
             currentWeek.data = weekData;
             // Update UI with the data
             updateUIWithWeekData(weekData);
+            console.log('UI updated with week data');
+          } else {
+            console.error(`Failed to load data for week ${latestWeek.week}`);
           }
         }
         
         // Change the week selector value if it exists
         const weekSelector = document.getElementById('weekSelector');
         if (weekSelector) {
+          // Log current options for debugging
+          console.log('Available options in weekSelector:', 
+            [...weekSelector.options].map(opt => ({ value: opt.value, text: opt.text })));
+          
+          // Set the value for the correct week
           weekSelector.value = latestWeek.week;
+          console.log(`Set weekSelector value to ${latestWeek.week}`);
           
           // Trigger a change event on the selector
-          const event = new Event('change');
+          const event = new Event('change', { bubbles: true });
           weekSelector.dispatchEvent(event);
+          console.log('Change event dispatched on weekSelector');
+        } else {
+          console.warn('weekSelector element not found');
         }
       } catch (error) {
         console.error(`Error setting latest week: ${error.message}`);
       }
+    } else {
+      console.warn('No latest week found');
     }
     
     console.log('Weekly data initialized successfully');
@@ -2371,6 +2385,50 @@ function handleWeeklyTabChange(event) {
 function formatNumber(num) {
   if (num === undefined || num === null) return '-';
   return num.toLocaleString();
+}
+
+/**
+ * Updates the UI with the provided week data
+ * @param {Object} weekData - The data for the selected week
+ */
+export function updateUIWithWeekData(weekData) {
+  try {
+    if (!weekData) {
+      console.warn('No week data provided to update UI');
+      return;
+    }
+
+    console.log('Updating UI with week data:', weekData);
+
+    // Extract player data from the week data
+    const playerData = weekData.players || weekData;
+
+    // Clear existing state data
+    state.displayData = [];
+    state.allPlayersData = [];
+
+    // Copy player data to state
+    if (Array.isArray(playerData)) {
+      state.allPlayersData = [...playerData];
+      state.displayData = [...playerData];
+
+      // Update UI components
+      document.dispatchEvent(new CustomEvent('updateDashboard', {
+        detail: { data: playerData }
+      }));
+      
+      // Update charts and tables
+      uiUpdates.updateDashboardStatistics();
+      uiUpdates.updateRankingTable();
+      charts.renderDashboardCharts();
+
+      console.log('UI updated successfully with week data');
+    } else {
+      console.warn('Invalid player data format:', playerData);
+    }
+  } catch (error) {
+    console.error('Error updating UI with week data:', error);
+  }
 }
 
 // Export all functions from this module
