@@ -202,4 +202,16 @@ Date ranges are calculated dynamically based on the week number, so no need to s
 The `rules.csv` file defines the scoring system with columns:
 - Typ: The type of chest
 - Stufe: The level/tier of the chest
-- Punkte: The points awarded for this chest type and level 
+- Punkte: The points awarded for this chest type and level
+
+## Asset Management
+
+### Image Assets
+
+All image assets are centralized in the `resources/images` directory:
+
+- Icons: Application favicon and logo icons (`icon.png`, `icon_xl.png`)
+- UI elements: Any graphical elements used in the user interface
+- Background images: Any background images used throughout the application
+
+This organization ensures consistent paths and easier asset management across the application. 

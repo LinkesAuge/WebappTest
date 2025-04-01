@@ -10,6 +10,18 @@ All 102 tests across 13 test suites are now passing successfully.
 
 ## Recent Changes
 
+### Assets Reorganization
+- **[COMPLETED]** Moved all image files to a centralized `resources/images` directory
+- **[COMPLETED]** Updated HTML references to use the new image paths
+- **[COMPLETED]** Updated documentation to reflect the new directory structure
+- The goal is to improve organization and maintainability by having a standard location for all image assets
+
+### Week Selection System
+- **[COMPLETED]** Removed history tab from navigation to simplify the UI
+- **[COMPLETED]** Modified app to only load current/active week on startup
+- **[COMPLETED]** Preserved week selection functionality
+- **[COMPLETED]** Ensured Week Selector in header correctly loads and displays available weeks
+
 1. **Enhanced Weekly Data Loading Resilience**:
    - Added fallback data for missing/corrupt weeks.json
    - Implemented recovery mechanisms in multiple modules

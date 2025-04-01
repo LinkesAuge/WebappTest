@@ -319,4 +319,41 @@ The application implements a robust error handling approach:
 4. **Debugging Support**:
    - Detailed console logging at all error points
    - Stack traces for unexpected errors
-   - Feature detection and environmental logging 
+   - Feature detection and environmental logging
+
+## File Structure
+
+### Directory Organization
+
+The project follows this directory structure:
+
+```
+WebappTest/
+├── data/             # CSV and JSON data files
+├── js/               # JavaScript modules
+├── resources/        # Static resources
+│   └── images/       # Image assets (icons, logos, etc.)
+├── scripts/          # Utility and build scripts
+├── tests/            # Test files
+├── memory-bank/      # Project documentation
+├── plans/            # Feature planning documents
+└── index.html        # Main HTML entry point
+```
+
+### Image Resources
+
+All images and icons are centralized in the `resources/images` directory. This includes:
+
+- Application icons (favicon, logo)
+- UI graphics and illustrations
+- Any other static image assets
+
+When referencing images in HTML or CSS, use relative paths:
+```html
+<img src="./resources/images/icon_xl.png" alt="Logo">
+```
+
+Or for CSS:
+```css
+background-image: url('./resources/images/background.png');
+``` 
