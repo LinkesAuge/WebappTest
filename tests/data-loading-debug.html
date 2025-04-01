@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Loading Debug</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      font-family: system-ui, sans-serif;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .log-entry {
+      padding: 0.5rem;
+      border-bottom: 1px solid #334155;
+    }
+    .success {
+      color: #4ade80;
+    }
+    .warning {
+      color: #facc15;
+    }
+    .error {
+      color: #f87171;
+    }
+    .code {
+      font-family: monospace;
+      background-color: #334155;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="py-4">
+      <h1 class="text-2xl font-bold">Data Loading Debug Tool</h1>
+      <p class="text-slate-400">Test data loading functionality in isolation</p>
+    </header>
+    
+    <main class="mt-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Actions Panel -->
+        <div class="bg-slate-800 p-4 rounded-lg">
+          <h2 class="text-xl font-semibold mb-4">Actions</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <button id="load-weeks-btn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded">
+                Load Available Weeks
+              </button>
+            </div>
+            
+            <div>
+              <button id="initialize-data-btn" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded">
+                Initialize Weekly Data
+              </button>
+            </div>
+            
+            <div>
+              <button id="load-history-btn" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded">
+                Load Historical Data
+              </button>
+            </div>
+            
+            <div>
+              <button id="clear-logs-btn" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded">
+                Clear Logs
+              </button>
+            </div>
+          </div>
+          
+          <div class="mt-8">
+            <h3 class="text-lg font-semibold mb-2">Week Selection</h3>
+            <select id="weekSelector" class="bg-slate-700 text-white px-3 py-2 rounded w-full">
+              <option value="" disabled selected>Select a week</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- State Panel -->
+        <div class="bg-slate-800 p-4 rounded-lg">
+          <h2 class="text-xl font-semibold mb-4">Current State</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-semibold">Available Weeks</h3>
+              <pre id="available-weeks" class="bg-slate-700 p-3 rounded overflow-auto max-h-32 text-sm">[]</pre>
+            </div>
+            
+            <div>
+              <h3 class="text-lg font-semibold">Current Week</h3>
+              <pre id="current-week" class="bg-slate-700 p-3 rounded overflow-auto max-h-32 text-sm">{}</pre>
+            </div>
+            
+            <div>
+              <h3 class="text-lg font-semibold">Historical Data</h3>
+              <pre id="historical-data" class="bg-slate-700 p-3 rounded overflow-auto max-h-32 text-sm">[]</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Logs Panel -->
+      <div class="mt-6 bg-slate-800 p-4 rounded-lg">
+        <h2 class="text-xl font-semibold mb-4">Logs</h2>
+        <div id="logs" class="bg-slate-900 p-2 rounded overflow-auto max-h-96">
+          <div class="log-entry">
+            <span class="text-blue-400">[INFO]</span> Debug tool loaded
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script type="module">
+    // Import required modules
+    import * as dataLoading from '../js/dataLoading.js';
+    import * as historyNew from '../js/historyNew.js';
+    import * as state from '../js/state.js';
+    
+    // Store original console methods
+    const originalConsoleLog = console.log;
+    const originalConsoleWarn = console.warn;
+    const originalConsoleError = console.error;
+    
+    // Hook console methods to display in logs panel
+    console.log = function(...args) {
+      addLogEntry('INFO', args.join(' '));
+      originalConsoleLog.apply(console, args);
+    };
+    
+    console.warn = function(...args) {
+      addLogEntry('WARN', args.join(' '), 'warning');
+      originalConsoleWarn.apply(console, args);
+    };
+    
+    console.error = function(...args) {
+      addLogEntry('ERROR', args.join(' '), 'error');
+      originalConsoleError.apply(console, args);
+    };
+    
+    // DOM elements
+    const logsElement = document.getElementById('logs');
+    const availableWeeksElement = document.getElementById('available-weeks');
+    const currentWeekElement = document.getElementById('current-week');
+    const historicalDataElement = document.getElementById('historical-data');
+    const weekSelectorElement = document.getElementById('weekSelector');
+    
+    // Mock DOM elements for the historyNew module
+    window.elements = {
+      weekSelector: weekSelectorElement
+    };
+    
+    // Mock functions for the modules
+    window.showLoading = function(message) {
+      addLogEntry('UI', `Loading: ${message}`);
+    };
+    
+    window.hideLoading = function() {
+      addLogEntry('UI', 'Loading complete');
+    };
+    
+    window.showError = function(message) {
+      addLogEntry('UI', `Error: ${message}`, 'error');
+    };
+    
+    window.getText = function(key, replacements) {
+      return key + (replacements ? ` (${JSON.stringify(replacements)})` : '');
+    };
+    
+    // Add a log entry to the logs panel
+    function addLogEntry(type, message, className = '') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${className}`;
+      
+      const typeSpan = document.createElement('span');
+      typeSpan.textContent = `[${type}]`;
+      typeSpan.className = 'mr-2 text-blue-400';
+      
+      const messageSpan = document.createElement('span');
+      messageSpan.textContent = message;
+      
+      entry.appendChild(typeSpan);
+      entry.appendChild(messageSpan);
+      
+      logsElement.appendChild(entry);
+      logsElement.scrollTop = logsElement.scrollHeight;
+    }
+    
+    // Update state display
+    function updateStateDisplay() {
+      availableWeeksElement.textContent = JSON.stringify(state.availableWeeks, null, 2);
+      currentWeekElement.textContent = JSON.stringify(state.currentWeek, null, 2);
+      historicalDataElement.textContent = JSON.stringify(state.historicalData, null, 2);
+    }
+    
+    // Button event handlers
+    document.getElementById('load-weeks-btn').addEventListener('click', async function() {
+      try {
+        addLogEntry('ACTION', 'Loading available weeks...');
+        const result = await dataLoading.loadAvailableWeeks();
+        addLogEntry('RESULT', `Weeks loaded: ${result}`, result ? 'success' : 'error');
+        updateStateDisplay();
+      } catch (error) {
+        console.error('Error loading weeks:', error);
+      }
+    });
+    
+    document.getElementById('initialize-data-btn').addEventListener('click', async function() {
+      try {
+        addLogEntry('ACTION', 'Initializing weekly data...');
+        const result = await historyNew.initializeWeeklyData();
+        addLogEntry('RESULT', `Weekly data initialized: ${result}`, result ? 'success' : 'error');
+        updateStateDisplay();
+      } catch (error) {
+        console.error('Error initializing weekly data:', error);
+      }
+    });
+    
+    document.getElementById('load-history-btn').addEventListener('click', async function() {
+      try {
+        addLogEntry('ACTION', 'Loading historical data...');
+        const result = await historyNew.loadHistoricalData();
+        addLogEntry('RESULT', `Historical data loaded: ${result}`, result ? 'success' : 'error');
+        updateStateDisplay();
+      } catch (error) {
+        console.error('Error loading historical data:', error);
+      }
+    });
+    
+    document.getElementById('clear-logs-btn').addEventListener('click', function() {
+      logsElement.innerHTML = '';
+      addLogEntry('INFO', 'Logs cleared');
+    });
+    
+    // Week selector event handler
+    weekSelectorElement.addEventListener('change', function(event) {
+      const selectedWeek = event.target.value;
+      addLogEntry('ACTION', `Week selected: ${selectedWeek}`);
+      
+      // Find the selected week in available weeks
+      const weekInfo = state.availableWeeks.find(week => week.week === selectedWeek);
+      if (weekInfo) {
+        console.log(`Selected week: ${JSON.stringify(weekInfo)}`);
+      }
+    });
+    
+    // Initial setup
+    addLogEntry('INFO', 'Debug tool ready');
+    updateStateDisplay();
+  </script>
+</body>
+</html> 

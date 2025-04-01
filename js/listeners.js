@@ -7,7 +7,7 @@ import { elements, showView, hideModal } from './dom.js';
 import { setLanguage } from './i18n.js';
 import * as state from './state.js';
 import { filterTable } from './uiUpdates.js';
-import * as history from './history.js';
+import { switchWeek } from './historyNew.js';
 import { renderPlayerDetails } from './dataProcessing.js';
 import { triggerDownload } from './utils.js';
 
@@ -248,8 +248,8 @@ function setupWeekSelectorNavigation() {
         
         console.log(`Week changed to: ${selectedWeekId}`);
         
-        // Call switchWeek from history module
-        await history.switchWeek(selectedWeekId);
+        // Call switchWeek function directly from historyNew.js
+        await switchWeek(selectedWeekId);
       } catch (error) {
         console.error(`Error handling week change: ${error.message}`);
       }
@@ -272,8 +272,8 @@ function setupWeekSelectorNavigation() {
           
           console.log(`Week changed to: ${selectedWeekId} (mobile)`);
           
-          // Call switchWeek from history module
-          await history.switchWeek(selectedWeekId);
+          // Call switchWeek function directly from historyNew.js
+          await switchWeek(selectedWeekId);
         } catch (error) {
           console.error(`Error handling mobile week change: ${error.message}`);
         }

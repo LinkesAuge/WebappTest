@@ -14,7 +14,7 @@ import * as dataLoading from './dataLoading.js';
 import * as dataProcessing from './dataProcessing.js';
 import * as uiUpdates from './uiUpdates.js';
 import * as charts from './charts.js';
-import * as history from './history.js';
+import { initializeWeeklyData } from './historyNew.js';
 
 /**
  * Initializes the application
@@ -100,8 +100,8 @@ async function initializeApp() {
           weeksLoaded = true;
         }
         
-        // Then initialize weekly data system
-        const weeklyDataInitialized = await history.initializeWeeklyData();
+        // Then initialize weekly data system to load the current/active week
+        const weeklyDataInitialized = await initializeWeeklyData();
         console.log(`Weekly data system initialized: ${weeklyDataInitialized}`);
         
         // Update UI with fresh data
@@ -126,15 +126,6 @@ async function initializeApp() {
     
     // Show initial view (dashboard)
     dom.showView('dashboard');
-    
-    // Load historical data in background only if weeks were loaded successfully
-    if (state.availableWeeks && state.availableWeeks.length > 0) {
-      history.loadHistoricalData().catch(error => {
-        console.error('Error loading historical data in background:', error);
-      });
-    } else {
-      console.warn('Skipping historical data load as no weeks are available');
-    }
     
     console.log('Application initialized successfully');
     
