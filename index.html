@@ -157,10 +157,17 @@
                  <!-- Header Controls: Language Switcher, CSV Download -->
                 <div class="flex items-center gap-2 sm:gap-3">
                      <!-- Week Selector -->
-                     <div class="hidden md:block">
+                     <div class="hidden md:flex md:items-center">
+                         <button id="prevWeekBtn" class="px-1.5 py-1 text-xs mr-1 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700" title="Previous Week">
+                             <i class="fa-solid fa-chevron-left"></i>
+                         </button>
                          <select id="weekSelector" class="bg-card border border-slate-700 rounded-md text-xs px-2 py-1.5 focus-visible:ring-1">
                              <option value="" disabled selected data-i18n-key="week.loading">Lade Wochen...</option>
                          </select>
+                         <button id="nextWeekBtn" class="px-1.5 py-1 text-xs ml-1 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700" title="Next Week">
+                             <i class="fa-solid fa-chevron-right"></i>
+                         </button>
+                         <span id="latestWeekIndicator" class="hidden ml-1 text-xs bg-amber-800/30 text-amber-400 px-2 py-0.5 rounded-full" data-i18n-key="week.latest">Neueste</span>
                      </div>
                      <!-- Language Switcher -->
                      <div class="flex items-center border border-slate-700 rounded-md text-xs">
@@ -565,8 +572,8 @@
         <p class="text-center text-xs text-slate-500">Total Battle Chest Analyzer - Client Side Version (Static Data)</p>
     </footer>
 
-    <!-- Link to External JavaScript File -->
-    <script src="script.js" defer></script>
+    <!-- Link to JavaScript Modules -->
+    <script type="module" src="js/main.js" defer></script>
 
 </body>
 </html>

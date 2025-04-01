@@ -187,3 +187,98 @@ Refer to our development guidelines in the `docs` folder for information on addi
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+# ChefScore Dashboard
+
+A web-based dashboard for visualizing chef performance data across multiple weeks, with trend analysis and historical comparisons.
+
+## Overview
+
+ChefScore Dashboard provides comprehensive analysis of chef performance data, including:
+- Overall statistics and rankings
+- Detailed performance breakdowns
+- Interactive charts and visualizations
+- Multi-week historical data tracking
+- Trend analysis across time periods
+
+## Data Structure
+
+### Weekly Data Files
+
+The application uses CSV files for weekly data with the following naming convention:
+```
+data/data_week_{XX}.csv
+```
+
+Where `{XX}` is the week number (e.g., `data_week_12.csv`).
+
+Each CSV file should contain player performance data with columns like:
+- PLAYER: The player's name
+- TOTAL_SCORE: The player's total score
+- CHEST_COUNT: Number of chests collected
+- Additional performance metrics
+
+### Week Configuration
+
+Available weeks are configured in `data/weeks.json` with this structure:
+```json
+[
+  {
+    "week": "12",
+    "file": "data_week_12.csv"
+  },
+  {
+    "week": "13",
+    "file": "data_week_13.csv"
+  }
+]
+```
+
+Each entry requires:
+- `week`: The week number (string)
+- `file`: The CSV filename for this week
+
+Date ranges are calculated automatically based on the week number.
+
+### Fallback Mechanisms
+
+The application includes robust fallback mechanisms:
+1. If `weeks.json` cannot be loaded, hardcoded fallback data is used
+2. If individual week data files are missing, appropriate error messages are shown
+3. Multiple checks ensure proper initialization of data structures
+
+## Week Selection System
+
+The week selection system follows this workflow:
+1. `loadAvailableWeeks()` loads the week configuration from `weeks.json`
+2. `initializeWeeklyData()` determines the latest week and sets it as default
+3. `populateWeekSelector()` builds the week selector dropdown
+4. `switchWeek()` handles changing the active week
+5. Week data is loaded from the corresponding CSV file
+6. The UI is updated to reflect the selected week's data
+
+## Adding New Weeks
+
+To add a new week:
+1. Create a CSV file named `data_week_{XX}.csv` where `{XX}` is the week number
+2. Place it in the `data/` directory
+3. Add a new entry to `data/weeks.json` with the week number and filename
+4. The application will automatically detect and include the new week
+
+## Troubleshooting
+
+If week data isn't loading properly:
+1. Verify `data/weeks.json` has the correct format
+2. Ensure CSV files exist in the specified locations
+3. Check CSV files have the expected column headers
+4. Review browser console for specific error messages
+
+## Technical Implementation
+
+The week system is implemented across several modules:
+- `dataLoading.js`: Handles loading week data from files
+- `history.js`: Manages historical data and week switching
+- `utils.js`: Provides date calculation utilities
+- `main.js`: Orchestrates the initialization process
+
+Date ranges for weeks are calculated automatically using the ISO week standard.
