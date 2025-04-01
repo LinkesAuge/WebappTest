@@ -31,7 +31,7 @@ export let dataLastModifiedTimestamp = null; // Timestamp from the 'Last-Modifie
 // --- MULTI-WEEK STATE VARIABLES ---
 export let availableWeeks = []; // Holds the list of available weeks
 export let mostRecentWeek = null; // Holds the most recent week object
-export let currentWeek = null; // Holds the currently selected week
+export let currentWeek = {}; // Holds the currently selected week
 export let currentWeekNumber = null; // Holds the current week number
 export let playerData = []; // Holds the current week's player data
 export let historicalData = []; // Holds data from all weeks for historical analysis

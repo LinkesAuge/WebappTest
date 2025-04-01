@@ -6,12 +6,12 @@
 import { elements, showView, showLoading, hideLoading, showError, createElement, clearElement } from './dom.js';
 import { loadAvailableWeeks, loadWeekData } from './dataLoading.js';
 import { getText } from './i18n.js';
-import { formatDateRange } from './utils.js';
+import { formatDateRange, getWeekDateRange } from './utils.js';
 import { renderDashboardCharts } from './charts.js';
-import { availableWeeks, historicalData, currentWeek } from './state.js';
 import * as state from './state.js';
 import * as uiUpdates from './uiUpdates.js';
 import * as charts from './charts.js';
+import { availableWeeks, historicalData, currentWeek } from './state.js';
 
 // Track chart instances to properly destroy and recreate them
 export const chartInstances = {
@@ -1126,6 +1126,9 @@ export function populateWeekSelector() {
       return;
     }
     
+    // Log the week selector element to verify it's correct
+    console.log('Week selector element:', weekSelector);
+    
     // Get navigation buttons
     const prevWeekBtn = elements.prevWeekBtn;
     const nextWeekBtn = elements.nextWeekBtn;
@@ -1136,6 +1139,7 @@ export function populateWeekSelector() {
     
     // Check if there are available weeks
     if (!availableWeeks || availableWeeks.length === 0) {
+      console.warn('No available weeks to populate selector');
       // Add a placeholder option
       const option = document.createElement('option');
       option.value = '';
@@ -1151,6 +1155,8 @@ export function populateWeekSelector() {
       
       return;
     }
+    
+    console.log('Found', availableWeeks.length, 'weeks to populate in selector:', availableWeeks);
     
     // Create options for each week
     const fragment = document.createDocumentFragment();
@@ -1218,6 +1224,7 @@ export function populateWeekSelector() {
     updateWeekSelectorNavigation();
     
     console.log('Week selector populated successfully');
+    console.log('Week selector options:', [...weekSelector.options].map(opt => ({ value: opt.value, text: opt.text })));
   } catch (error) {
     console.error('Error populating week selector:', error);
   }
@@ -1475,8 +1482,13 @@ export async function initializeWeeklyData() {
   try {
     console.log('Initializing weekly data...');
     
+    // First check that availableWeeks is properly initialized
+    console.log('availableWeeks before loading:', availableWeeks);
+    
     // First, load available weeks
     const weeksLoaded = await loadAvailableWeeks();
+    console.log('Weeks loaded status:', weeksLoaded);
+    console.log('availableWeeks after loading:', availableWeeks);
     
     // Check if we have available weeks
     if (!weeksLoaded || !availableWeeks || availableWeeks.length === 0) {
@@ -1505,12 +1517,15 @@ export async function initializeWeeklyData() {
     const latestWeek = determineLatestWeek(availableWeeks);
     console.log('Latest week determined:', latestWeek);
     
-    // Initialize currentWeek if it doesn't exist or ensure it's an object
+    // Initialize currentWeek with a proper object
+    console.log('currentWeek before initialization:', currentWeek);
     if (!currentWeek) {
-      console.log('Creating currentWeek object');
-      // Use the exported variable instead of creating a new global
-      currentWeek = {};
+      // Use a non-global object creation to ensure we're modifying the exported variable
+      window.currentWeek = {};
+      // Also set the module export
+      state.currentWeek = window.currentWeek;
     }
+    console.log('currentWeek after initialization:', currentWeek);
     
     // Update the week selector (if it exists)
     populateWeekSelector();
@@ -1522,39 +1537,44 @@ export async function initializeWeeklyData() {
       
       // Update current week in state
       try {
-        currentWeek.id = latestWeek.week;
-        
-        // Load and set data for this week
-        if (latestWeek.file) {
-          console.log(`Loading week data from file: ${latestWeek.file}`);
-          const weekData = await loadWeekData(latestWeek.file);
-          if (weekData) {
-            currentWeek.data = weekData;
-            // Update UI with the data
-            updateUIWithWeekData(weekData);
-            console.log('UI updated with week data');
-          } else {
-            console.error(`Failed to load data for week ${latestWeek.week}`);
+        // Make sure we're using the module variable
+        if (currentWeek && typeof currentWeek === 'object') {
+          currentWeek.id = latestWeek.week;
+          
+          // Load and set data for this week
+          if (latestWeek.file) {
+            console.log(`Loading week data from file: ${latestWeek.file}`);
+            const weekData = await loadWeekData(latestWeek.file);
+            if (weekData) {
+              currentWeek.data = weekData;
+              // Update UI with the data
+              updateUIWithWeekData(weekData);
+              console.log('UI updated with week data');
+            } else {
+              console.error(`Failed to load data for week ${latestWeek.week}`);
+            }
           }
-        }
-        
-        // Change the week selector value if it exists
-        const weekSelector = document.getElementById('weekSelector');
-        if (weekSelector) {
-          // Log current options for debugging
-          console.log('Available options in weekSelector:', 
-            [...weekSelector.options].map(opt => ({ value: opt.value, text: opt.text })));
           
-          // Set the value for the correct week
-          weekSelector.value = latestWeek.week;
-          console.log(`Set weekSelector value to ${latestWeek.week}`);
-          
-          // Trigger a change event on the selector
-          const event = new Event('change', { bubbles: true });
-          weekSelector.dispatchEvent(event);
-          console.log('Change event dispatched on weekSelector');
+          // Change the week selector value if it exists
+          const weekSelector = document.getElementById('weekSelector');
+          if (weekSelector) {
+            // Log current options for debugging
+            console.log('Available options in weekSelector:', 
+              [...weekSelector.options].map(opt => ({ value: opt.value, text: opt.text })));
+            
+            // Set the value for the correct week
+            weekSelector.value = latestWeek.week;
+            console.log(`Set weekSelector value to ${latestWeek.week}`);
+            
+            // Trigger a change event on the selector
+            const event = new Event('change', { bubbles: true });
+            weekSelector.dispatchEvent(event);
+            console.log('Change event dispatched on weekSelector');
+          } else {
+            console.warn('weekSelector element not found');
+          }
         } else {
-          console.warn('weekSelector element not found');
+          console.error('currentWeek is not a valid object:', currentWeek);
         }
       } catch (error) {
         console.error(`Error setting latest week: ${error.message}`);
@@ -1645,20 +1665,20 @@ export async function switchWeek(weekId) {
     }
     
     // Find the week in available weeks
+    console.log('Available weeks:', availableWeeks);
     const weekInfo = availableWeeks.find(week => week.id === weekId || week.week === weekId);
     if (!weekInfo) {
-      console.warn(`Week ${weekId} not found in available weeks`);
+      console.warn(`Week ${weekId} not found in available weeks. Available weeks:`, availableWeeks);
       return false;
     }
     
     // Make sure the week info has a file property
     if (!weekInfo.file) {
-      console.warn(`Week ${weekId} has no file property`);
+      console.warn(`Week ${weekId} has no file property. Week info:`, weekInfo);
       return false;
     }
     
-    // Show loading
-    showLoading(getText('loading_week_data', { week: weekId }));
+    console.log(`Loading data for week ${weekId} using file: ${weekInfo.file}`);
     
     // Load week data using the file property
     const weekData = await loadWeekData(weekInfo.file);
@@ -1672,6 +1692,7 @@ export async function switchWeek(weekId) {
     // Initialize currentWeek if it doesn't exist
     if (!currentWeek) {
       window.currentWeek = {};
+      state.currentWeek = window.currentWeek;
     }
     
     // Update current week (with null checks)
@@ -1705,7 +1726,7 @@ export async function switchWeek(weekId) {
  * Updates the UI with week data
  * @param {Object} weekData - The data for the current week
  */
-function updateUIWithWeekData(weekData) {
+export function updateUIWithWeekData(weekData) {
   try {
     if (!weekData) {
       console.warn('No week data to update UI with');
@@ -1714,151 +1735,44 @@ function updateUIWithWeekData(weekData) {
     
     console.log('Updating UI with week data:', weekData);
     
-    // Find the dashboard related elements
-    const statTotalPlayers = document.getElementById('stat-total-players');
-    const statTotalScore = document.getElementById('stat-total-score');
-    const statTotalChests = document.getElementById('stat-total-chests');
-    const statAvgScore = document.getElementById('stat-avg-score');
-    const statAvgChests = document.getElementById('stat-avg-chests');
-    const rankingTableBody = document.getElementById('ranking-table-body');
-    
     // Extract player data based on data format
     let playerData = [];
-    let totals = {
-      totalPlayers: 0,
-      totalScore: 0,
-      totalChests: 0,
-      avgScore: 0,
-      avgChests: 0
-    };
     
     // Handle different possible formats from CSV or JSON
     if (Array.isArray(weekData)) {
       // Direct array of players
       playerData = weekData;
-      totals.totalPlayers = playerData.length;
     } else if (weekData.players && Array.isArray(weekData.players)) {
       // Object with players array (CSV format)
       playerData = weekData.players;
-      totals.totalPlayers = playerData.length;
-      
-      // Use pre-calculated totals if available
-      if (weekData.totals) {
-        totals = {
-          ...totals,
-          ...weekData.totals
-        };
-      }
     } else if (weekData.data && Array.isArray(weekData.data)) {
       // Object with data array (JSON format)
       playerData = weekData.data;
-      totals.totalPlayers = playerData.length;
     }
     
-    // Calculate totals if not already provided
-    if (!totals.totalScore || !totals.totalChests) {
-      // Find score and chest properties based on data format
-      let scoreProperty = 'score';
-      let chestProperty = 'chests';
+    // Clear existing state data
+    state.displayData = [];
+    state.allPlayersData = [];
+    
+    // Copy player data to state
+    if (Array.isArray(playerData)) {
+      state.allPlayersData = [...playerData];
+      state.displayData = [...playerData];
       
-      if (playerData.length > 0) {
-        // Determine score property name based on data
-        if (playerData[0].TOTAL_SCORE !== undefined) {
-          scoreProperty = 'TOTAL_SCORE';
-        } else if (playerData[0].Score !== undefined) {
-          scoreProperty = 'Score';
-        }
-        
-        // Determine chest property name based on data
-        if (playerData[0].CHEST_COUNT !== undefined) {
-          chestProperty = 'CHEST_COUNT';
-        } else if (playerData[0].Chests !== undefined) {
-          chestProperty = 'Chests';
-        }
-      }
+      // Update UI components
+      uiUpdates.updateDashboardStatistics();
+      uiUpdates.updateRankingTable();
+      charts.renderDashboardCharts();
       
-      // Calculate totals
-      totals.totalScore = playerData.reduce((sum, player) => sum + (player[scoreProperty] || 0), 0);
-      totals.totalChests = playerData.reduce((sum, player) => sum + (player[chestProperty] || 0), 0);
+      // Dispatch an event that other modules can listen for
+      document.dispatchEvent(new CustomEvent('weekDataUpdated', { 
+        detail: weekData 
+      }));
       
-      // Calculate averages
-      totals.avgScore = totals.totalPlayers > 0 ? Math.round(totals.totalScore / totals.totalPlayers) : 0;
-      totals.avgChests = totals.totalPlayers > 0 ? Math.round(totals.totalChests / totals.totalPlayers * 10) / 10 : 0;
+      console.log('UI updated successfully with week data');
+    } else {
+      console.warn('Invalid player data format:', playerData);
     }
-    
-    // Update the dashboard statistics if elements exist
-    if (statTotalPlayers) statTotalPlayers.textContent = totals.totalPlayers.toString();
-    if (statTotalScore) statTotalScore.textContent = totals.totalScore.toLocaleString();
-    if (statTotalChests) statTotalChests.textContent = totals.totalChests.toLocaleString();
-    if (statAvgScore) statAvgScore.textContent = typeof totals.avgScore === 'number' ? 
-      totals.avgScore.toLocaleString() : totals.avgScore;
-    if (statAvgChests) statAvgChests.textContent = typeof totals.avgChests === 'number' ? 
-      totals.avgChests.toLocaleString() : totals.avgChests;
-    
-    // Update the ranking table if it exists
-    if (rankingTableBody) {
-      // Clear previous data
-      while (rankingTableBody.firstChild) {
-        rankingTableBody.removeChild(rankingTableBody.firstChild);
-      }
-      
-      // Clone and sort players by score (descending)
-      const sortedPlayers = [...playerData].sort((a, b) => {
-        // First try TOTAL_SCORE
-        if (a.TOTAL_SCORE !== undefined && b.TOTAL_SCORE !== undefined) {
-          return b.TOTAL_SCORE - a.TOTAL_SCORE;
-        }
-        
-        // Then try Score
-        if (a.Score !== undefined && b.Score !== undefined) {
-          return b.Score - a.Score;
-        }
-        
-        // Then try lowercase score
-        if (a.score !== undefined && b.score !== undefined) {
-          return b.score - a.score;
-        }
-        
-        // If mixed properties, use a fallback approach
-        const scoreA = a.TOTAL_SCORE || a.Score || a.score || 0;
-        const scoreB = b.TOTAL_SCORE || b.Score || b.score || 0;
-        return scoreB - scoreA;
-      });
-      
-      // Add player rows
-      sortedPlayers.forEach((player, index) => {
-        const row = document.createElement('tr');
-        
-        // Find player properties based on data format
-        const playerName = player.PLAYER || player.Player || player.Name || player.name || 'Unknown';
-        const playerScore = player.TOTAL_SCORE || player.Score || player.score || 0;
-        const playerChests = player.CHEST_COUNT || player.Chests || player.chests || 0;
-        
-        // Add cells
-        row.innerHTML = `
-          <td class="py-2 text-center">${index + 1}</td>
-          <td class="py-2"><span class="player-name cursor-pointer hover:text-primary">${playerName}</span></td>
-          <td class="py-2 text-right">${playerScore.toLocaleString()}</td>
-          <td class="py-2 text-right">${playerChests.toLocaleString()}</td>
-        `;
-        
-        rankingTableBody.appendChild(row);
-      });
-    }
-    
-    // Update history stats if the container exists
-    const historyStatsContainer = document.getElementById('history-stats-container');
-    if (historyStatsContainer) {
-      updateHistoryStats(weekData);
-    }
-    
-    // Update chart data
-    renderDashboardCharts();
-    
-    // Dispatch an event that other modules can listen for
-    document.dispatchEvent(new CustomEvent('weekDataUpdated', { detail: weekData }));
-    
-    console.log('UI updated with week data');
   } catch (error) {
     console.error('Error updating UI with week data:', error);
   }
@@ -2387,50 +2301,6 @@ function formatNumber(num) {
   return num.toLocaleString();
 }
 
-/**
- * Updates the UI with the provided week data
- * @param {Object} weekData - The data for the selected week
- */
-export function updateUIWithWeekData(weekData) {
-  try {
-    if (!weekData) {
-      console.warn('No week data provided to update UI');
-      return;
-    }
-
-    console.log('Updating UI with week data:', weekData);
-
-    // Extract player data from the week data
-    const playerData = weekData.players || weekData;
-
-    // Clear existing state data
-    state.displayData = [];
-    state.allPlayersData = [];
-
-    // Copy player data to state
-    if (Array.isArray(playerData)) {
-      state.allPlayersData = [...playerData];
-      state.displayData = [...playerData];
-
-      // Update UI components
-      document.dispatchEvent(new CustomEvent('updateDashboard', {
-        detail: { data: playerData }
-      }));
-      
-      // Update charts and tables
-      uiUpdates.updateDashboardStatistics();
-      uiUpdates.updateRankingTable();
-      charts.renderDashboardCharts();
-
-      console.log('UI updated successfully with week data');
-    } else {
-      console.warn('Invalid player data format:', playerData);
-    }
-  } catch (error) {
-    console.error('Error updating UI with week data:', error);
-  }
-}
-
 // Export all functions from this module
 export default {
   initWeeklyDataSystem,
@@ -2447,5 +2317,6 @@ export default {
   resetAnalyticsView,
   initializeHistoricalView,
   determineLatestWeek,
-  switchWeek
+  switchWeek,
+  updateUIWithWeekData
 };

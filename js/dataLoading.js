@@ -118,6 +118,13 @@ export async function loadAvailableWeeks() {
   try {
     console.log('Loading available weeks from', WEEKS_JSON_PATH);
     
+    // Make sure availableWeeks is initialized as an array
+    if (!Array.isArray(availableWeeks)) {
+      console.warn('availableWeeks is not an array, initializing it');
+      // Clear existing weeks and ensure it's an array
+      availableWeeks.length = 0;
+    }
+    
     // Verify access to the data folder
     try {
       const testResponse = await fetch(DATA_FOLDER_PATH);
@@ -138,7 +145,7 @@ export async function loadAvailableWeeks() {
       }
       
       const text = await response.text();
-      console.log('Received text from weeks.json:', text.substring(0, 50) + '...');
+      console.log('Received text from weeks.json:', text);
       
       let data;
       try {

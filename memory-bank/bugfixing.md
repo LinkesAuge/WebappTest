@@ -296,3 +296,53 @@ The application was failing to load properly in certain situations when data fil
 #### 1. Function Name Mismatch
 - **Issue**: In `main.js`, there was a call to `history.loadAllHistoricalData()` but the function in `history.js` was actually named `loadHistoricalData()`.
 - **Fix**: Updated the function call in `
+
+## Bugs and Solutions
+
+### April 1, 2023
+
+#### Multi-week Data Feature Fixes
+
+1. **Fixed "Assignment to constant variable" error in listeners.js**
+   - Problem: The `currentView` was imported directly from state.js as a constant but being modified
+   - Solution: Imported the entire state module and accessed `currentView` as a property (`state.currentView`)
+
+2. **Fixed duplicate function definition in history.js**
+   - Problem: The `updateUIWithWeekData` function was defined twice (once as local, once as exported)
+   - Solution: Converted the first occurrence to an exported function and removed the duplicate
+
+3. **Fixed week selector population and data loading**
+   - Problem: The `loadWeekData` function was being called with the wrong parameter format
+   - Solution: Updated `handleWeekChange` to pass `selectedWeek.file` instead of the whole `selectedWeek` object
+
+4. **Fixed inconsistent variable naming**
+   - Problem: References to `weekSelect` vs `weekSelector` causing selector issues
+   - Solution: Standardized all references to the same element ID
+
+5. **Fixed Fallback Week Data**
+   - Problem: When weeks.json couldn't be loaded, the fallback week data wasn't being properly created.
+   - Solution: Added proper initialization of state.availableWeeks, ensures it's an array before adding items, and improved the fallback logic.
+
+6. **Fixed loadWeekData Parameter Issues**
+   - Problem: When calling loadWeekData, the parameter was sometimes wrong or inconsistently formatted.
+   - Solution: Updated switchWeek function to properly log and validate the weekInfo.file parameter before passing it.
+
+7. **Fixed Error Handling**
+   - Problem: Silent failures occurred when week data wasn't available due to missing error messages.
+   - Solution: Added comprehensive error logging and user-facing error messages at all potential failure points.
+
+8. **Fixed currentWeek Object Reference**
+   - Problem: When initializing currentWeek as a window variable, it wasn't updating the state module's variable.
+   - Solution: Added explicit synchronization between window.currentWeek and state.currentWeek.
+
+9. **Fixed State Module Import Issues**
+   - Problem: Import issues in history.js where both direct imports and namespace imports were causing conflicts.
+   - Solution: Updated imports to consistently use the namespace import for state to ensure we're accessing the same instance of state variables.
+
+10. **Fixed currentWeek Initialization**
+   - Problem: currentWeek was being set to null in state.js but was expected to be an object in other files.
+   - Solution: Changed initialization in state.js to use an empty object instead of null, preventing null reference errors.
+
+11. **Fixed Week Selector Population**
+   - Problem: Week selector wasn't showing weeks properly because the selector element ID was inconsistent.
+   - Solution: Updated all references to use consistent ID 'weekSelector' and added better debugging for when it's not found.

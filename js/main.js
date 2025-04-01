@@ -67,15 +67,21 @@ async function initializeApp() {
         console.log(`Available weeks loaded: ${weeksLoaded}`);
         
         // If weeks failed to load, add hardcoded fallback data
-        if (!weeksLoaded && (state.availableWeeks == null || state.availableWeeks.length === 0)) {
+        if (!weeksLoaded || !state.availableWeeks || state.availableWeeks.length === 0) {
           console.warn('Failed to load weeks.json, using hardcoded fallback data');
-          // Create fallback weeks data directly
-          state.availableWeeks = [
+          // Create fallback weeks data directly and ensure we initialize the array if it doesn't exist
+          if (!state.availableWeeks) {
+            state.availableWeeks = [];
+          }
+          
+          // Clear array and add hardcoded data
+          state.availableWeeks.length = 0;
+          state.availableWeeks.push(
             { week: '12', file: 'data_week_12.csv' },
             { week: '13', file: 'data_week_13.csv' },
             { week: '14', file: 'data_week_14.csv' },
             { week: '15', file: 'data_week_15.csv' }
-          ];
+          );
           
           // Calculate date ranges for fallback data
           state.availableWeeks.forEach(week => {
