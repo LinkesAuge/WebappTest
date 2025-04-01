@@ -1,4 +1,6 @@
-# Progress
+# Progress Tracking
+
+This document tracks overall project progress and recent improvements.
 
 ## Core Functionality
 
@@ -11,6 +13,7 @@
 - ✅ Responsive design for desktop and mobile
 - ✅ i18n (internationalization) framework
 - ✅ Automated tools for weekly data management
+- ✅ Data loading error handling and empty states
 
 ### In Progress Features
 - 🔄 Code modularization (script.js refactoring)
@@ -237,33 +240,20 @@ We have identified code maintainability issues with the large script.js file and
 
 ## Recent Improvements
 
-Recently completed work includes:
+1. **Enhanced Weekly Data Loading Resilience** *(2023-10-24)*
+   * Added fallback data mechanisms for missing/corrupt weeks.json
+   * Improved error handling for weekly data loading
+   * Added multiple layers of protection against data loading failures
+   * Enhanced logging for better debugging of data loading issues
+   * Fixed array initialization to properly handle non-array variables
 
-1. **Multi-Week Data Feature Implementation**:
-   - Created data folder structure with weekly data files
-   - Implemented week detection and selection functionality
-   - Added week selector UI with navigation controls
-   - Modified data loading to support specific weeks
-   - Added caching for week data
-
-2. **History View Implementation**:
-   - Added new History navigation item
-   - Created HTML structure for the history view
-   - Implemented historical data loading and aggregation
-   - Built weekly totals table showing stats across weeks
-   - Created trend charts for scores, chests, top players, and categories
-
-3. **Testing and Development Tools**:
-   - Created unit tests for week detection and data loading
-   - Added tests for historical data processing
-   - Implemented a simple HTTP server for local testing
-   - Created test data generation utilities
-
-4. **Planning for Code Refactoring**:
-   - Created detailed refactoring plan for script.js
-   - Defined modular structure with clear separation of concerns
-   - Outlined migration process with incremental testing
-   - Planned to address linter errors during refactoring
+2. **Fixed Historical Data Loading Issues** *(2023-10-24)*
+   * Fixed missing state imports in `history.js` module
+   * Updated path construction for weekly data files
+   * Improved initialization sequence for weekly data
+   * Added proper array initialization for historical data
+   * Enhanced error handling and added missing translations
+   * Fixed issue with loading data from CSV files in the `data/` directory
 
 ## Next Steps
 
