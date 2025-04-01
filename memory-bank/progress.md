@@ -13,6 +13,7 @@
 - ✅ Automated tools for weekly data management
 
 ### In Progress Features
+- 🔄 Code modularization (script.js refactoring)
 - 🔄 Advanced statistical models
 - 🔄 Custom report builder
 - 🔄 Data export functionality
@@ -26,6 +27,8 @@
 ## Current Status
 
 The ChefScore Analytics Dashboard is functional with **all core features implemented** and is ready for production use. The recent addition of multi-week data support and historical trend analysis significantly enhances the analytical capabilities of the application.
+
+We have identified code maintainability issues with the large script.js file and have created a plan to refactor it into smaller ES6 modules.
 
 ### Key Achievements:
 
@@ -66,21 +69,30 @@ The ChefScore Analytics Dashboard is functional with **all core features impleme
    - Added tests for historical data analysis
    - Implemented testing infrastructure for future development
 
+6. **Created script.js refactoring plan**:
+   - Developed a comprehensive plan to break down the 5500+ line script.js file into smaller modules
+   - Defined a modular structure with clear responsibility separation
+   - Outlined a phased migration approach to maintain functionality throughout the process
+   - Planned to address existing linter errors during the refactoring
+
 ## Next Development Focus
 
-1. **Advanced Analytics**: Adding more sophisticated statistical models for player analysis and performance prediction.
+1. **Code Refactoring**: Breaking down the large script.js file into smaller ES6 modules for better maintainability.
 
-2. **User Customization**: Allowing users to customize their dashboard views and save preferences.
+2. **Advanced Analytics**: Adding more sophisticated statistical models for player analysis and performance prediction.
 
-3. **Export Functionality**: Implementing options to export tables, charts, and reports.
+3. **User Customization**: Allowing users to customize their dashboard views and save preferences.
 
-4. **Performance Optimization**: Enhancing application performance with larger datasets and more complex visualizations.
+4. **Export Functionality**: Implementing options to export tables, charts, and reports.
+
+5. **Performance Optimization**: Enhancing application performance with larger datasets and more complex visualizations.
 
 ## Known Issues
 
 - ~~JavaScript errors preventing app initialization~~ FIXED
 - ~~Error with missing element reference for "historySection"~~ FIXED
 - ~~Weekly data loading errors (determineLatestWeek and fetchCSVData undefined)~~ FIXED
+- Several linter errors in script.js (to be fixed during refactoring)
 - Loading speed could be optimized for large datasets
 - Chart visualizations could be improved for small screens
 - Mobile navigation needs additional testing
@@ -88,7 +100,8 @@ The ChefScore Analytics Dashboard is functional with **all core features impleme
 ## Release Schedule
 
 - **Current Version**: 1.2.0 (Multi-Week Data & History View)
-- **Next Release**: 1.3.0 (Advanced Analytics) - Planned for Q2 2023
+- **Next Release**: 1.2.5 (Code Refactoring) - Planned for Q2 2023
+- **Future Release**: 1.3.0 (Advanced Analytics) - Planned for Q3 2023
 
 ## What Works
 
@@ -157,8 +170,16 @@ The ChefScore Analytics Dashboard is functional with **all core features impleme
 ### Development Tools
 - ✅ Simple HTTP server for local testing
 - ✅ Test data generation utilities
+- ✅ Automated weeks.json updater
 
 ## What's Left to Build
+
+### Code Refactoring
+- 🔄 Break down script.js into modular ES6 files
+- 🔄 Create a consistent module structure
+- 🔄 Fix linter errors during refactoring
+- 🔄 Maintain functionality throughout the process
+- 🔄 Improve code documentation
 
 ### Multi-Week Data & History Feature Enhancements
 - ⏳ Performance optimizations for history charts
@@ -207,9 +228,9 @@ The ChefScore Analytics Dashboard is functional with **all core features impleme
 - ✅ Unit tests for core functions
 - ✅ Integration tests for UI components
 - ✅ End-to-end tests for key user flows
+- 🔄 Code modularization for maintainability
 - ⏳ Performance optimizations for large datasets
 - ⏳ Web Workers for background data processing
-- ⏳ Code modularization for maintainability
 - ⏳ Enhanced documentation (JSDoc, comments)
 - ⏳ Accessibility improvements
 - ⏳ Service Worker for offline capability
@@ -238,19 +259,26 @@ Recently completed work includes:
    - Implemented a simple HTTP server for local testing
    - Created test data generation utilities
 
+4. **Planning for Code Refactoring**:
+   - Created detailed refactoring plan for script.js
+   - Defined modular structure with clear separation of concerns
+   - Outlined migration process with incremental testing
+   - Planned to address linter errors during refactoring
+
 ## Next Steps
 
-1. **Performance Optimizations**:
+1. **Script.js Refactoring Implementation**:
+   - Create js/ directory with module files
+   - Move code incrementally by functional area
+   - Update index.html to use module loading
+   - Fix linter errors during migration
+   - Test thoroughly throughout the process
+
+2. **Performance Optimizations**:
    - Implement lazy loading for history charts
    - Add optional data compression for large datasets
    - Consider Web Workers for background data processing
 
-2. **Enhanced Historical Analysis**:
+3. **Enhanced Historical Analysis**:
    - Add player improvement ranking
-   - Implement week-over-week change highlighting
-   - Create predictive trend analysis
-
-3. **User Experience Improvements**:
-   - Add tooltips and help text for new features
-   - Create onboarding for first-time users
-   - Optimize mobile experience for History view 
+   - Implement week-over-week change highlighting 

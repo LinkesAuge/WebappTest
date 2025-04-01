@@ -4,6 +4,8 @@
 
 We are enhancing the analytics capabilities of the ChefScore dashboard with additional features to analyze weekly changes in player performance. The application provides a responsive and interactive interface for visualizing Total Battle chest scores and other performance metrics.
 
+We are also working on refactoring the large script.js file into smaller, more maintainable modules using ES6 module system to address code maintainability issues and fix existing linter errors.
+
 ## Recent Changes
 
 1. **Fixed Critical JavaScript Errors**:
@@ -28,21 +30,29 @@ We are enhancing the analytics capabilities of the ChefScore dashboard with addi
    - Implemented graceful fallbacks for missing data files
    - Added better user feedback during initialization and loading processes
 
+4. **Code Refactoring Plan**:
+   - Created a detailed plan to break down script.js into multiple modules
+   - Defined a clear module structure for better organization and maintainability
+   - Prepared migration approach to use ES6 modules
+   - Planned to address existing linter errors during the refactoring process
+
 ## Development Priorities
 
-1. **More robust error handling** - The application has been enhanced with better error handling, particularly for missing data files and data loading edge cases
-2. **Automated tooling** - Tools have been created to streamline the weekly data update process
-3. **Comprehensive test coverage** - Test-driven development approach has been implemented for new features
-4. **User experience improvements** - Week selection UI has been improved with proper navigation and history view
-5. **Performance optimization** - Data caching mechanisms have been implemented to improve load times
+1. **Code refactoring** - Breaking down the large script.js file into smaller, more maintainable modules
+2. **More robust error handling** - The application has been enhanced with better error handling, particularly for missing data files and data loading edge cases
+3. **Automated tooling** - Tools have been created to streamline the weekly data update process
+4. **Comprehensive test coverage** - Test-driven development approach has been implemented for new features
+5. **User experience improvements** - Week selection UI has been improved with proper navigation and history view
+6. **Performance optimization** - Data caching mechanisms have been implemented to improve load times
 
 ## Key Decisions
 
-1. **Test-driven development approach**: All new features are being built with tests first, ensuring reliability and maintainability.
-2. **Weekly data file organization**: Weekly data files follow a consistent naming pattern (`data_week_XX.csv`) and are indexed through a central `weeks.json` file.
-3. **Automation over manual processes**: An auto-updating script has been created to maintain the `weeks.json` file, reducing manual work.
-4. **Enhanced error handling**: All data loading functions now include robust error handling.
-5. **Browser compatibility focus**: The application has been tested across different browsers to ensure consistent functionality.
+1. **Modular code structure**: The large script.js file will be broken down into multiple ES6 modules, each with a specific responsibility.
+2. **Test-driven development approach**: All new features are being built with tests first, ensuring reliability and maintainability.
+3. **Weekly data file organization**: Weekly data files follow a consistent naming pattern (`data_week_XX.csv`) and are indexed through a central `weeks.json` file.
+4. **Automation over manual processes**: An auto-updating script has been created to maintain the `weeks.json` file, reducing manual work.
+5. **Enhanced error handling**: All data loading functions now include robust error handling.
+6. **Browser compatibility focus**: The application has been tested across different browsers to ensure consistent functionality.
 
 ## Implementation Plan
 
@@ -72,18 +82,45 @@ The multi-week data feature has been successfully implemented following this pha
 - Improved error handling and user feedback
 - Added comprehensive documentation
 
+The script.js refactoring will be implemented in the following phases:
+
+### Phase 1: ⬜ PENDING
+- Create the `js/` directory and all module files
+- Initialize each file with basic export structure
+- Update `index.html` to load `main.js` as a module
+
+### Phase 2: ⬜ PENDING
+- Move configuration, utility functions, state management, i18n, and DOM references to their respective modules
+
+### Phase 3: ⬜ PENDING
+- Move data loading, data processing, event listeners, and UI update functions to their respective modules
+
+### Phase 4: ⬜ PENDING
+- Move chart rendering and historical data handling to their modules
+- Organize initialization and main flow in main.js
+
+### Phase 5: ⬜ PENDING
+- Test all functionality to ensure it works as before
+- Fix any issues that arise during testing
+- Remove the original script.js file once everything is working
+
 ## Next Steps
 
-1. **Performance Optimization**:
+1. **Script.js Refactoring**:
+   - Begin Phase 1 of the refactoring plan by creating the module files
+   - Move code incrementally to maintain functionality throughout the process
+   - Test thoroughly after each step to ensure no functionality is broken
+
+2. **Performance Optimization**:
    - Review loading sequences for potential performance improvements
    - Optimize chart rendering for large datasets
    - Implement lazy loading for history visualization components
 
-2. **Additional Analytics Features**:
+3. **Additional Analytics Features**:
    - Implement player comparison tool
    - Create advanced filtering capabilities for historical data
    - Develop week-over-week change highlighting
 
-3. **User Experience Improvements**:
+4. **User Experience Improvements**:
    - Add tooltips and help text for new features
    - Optimize mobile experience for History view 
