@@ -17,6 +17,7 @@ import { initializeDataLoading } from './data-loading/csvLoader.js';
 import { processData } from './data-processing/dataProcessing.js';
 import { renderTable } from './ui-updates/tableRenderer.js';
 import { initializeAllListeners, cleanupAllListeners } from './listeners/index.js';
+import { initializeCharts, cleanupCharts } from './charts/charts.js';
 
 // Flag to prevent actions before the app is ready
 let isInitialized = false;
@@ -59,12 +60,16 @@ async function init() {
     // Initialize UI components with reactive table
     renderTable('player-table-container');
     
+    // Initialize charts
+    initializeCharts();
+    
     // Initialize event listeners
     initializeAllListeners();
     
     // Set up window unload handler for cleanup
     window.addEventListener('beforeunload', () => {
       cleanupAllListeners();
+      cleanupCharts();
     });
     
     // Set initialization flag
