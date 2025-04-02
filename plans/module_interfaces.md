@@ -220,6 +220,7 @@ export function getElement(id);
 
 /**
  * Assigns element references for the application
+ * Note: Week selector elements have been removed from the application
  * @returns {Object} Object containing all element references
  */
 export function assignElementReferences();
@@ -295,31 +296,31 @@ export function removeAllEventListeners();
 
 ```javascript
 /**
- * Loads CSV data from the specified path
- * @param {string} path - The CSV file path
- * @returns {Promise<Array>} Promise resolving to parsed CSV data
+ * Loads CSV data from a file
+ * @param {string} url - The CSV file URL
+ * @returns {Promise<Array>} Parsed CSV data
  */
-export function loadCsvData(path);
+export function loadCSV(url);
 
 /**
- * Loads score rules data
- * @returns {Promise<Array>} Promise resolving to parsed rules data
+ * Loads rules CSV data
+ * @returns {Promise<Array>} Parsed rules data
  */
-export function loadScoreRulesData();
+export function loadRules();
 
 /**
- * Parses CSV text into an array of objects
+ * Loads player data from CSV 
+ * @returns {Promise<Array>} Parsed player data
+ */
+export function loadPlayerData();
+
+/**
+ * Parses CSV string into objects
  * @param {string} csvText - The CSV text content
- * @param {Object} [options] - Papa Parse options
- * @returns {Array} Parsed CSV data
+ * @param {boolean} [hasHeader=true] - Whether CSV has header row
+ * @returns {Array<Object>} Array of objects with properties from CSV
  */
-export function parseCsvText(csvText, options);
-
-/**
- * Initializes data loading for the application
- * @returns {Promise<boolean>} Promise resolving to success indicator
- */
-export function initializeDataLoading();
+export function parseCSV(csvText, hasHeader);
 ```
 
 ## dataProcessing.js

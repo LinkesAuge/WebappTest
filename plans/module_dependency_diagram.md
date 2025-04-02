@@ -5,61 +5,37 @@ This document visualizes the dependencies between modules to help identify poten
 ## High-Level Dependency Graph
 
 ```mermaid
-flowchart TD
-    main[main.js] --> config[config.js]
-    main --> utils[utils.js]
-    main --> state[state.js]
-    main --> i18n[i18n.js]
+graph TD
+    %% Core Module Dependencies
+    main[main.js] --> state[state.js]
     main --> dom[dom.js]
-    main --> listeners[listeners.js]
-    main --> dataLoading[dataLoading.js]
-    main --> dataProcessing[dataProcessing.js]
-    main --> uiUpdates[uiUpdates.js]
-    main --> charts[charts.js]
+    main --> dataLoader[dataLoader.js]
+    main --> i18n[i18n.js]
+    main --> tableController[tableController.js]
+    main --> chartController[chartController.js]
     
-    state --> utils
-    state -.-> |loads/saves| localStorage[(localStorage)]
+    %% Data Flow
+    dataLoader --> csvParser[csvParser.js]
+    dataLoader --> dataProcessing[dataProcessing.js]
+    dataLoader --> state
     
-    i18n --> state
-    i18n --> dom
-    i18n --> utils
+    %% UI Controllers
+    tableController --> dom
+    tableController --> state
+    tableController --> utils[utils.js]
+    tableController --> i18n
     
+    chartController --> dom
+    chartController --> state
+    chartController --> utils
+    chartController --> config[config.js]
+    chartController --> i18n
+    
+    %% Common Dependencies
     dom --> utils
+    i18n --> state
     
-    listeners --> dom
-    listeners --> utils
-    listeners --> state
-    listeners --> i18n
-    listeners --> dataProcessing
-    listeners --> uiUpdates
-    listeners --> charts
-    
-    dataLoading --> utils
-    dataLoading --> dom
-    dataLoading --> state
-    
-    dataProcessing --> utils
-    dataProcessing --> state
-    dataProcessing --> dataLoading
-    
-    uiUpdates --> dom
-    uiUpdates --> utils
-    uiUpdates --> state
-    uiUpdates --> i18n
-    
-    charts --> config
-    charts --> dom
-    charts --> utils
-    charts --> state
-    
-    classDef coreModule fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef dataModule fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef uiModule fill:#bfb,stroke:#333,stroke-width:2px;
-    
-    class config,utils,state,i18n,dom coreModule;
-    class dataLoading,dataProcessing dataModule;
-    class listeners,uiUpdates,charts uiModule;
-    class main coreModule;
+    %% Note: weekDataManager has been removed as part of architectural simplification
 ```
 
 ## Detailed Module Dependencies
@@ -80,17 +56,17 @@ These modules handle data loading and processing:
 
 | Module | Depends On |
 |--------|------------|
-| dataLoading.js | utils.js, dom.js, state.js |
-| dataProcessing.js | utils.js, state.js, dataLoading.js |
+| dataLoader.js | utils.js, dom.js, state.js |
+| csvParser.js | utils.js, dom.js, state.js |
+| dataProcessing.js | utils.js, state.js, dataLoader.js |
 
 ### UI Modules
 These modules handle user interface and interaction:
 
 | Module | Depends On |
 |--------|------------|
-| listeners.js | dom.js, utils.js, state.js, i18n.js, dataProcessing.js, uiUpdates.js, charts.js |
-| uiUpdates.js | dom.js, utils.js, state.js, i18n.js |
-| charts.js | config.js, dom.js, utils.js, state.js |
+| tableController.js | dom.js, utils.js, state.js, i18n.js |
+| chartController.js | dom.js, utils.js, state.js, config.js, i18n.js |
 
 ### Entry Point
 This module initializes and orchestrates the application:
@@ -210,12 +186,32 @@ Based on the dependency graph, the following potential circular dependencies nee
    - state.js
    - dom.js
    - i18n.js
-   - dataLoading.js
+   - dataLoader.js
    - dataProcessing.js
-   - uiUpdates.js
-   - charts.js
-   - listeners.js
+   - tableController.js
+   - chartController.js
    - main.js
 3. **Use dependency injection** where appropriate to avoid circular dependencies
 4. **Document all dependencies** at the top of each module file
 5. **Watch for actual dependencies** during implementation that may differ from the plan 
+
+## Module Dependency Notes
+
+* **Recent Architectural Changes**: 
+  * The weekDataManager module has been removed from the application
+  * All week selection and history comparison features have been eliminated
+  * Data flow has been simplified to work with a single dataset
+  * State management no longer tracks current/previous week states
+
+* **Key Dependencies**:
+  * `main.js` orchestrates the application startup and core module initialization
+  * `dataLoader.js` handles all data loading operations using the CSV parser
+  * `state.js` provides centralized state management for all modules
+  * UI controllers (table and chart) depend on state for data and DOM for rendering
+
+* **Simplified Data Flow**:
+  1. CSV data is loaded and parsed
+  2. Data processing transforms the data
+  3. State is updated with processed data
+  4. UI controllers respond to state changes
+  5. DOM elements are updated based on controller instructions 

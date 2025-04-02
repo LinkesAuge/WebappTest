@@ -333,4 +333,29 @@ Specific tests for chart functionality:
 5. **Accessibility Verification**
    - Test keyboard navigation
    - Verify color contrast is sufficient
-   - Check screen reader compatibility (planned) 
+   - Check screen reader compatibility (planned)
+
+## Recent Updates
+
+### Removal of Week Selection Functionality
+
+As part of a recent architectural simplification, all week data selection and history features have been removed from the application. This included:
+
+1. **DOM Updates**
+   - Removed week selector element references
+   - Eliminated week navigation controls
+   - Removed history section references
+
+2. **Test Modifications**
+   - Updated DOM tests to remove references to week selectors
+   - Modified CSV parser tests to work without weekDataManager.js
+   - Created a standalone dataProcessing.js implementation
+   - Fixed all affected tests to work without week functionality
+
+3. **Benefits**
+   - Simplified application architecture
+   - Reduced codebase complexity
+   - Improved test maintainability
+   - Focused application on core player data display
+
+The test suite now verifies the application works correctly with a single dataset, without any week selection or historical comparison features. 

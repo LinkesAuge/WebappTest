@@ -422,4 +422,37 @@ Before completing the refactoring, the test suite should verify:
 2. No regressions have been introduced
 3. Performance is at least as good as the original
 4. Code coverage meets or exceeds targets
-5. All supported browsers work correctly 
+5. All supported browsers work correctly
+
+## Architectural Updates
+
+The testing strategy has been updated to reflect the removal of week data selection and history comparison features from the application. This simplification:
+
+1. **Eliminates Tests For**:
+   - Week selection UI components
+   - Week-to-week data comparison
+   - Historical data navigation
+   - Week state management
+
+2. **Simplifies Test Cases For**:
+   - Data loading (single dataset only)
+   - UI rendering (no week selector)
+   - State management (no week tracking)
+   - Chart visualization (single dataset views)
+
+This architectural change reduces testing complexity while maintaining robust coverage of core application features.
+
+## Test Scope Modifications
+
+| Module | Test Focus | Test Count |
+|--------|------------|------------|
+| csvParser.js | Data parsing accuracy, error handling | 8-10 |
+| dataLoader.js | Loading mechanisms, error states | 6-8 |
+| dataProcessing.js | Data transformation, aggregation (single dataset) | 10-12 |
+| state.js | State operations, event publishing | 8-10 |
+| dom.js | Element references, UI manipulation | 10-12 |
+| i18n.js | Text loading, language switching | 6-8 |
+| tableController.js | Table rendering, sorting, filtering | 12-15 |
+| chartController.js | Chart creation, updates | 10-12 |
+| main.js | Application initialization, module orchestration | 6-8 |
+| **Total** | **Core functionality** | **76-95** | 

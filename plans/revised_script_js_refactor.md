@@ -191,3 +191,23 @@ js/
 - No references to the original script.js remain
 - No console errors in supported browsers
 - Performance is maintained or improved
+
+## Architectural Changes
+
+This revised plan includes the following key architectural changes:
+
+1. **No Weekly Data Selection**: The week selection feature has been removed to simplify the application architecture. The application now only works with a single dataset without historical comparison.
+
+2. **Modular Structure**: Breaking down script.js into specialized modules with clear responsibilities.
+
+3. **ES6 Module System**: Using modern JavaScript module syntax for better encapsulation.
+
+4. **Pub/Sub State Management**: Implementing a centralized state with publish/subscribe pattern.
+
+5. **Standardized Chart Library**: Consolidating on ApexCharts for all visualizations.
+
+6. **Clear Module Interfaces**: Establishing well-defined public APIs for each module.
+
+7. **Improved Error Handling**: Adding comprehensive error handling across all modules.
+
+8. **Enhanced Testing Strategy**: Implementing unit, integration, and end-to-end tests.
