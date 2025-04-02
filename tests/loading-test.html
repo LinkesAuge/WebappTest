@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage and Data Loading Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        .button-group {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 400px;
+            border: 1px solid #ddd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .test-result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .warning {
+            background-color: #fcf8e3;
+            color: #8a6d3b;
+        }
+        #state-display, #dom-elements {
+            margin-top: 20px;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-info {
+            background-color: #e8f4f8;
+        }
+        .log-warn {
+            background-color: #fff3cd;
+        }
+        .log-error {
+            background-color: #f8d7da;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .test-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+        }
+        .test-controls {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ChefScore Storage and Data Loading Test</h1>
+        
+        <div class="test-group">
+            <h2>Data Storage Tests</h2>
+            <div class="test-controls">
+                <button id="test-localstorage">Test localStorage Loading</button>
+                <button id="test-direct-loading">Test Direct Data Loading</button>
+                <button id="clear-storage">Clear localStorage</button>
+                <button id="populate-sample">Populate Sample Data</button>
+            </div>
+        </div>
+        
+        <div class="test-group">
+            <h2>Weekly Data Integration Tests</h2>
+            <div class="test-controls">
+                <button id="test-week-integration">Test Weekly Data Integration</button>
+                <button id="test-state-sync">Test State Synchronization</button>
+                <button id="test-weekly-storage">Test Weekly Data Storage</button>
+            </div>
+        </div>
+        
+        <div class="test-group">
+            <h2>Error Handling Tests</h2>
+            <div class="test-controls">
+                <button id="test-missing-data">Test Missing Data Handling</button>
+                <button id="test-invalid-storage">Test Invalid Storage Handling</button>
+                <button id="test-recovery">Test Recovery Mechanisms</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="run-all-tests">Run All Tests</button>
+            <button id="clear-log">Clear Log</button>
+        </div>
+        
+        <div class="summary" id="test-summary">
+            Tests not yet run
+        </div>
+        
+        <div id="log">
+            <h3>Log</h3>
+            <div id="log-entries"></div>
+        </div>
+        
+        <h2>State Variables</h2>
+        <div id="state-display">
+            <pre id="state-output">Click a test button to view state variables.</pre>
+        </div>
+        
+        <h2>DOM Elements Check</h2>
+        <div id="dom-elements">
+            <table id="dom-elements-table">
+                <thead>
+                    <tr>
+                        <th>Element ID</th>
+                        <th>Found</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated by JS -->
+                </tbody>
+            </table>
+        </div>
+        
+        <h2>Test Results</h2>
+        <div id="test-results">
+            <!-- Test results will be displayed here -->
+        </div>
+    </div>
+    
+    <script type="module">
+        import * as state from '../js/state.js';
+        import * as dom from '../js/dom.js';
+        import { processPlayerData } from '../js/dataProcessing.js';
+        import { loadDataFromLocalStorage, saveDataToLocalStorage, resetState } from '../js/state.js';
+        import { updateDashboardStatistics, updateRankingTable } from '../js/uiUpdates.js';
+        import * as dataLoading from '../js/dataLoading.js';
+        import * as weekDataManager from '../js/weekDataManager.js';
+        
+        // Test tracking
+        const testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+        
+        // Custom console logging to display in the UI
+        const originalConsoleLog = console.log;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleError = console.error;
+        
+        console.log = function(message) {
+            logToUI('info', message);
+            originalConsoleLog.apply(console, arguments);
+        };
+        
+        console.warn = function(message) {
+            logToUI('warn', message);
+            originalConsoleWarn.apply(console, arguments);
+        };
+        
+        console.error = function(message) {
+            logToUI('error', message);
+            originalConsoleError.apply(console, arguments);
+        };
+        
+        function logToUI(level, message) {
+            const logEntries = document.getElementById('log-entries');
+            const entry = document.createElement('div');
+            entry.classList.add('log-entry', `log-${level}`);
+            entry.textContent = `[${level.toUpperCase()}] ${message}`;
+            logEntries.appendChild(entry);
+            logEntries.scrollTop = logEntries.scrollHeight;
+        }
+        
+        // Test result handler
+        function recordTestResult(testName, success, message) {
+            testResults.total++;
+            if (success) {
+                testResults.passed++;
+                console.log(`✅ PASS: ${testName} - ${message}`);
+                addTestResult(true, testName, message);
+            } else {
+                testResults.failed++;
+                console.error(`❌ FAIL: ${testName} - ${message}`);
+                addTestResult(false, testName, message);
+            }
+            
+            // Update summary
+            const summaryElement = document.getElementById('test-summary');
+            summaryElement.innerHTML = `
+                Tests: ${testResults.total} | 
+                Passed: ${testResults.passed} | 
+                Failed: ${testResults.failed} | 
+                Success Rate: ${Math.round((testResults.passed / testResults.total) * 100)}%
+            `;
+        }
+        
+        // Display state variables in the UI
+        function displayState() {
+            const stateOutput = document.getElementById('state-output');
+            const stateSnapshot = {
+                allPlayersData: state.allPlayersData ? state.allPlayersData.length : 0,
+                displayData: state.displayData ? state.displayData.length : 0,
+                scoreRules: state.scoreRules ? state.scoreRules.length : 0,
+                currentView: state.currentView,
+                isInitialized: state.isInitialized,
+                availableWeeks: state.availableWeeks ? state.availableWeeks.length : 0,
+                currentWeek: state.currentWeek ? {
+                    week: state.currentWeek.week,
+                    file: state.currentWeek.file
+                } : null
+            };
+            stateOutput.textContent = JSON.stringify(stateSnapshot, null, 2);
+        }
+        
+        // Check DOM elements and display in the UI
+        function checkDOMElements() {
+            const domElementsTable = document.getElementById('dom-elements-table').querySelector('tbody');
+            domElementsTable.innerHTML = '';
+            
+            // Key elements to check
+            const elementsToCheck = [
+                'rankingSection', 'rankingTableBody', 'statTotalPlayers', 'statTotalScore',
+                'statTotalChests', 'statAvgScore', 'statAvgChests', 'topChestsTableBody',
+                'weekSelector', 'mobileWeekSelector', 'prevWeekBtn', 'nextWeekBtn'
+            ];
+            
+            // Check each element and display result
+            elementsToCheck.forEach(elementId => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                const statusCell = document.createElement('td');
+                
+                nameCell.textContent = elementId;
+                const found = dom.elements[elementId] !== null && dom.elements[elementId] !== undefined;
+                statusCell.textContent = found ? '✅ Found' : '❌ Not Found';
+                statusCell.style.color = found ? 'green' : 'red';
+                
+                row.appendChild(nameCell);
+                row.appendChild(statusCell);
+                domElementsTable.appendChild(row);
+            });
+        }
+        
+        // Test localStorage loading
+        async function testLocalStorageLoading() {
+            console.log('Testing localStorage loading...');
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            
+            // Create mock DOM elements for testing
+            mockDOMElements();
+            
+            // Load data from localStorage
+            const loaded = loadDataFromLocalStorage();
+            
+            if (loaded) {
+                console.log('Data loaded from localStorage successfully');
+                
+                // Process the loaded data to populate displayData
+                processPlayerData();
+                
+                // Check if displayData is populated
+                if (state.displayData && state.displayData.length > 0) {
+                    console.log(`displayData populated with ${state.displayData.length} records`);
+                    recordTestResult('localStorage loading', true, 
+                        `Successfully loaded and processed ${state.displayData.length} records`);
+                } else {
+                    console.error('displayData is empty after processing');
+                    recordTestResult('localStorage loading', false, 'displayData is empty after processing');
+                }
+            } else {
+                console.warn('No data found in localStorage');
+                recordTestResult('localStorage loading', false, 'No data found in localStorage');
+            }
+            
+            displayState();
+            checkDOMElements();
+        }
+        
+        // Test direct data loading
+        async function testDirectLoading() {
+            console.log('Testing direct data loading...');
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            
+            // Create mock DOM elements for testing
+            mockDOMElements();
+            
+            // Create sample data
+            const sampleData = createSampleData(10);
+            state.allPlayersData = sampleData;
+            
+            // Process the data
+            processPlayerData();
+            
+            // Check if displayData is populated
+            if (state.displayData && state.displayData.length > 0) {
+                console.log(`displayData populated with ${state.displayData.length} records`);
+                recordTestResult('Direct data loading', true, 
+                    `Successfully processed ${state.displayData.length} records`);
+            } else {
+                console.error('displayData is empty after processing');
+                recordTestResult('Direct data loading', false, 'displayData is empty after processing');
+            }
+            
+            displayState();
+            checkDOMElements();
+        }
+        
+        // Test weekly data integration
+        async function testWeekIntegration() {
+            console.log('Testing weekly data integration...');
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            mockDOMElements();
+            
+            // Load available weeks
+            const weeksLoaded = await dataLoading.loadAvailableWeeks();
+            
+            if (weeksLoaded && state.availableWeeks && state.availableWeeks.length > 0) {
+                console.log(`Successfully loaded ${state.availableWeeks.length} weeks`);
+                recordTestResult('Weekly Data Loading', true, 
+                    `Successfully loaded ${state.availableWeeks.length} weeks`);
+                
+                // Initialize weekly data
+                const initialized = await weekDataManager.initializeWeeklyData();
+                
+                if (initialized) {
+                    console.log('Weekly data system initialized successfully');
+                    recordTestResult('Weekly Data Initialization', true, 
+                        'Weekly data system initialized successfully');
+                    
+                    // Check if we have player data
+                    if (state.playerData && state.playerData.length > 0) {
+                        console.log(`Loaded ${state.playerData.length} players for week ${state.currentWeek.week}`);
+                        recordTestResult('Weekly Player Data', true, 
+                            `Loaded ${state.playerData.length} players for week ${state.currentWeek.week}`);
+                    } else {
+                        console.error('No player data loaded for weekly data');
+                        recordTestResult('Weekly Player Data', false, 
+                            'No player data loaded for weekly data');
+                    }
+                } else {
+                    console.error('Failed to initialize weekly data system');
+                    recordTestResult('Weekly Data Initialization', false, 
+                        'Failed to initialize weekly data system');
+                }
+            } else {
+                console.error('Failed to load available weeks');
+                recordTestResult('Weekly Data Loading', false, 'Failed to load available weeks');
+            }
+            
+            displayState();
+            checkDOMElements();
+        }
+        
+        // Test state synchronization
+        async function testStateSync() {
+            console.log('Testing state synchronization...');
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            mockDOMElements();
+            
+            // Load available weeks first
+            await dataLoading.loadAvailableWeeks();
+            await weekDataManager.initializeWeeklyData();
+            
+            // Check if we have data
+            if (!state.playerData || state.playerData.length === 0) {
+                console.error('Weekly data not loaded, cannot test state sync');
+                recordTestResult('State Synchronization', false, 
+                    'Weekly data not loaded, cannot test state sync');
+                displayState();
+                return;
+            }
+            
+            // Copy playerData to allPlayersData (which should happen in real app)
+            state.allPlayersData = [...state.playerData];
+            
+            // Process player data which should update displayData
+            processPlayerData();
+            
+            // Check if displayData was populated
+            if (state.displayData && state.displayData.length > 0) {
+                console.log(`displayData populated with ${state.displayData.length} records from weekly data`);
+                recordTestResult('State Sync - displayData', true, 
+                    `Successfully populated displayData with ${state.displayData.length} records`);
+                
+                // Check if player data has ranking
+                if (state.displayData[0].rank) {
+                    console.log('Player ranking added successfully');
+                    recordTestResult('State Sync - Player Ranking', true, 
+                        'Player ranking added successfully');
+                } else {
+                    console.error('Player ranking not added');
+                    recordTestResult('State Sync - Player Ranking', false, 
+                        'Player ranking not added');
+                }
+            } else {
+                console.error('displayData not populated from weekly data');
+                recordTestResult('State Sync - displayData', false, 
+                    'displayData not populated from weekly data');
+            }
+            
+            displayState();
+        }
+        
+        // Test weekly data storage
+        async function testWeeklyStorage() {
+            console.log('Testing weekly data storage in localStorage...');
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            mockDOMElements();
+            
+            // Load available weeks first
+            await dataLoading.loadAvailableWeeks();
+            await weekDataManager.initializeWeeklyData();
+            
+            // Check if we have data
+            if (!state.playerData || state.playerData.length === 0) {
+                console.error('Weekly data not loaded, cannot test storage');
+                recordTestResult('Weekly Data Storage', false, 
+                    'Weekly data not loaded, cannot test storage');
+                displayState();
+                return;
+            }
+            
+            // Save data to localStorage
+            console.log('Saving data to localStorage...');
+            state.allPlayersData = [...state.playerData];
+            state.isInitialized = true;
+            
+            saveDataToLocalStorage();
+            
+            // Clear state
+            resetState();
+            
+            // Load from localStorage
+            console.log('Loading data from localStorage...');
+            const loaded = loadDataFromLocalStorage();
+            
+            if (loaded) {
+                console.log('Data loaded from localStorage successfully');
+                recordTestResult('Weekly Data Storage', true, 
+                    'Successfully saved and loaded weekly data from localStorage');
+                
+                // Check current week was preserved
+                if (state.currentWeek && state.currentWeek.week) {
+                    console.log(`Current week (${state.currentWeek.week}) preserved in localStorage`);
+                    recordTestResult('Weekly Data - Current Week', true, 
+                        `Current week (${state.currentWeek.week}) preserved in localStorage`);
+                } else {
+                    console.error('Current week not preserved in localStorage');
+                    recordTestResult('Weekly Data - Current Week', false, 
+                        'Current week not preserved in localStorage');
+                }
+            } else {
+                console.error('Failed to load data from localStorage');
+                recordTestResult('Weekly Data Storage', false, 
+                    'Failed to load data from localStorage');
+            }
+            
+            displayState();
+        }
+        
+        // Test missing data handling
+        async function testMissingData() {
+            console.log('Testing missing data handling...');
+            
+            // Clear localStorage and state
+            localStorage.removeItem('chefScoreData');
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            mockDOMElements();
+            
+            // Try to load from localStorage (which should be empty)
+            const loaded = loadDataFromLocalStorage();
+            
+            // This should fail gracefully
+            recordTestResult('Missing localStorage Data', 
+                loaded === false, 
+                loaded === false ? 'Correctly handled missing localStorage data' : 'Failed to handle missing localStorage data');
+            
+            // Try to process empty data
+            console.log('Testing processing with empty data...');
+            processPlayerData();
+            
+            // This should not throw errors
+            recordTestResult('Process Empty Data', 
+                state.displayData !== undefined, 
+                state.displayData !== undefined ? 'Correctly handled empty data in processing' : 'Failed during empty data processing');
+            
+            displayState();
+        }
+        
+        // Test invalid storage data handling
+        async function testInvalidStorage() {
+            console.log('Testing invalid storage data handling...');
+            
+            // Set invalid data in localStorage
+            localStorage.setItem('chefScoreData', '{"invalidData": true}');
+            
+            // Reset state
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            mockDOMElements();
+            
+            // Try to load invalid data
+            const loaded = loadDataFromLocalStorage();
+            
+            // This should fail gracefully
+            recordTestResult('Invalid localStorage Data', 
+                loaded === false, 
+                loaded === false ? 'Correctly handled invalid localStorage data' : 'Failed to handle invalid localStorage data');
+            
+            // Clear the invalid data
+            localStorage.removeItem('chefScoreData');
+            
+            displayState();
+        }
+        
+        // Test recovery mechanisms
+        async function testRecovery() {
+            console.log('Testing recovery mechanisms...');
+            
+            // Clear localStorage and state
+            localStorage.removeItem('chefScoreData');
+            resetState();
+            
+            // Initialize DOM elements
+            dom.assignElementReferences();
+            mockDOMElements();
+            
+            // Test fallback to weekly data when localStorage fails
+            console.log('Testing fallback to weekly data...');
+            
+            // Attempt to load from localStorage (should fail)
+            const loaded = loadDataFromLocalStorage();
+            
+            if (!loaded) {
+                console.log('localStorage loading failed, trying weekly data...');
+                
+                // Try loading weekly data instead
+                const weeksLoaded = await dataLoading.loadAvailableWeeks();
+                
+                if (weeksLoaded) {
+                    console.log('Successfully loaded available weeks as fallback');
+                    recordTestResult('Recovery - Weeks Loading', true, 
+                        'Successfully loaded available weeks as fallback');
+                    
+                    // Initialize weekly data
+                    const initialized = await weekDataManager.initializeWeeklyData();
+                    
+                    if (initialized) {
+                        console.log('Successfully initialized weekly data as fallback');
+                        recordTestResult('Recovery - Weekly Data', true, 
+                            'Successfully initialized weekly data as fallback');
+                            
+                        // Check if we recovered data
+                        if (state.playerData && state.playerData.length > 0) {
+                            console.log(`Recovered ${state.playerData.length} player records from weekly data`);
+                            recordTestResult('Recovery - Player Data', true, 
+                                `Recovered ${state.playerData.length} player records from weekly data`);
+                        } else {
+                            console.error('Failed to recover player data');
+                            recordTestResult('Recovery - Player Data', false, 
+                                'Failed to recover player data');
+                        }
+                    } else {
+                        console.error('Failed to initialize weekly data as fallback');
+                        recordTestResult('Recovery - Weekly Data', false, 
+                            'Failed to initialize weekly data as fallback');
+                    }
+                } else {
+                    console.error('Failed to load available weeks as fallback');
+                    recordTestResult('Recovery - Weeks Loading', false, 
+                        'Failed to load available weeks as fallback');
+                }
+            } else {
+                console.warn('localStorage loading succeeded unexpectedly, skipping fallback test');
+                recordTestResult('Recovery Test', false, 
+                    'localStorage loading succeeded unexpectedly, could not test fallback');
+            }
+            
+            displayState();
+        }
+        
+        // Clear localStorage data
+        function clearStorage() {
+            console.log('Clearing localStorage...');
+            localStorage.removeItem('chefScoreData');
+            recordTestResult('Clear localStorage', true, 'localStorage cleared successfully');
+            console.log('localStorage cleared');
+            
+            // Reset state to show empty state
+            resetState();
+            displayState();
+        }
+        
+        // Populate sample data in localStorage
+        function populateSampleData() {
+            console.log('Populating sample data in localStorage...');
+            resetState();
+            
+            // Create sample data
+            const sampleData = createSampleData(20);
+            state.allPlayersData = sampleData;
+            
+            // Create sample score rules
+            state.scoreRules = createSampleScoreRules();
+            
+            // Create sample weeks
+            state.availableWeeks = [
+                { week: '12', file: 'data_week_12.csv', startDate: '2023-03-20', endDate: '2023-03-26' },
+                { week: '13', file: 'data_week_13.csv', startDate: '2023-03-27', endDate: '2023-04-02' },
+                { week: '14', file: 'data_week_14.csv', startDate: '2023-04-03', endDate: '2023-04-09' },
+                { week: '15', file: 'data_week_15.csv', startDate: '2023-04-10', endDate: '2023-04-16' }
+            ];
+            
+            // Set current week
+            state.currentWeek = state.availableWeeks[3]; // Week 15
+            
+            // Set initialized flag
+            state.isInitialized = true;
+            
+            // Save to localStorage
+            saveDataToLocalStorage();
+            
+            console.log('Sample data saved to localStorage successfully');
+            recordTestResult('Populate sample data', true, 'Sample data saved to localStorage successfully');
+            displayState();
+        }
+        
+        // Create sample player data
+        function createSampleData(count) {
+            const data = [];
+            for (let i = 1; i <= count; i++) {
+                data.push({
+                    PLAYER: `Player${i}`,
+                    TOTAL_SCORE: Math.floor(Math.random() * 1000) + 100,
+                    CHEST_COUNT: Math.floor(Math.random() * 50) + 5,
+                    GOLD_1: Math.floor(Math.random() * 10),
+                    SILVER_2: Math.floor(Math.random() * 15),
+                    BRONZE_3: Math.floor(Math.random() * 20)
+                });
+            }
+            return data;
+        }
+        
+        // Create sample score rules
+        function createSampleScoreRules() {
+            return [
+                { Typ: 'GOLD', Stufe: 1, Punkte: 30 },
+                { Typ: 'SILVER', Stufe: 2, Punkte: 20 },
+                { Typ: 'BRONZE', Stufe: 3, Punkte: 10 }
+            ];
+        }
+        
+        // Mock DOM elements for testing
+        function mockDOMElements() {
+            // Create mock elements for required DOM elements
+            const mockElement = () => {
+                return { 
+                    textContent: '', 
+                    innerHTML: '',
+                    classList: { add: () => {}, remove: () => {}, contains: () => false },
+                    appendChild: () => {}
+                };
+            };
+            
+            // Set required DOM elements
+            dom.elements = {
+                rankingSection: mockElement(),
+                rankingTableBody: mockElement(),
+                statTotalPlayers: mockElement(),
+                statTotalScore: mockElement(),
+                statTotalChests: mockElement(),
+                statAvgScore: mockElement(),
+                statAvgChests: mockElement(),
+                topChestsTableBody: mockElement()
+            };
+        }
+        
+        // Add test result to the UI
+        function addTestResult(success, name, message) {
+            const testResults = document.getElementById('test-results');
+            const result = document.createElement('div');
+            result.classList.add('test-result', success ? 'success' : 'error');
+            result.innerHTML = `<strong>${name}:</strong> ${message}`;
+            testResults.appendChild(result);
+        }
+        
+        // Run all tests
+        async function runAllTests() {
+            console.log('Running all tests...');
+            
+            // Reset test results
+            testResults.passed = 0;
+            testResults.failed = 0;
+            testResults.total = 0;
+            
+            // Clear results and logs
+            document.getElementById('test-results').innerHTML = '';
+            document.getElementById('log-entries').innerHTML = '';
+            
+            // Run each test in sequence
+            // First populate sample data
+            populateSampleData();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test localStorage loading
+            await testLocalStorageLoading();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test direct loading
+            await testDirectLoading();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Clear localStorage for weekly data tests
+            clearStorage();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test weekly data integration
+            await testWeekIntegration();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test state synchronization
+            await testStateSync();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test weekly storage
+            await testWeeklyStorage();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test error handling
+            await testMissingData();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test invalid storage
+            await testInvalidStorage();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test recovery
+            await testRecovery();
+            
+            console.log('All tests completed');
+        }
+        
+        // Set up event listeners
+        document.getElementById('test-localstorage').addEventListener('click', testLocalStorageLoading);
+        document.getElementById('test-direct-loading').addEventListener('click', testDirectLoading);
+        document.getElementById('clear-storage').addEventListener('click', clearStorage);
+        document.getElementById('populate-sample').addEventListener('click', populateSampleData);
+        document.getElementById('test-week-integration').addEventListener('click', testWeekIntegration);
+        document.getElementById('test-state-sync').addEventListener('click', testStateSync);
+        document.getElementById('test-weekly-storage').addEventListener('click', testWeeklyStorage);
+        document.getElementById('test-missing-data').addEventListener('click', testMissingData);
+        document.getElementById('test-invalid-storage').addEventListener('click', testInvalidStorage);
+        document.getElementById('test-recovery').addEventListener('click', testRecovery);
+        document.getElementById('run-all-tests').addEventListener('click', runAllTests);
+        document.getElementById('clear-log').addEventListener('click', () => {
+            document.getElementById('log-entries').innerHTML = '';
+        });
+        
+        // Initialize the test UI
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Test page loaded, ready to run tests');
+            checkDOMElements();
+        });
+    </script>
+</body>
+</html> 

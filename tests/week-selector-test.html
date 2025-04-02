@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week Selector Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.5;
+    }
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-section {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 20px;
+    }
+    button {
+      padding: 8px 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    select {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      min-width: 200px;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .log {
+      margin-top: 10px;
+      font-family: monospace;
+    }
+    #state-display {
+      margin-top: 20px;
+    }
+    .state-value {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Week Selector Test</h1>
+    
+    <div class="test-section">
+      <h2>Week Selector</h2>
+      <select id="week-selector"></select>
+      <button id="prev-week-btn">Previous Week</button>
+      <button id="next-week-btn">Next Week</button>
+    </div>
+    
+    <div class="test-section">
+      <h2>Test Controls</h2>
+      <button id="init-app-btn">Initialize App</button>
+      <button id="load-weeks-btn">Load Weeks</button>
+      <button id="update-selector-btn">Update Selector</button>
+      <button id="clear-logs-btn">Clear Logs</button>
+    </div>
+    
+    <div class="test-section">
+      <h2>Console Output</h2>
+      <pre id="console-output" class="log"></pre>
+    </div>
+    
+    <div class="test-section">
+      <h2>Application State</h2>
+      <div id="state-display"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import the necessary modules
+    import config from '../js/config.js';
+    import * as utils from '../js/utils.js';
+    import * as state from '../js/state.js';
+    import * as i18n from '../js/i18n.js';
+    import * as dom from '../js/dom.js';
+    import * as dataLoading from '../js/dataLoading.js';
+    import * as dataProcessing from '../js/dataProcessing.js';
+    import * as weekDataManager from '../js/weekDataManager.js';
+
+    // Log override to capture console output
+    const consoleOutput = document.getElementById('console-output');
+    const originalConsoleLog = console.log;
+    const originalConsoleWarn = console.warn;
+    const originalConsoleError = console.error;
+
+    console.log = function(...args) {
+      originalConsoleLog.apply(console, args);
+      appendToConsole('LOG', args);
+    };
+
+    console.warn = function(...args) {
+      originalConsoleWarn.apply(console, args);
+      appendToConsole('WARN', args);
+    };
+
+    console.error = function(...args) {
+      originalConsoleError.apply(console, args);
+      appendToConsole('ERROR', args);
+    };
+
+    function appendToConsole(type, args) {
+      const message = args.map(arg => {
+        if (typeof arg === 'object') {
+          try {
+            return JSON.stringify(arg, null, 2);
+          } catch (e) {
+            return String(arg);
+          }
+        }
+        return String(arg);
+      }).join(' ');
+      
+      const logElement = document.createElement('div');
+      logElement.className = `log-entry ${type.toLowerCase()}`;
+      logElement.textContent = `[${type}] ${message}`;
+      consoleOutput.appendChild(logElement);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    // Get DOM elements
+    const weekSelector = document.getElementById('week-selector');
+    const prevWeekBtn = document.getElementById('prev-week-btn');
+    const nextWeekBtn = document.getElementById('next-week-btn');
+    const initAppBtn = document.getElementById('init-app-btn');
+    const loadWeeksBtn = document.getElementById('load-weeks-btn');
+    const updateSelectorBtn = document.getElementById('update-selector-btn');
+    const clearLogsBtn = document.getElementById('clear-logs-btn');
+    const stateDisplay = document.getElementById('state-display');
+
+    // Mocking DOM elements needed by the application
+    dom.elements = {
+      weekSelector: weekSelector,
+      prevWeekBtn: prevWeekBtn,
+      nextWeekBtn: nextWeekBtn,
+      // Add other needed DOM elements as null
+      rankingTableBody: null,
+      dashboardSection: null
+    };
+
+    // Initialize language
+    i18n.setLanguage('en');
+
+    // Update state display
+    function updateStateDisplay() {
+      stateDisplay.innerHTML = '';
+      
+      // Display only the relevant state properties
+      const stateProperties = [
+        'availableWeeks',
+        'currentWeekNumber',
+        'playerData',
+        'displayData',
+        'allPlayersData'
+      ];
+      
+      stateProperties.forEach(prop => {
+        const stateValue = document.createElement('div');
+        stateValue.className = 'state-value';
+        
+        const value = state[prop];
+        let displayValue;
+        
+        if (Array.isArray(value)) {
+          displayValue = `Array[${value.length}]`;
+          if (value.length > 0) {
+            try {
+              displayValue += ': ' + JSON.stringify(value[0]) + '...';
+            } catch (e) {
+              displayValue += ' (cannot stringify)';
+            }
+          }
+        } else if (typeof value === 'object' && value !== null) {
+          try {
+            displayValue = JSON.stringify(value);
+          } catch (e) {
+            displayValue = '[Object]';
+          }
+        } else {
+          displayValue = String(value);
+        }
+        
+        stateValue.innerHTML = `<strong>${prop}:</strong> ${displayValue}`;
+        stateDisplay.appendChild(stateValue);
+      });
+    }
+
+    // Button event listeners
+    initAppBtn.addEventListener('click', async () => {
+      console.log('Initializing app...');
+      try {
+        // Initialize state
+        state.initializeState();
+        
+        // Load score rules
+        await dataLoading.loadScoreRules();
+        
+        // Load available weeks
+        const weeksLoaded = await dataLoading.loadAvailableWeeks();
+        console.log(`Available weeks loaded: ${weeksLoaded}`);
+        
+        // Initialize weekly data
+        const weeklyDataInitialized = await weekDataManager.initializeWeeklyData();
+        console.log(`Weekly data initialized: ${weeklyDataInitialized}`);
+        
+        // Process player data
+        dataProcessing.processPlayerData();
+        
+        // Update UI
+        weekDataManager.updateWeekSelector(weekSelector);
+        
+        // Update state display
+        updateStateDisplay();
+        
+        console.log('Initialization complete');
+      } catch (error) {
+        console.error('Error initializing app:', error);
+      }
+    });
+
+    loadWeeksBtn.addEventListener('click', async () => {
+      console.log('Loading weeks...');
+      try {
+        const weeksLoaded = await dataLoading.loadAvailableWeeks();
+        console.log(`Available weeks loaded: ${weeksLoaded}`);
+        updateStateDisplay();
+      } catch (error) {
+        console.error('Error loading weeks:', error);
+      }
+    });
+
+    updateSelectorBtn.addEventListener('click', () => {
+      console.log('Updating week selector...');
+      try {
+        weekDataManager.updateWeekSelector(weekSelector);
+        console.log('Week selector updated');
+        updateStateDisplay();
+      } catch (error) {
+        console.error('Error updating week selector:', error);
+      }
+    });
+
+    clearLogsBtn.addEventListener('click', () => {
+      consoleOutput.innerHTML = '';
+    });
+
+    weekSelector.addEventListener('change', async () => {
+      const selectedWeek = weekSelector.value;
+      console.log(`Week changed to ${selectedWeek}`);
+      try {
+        await weekDataManager.changeWeek(selectedWeek);
+        dataProcessing.processPlayerData();
+        updateStateDisplay();
+      } catch (error) {
+        console.error(`Error changing week to ${selectedWeek}:`, error);
+      }
+    });
+
+    prevWeekBtn.addEventListener('click', async () => {
+      // Find previous week index
+      const currentIndex = state.availableWeeks.findIndex(w => w.week === state.currentWeekNumber);
+      if (currentIndex > 0) {
+        const prevWeek = state.availableWeeks[currentIndex - 1];
+        weekSelector.value = prevWeek.week;
+        weekSelector.dispatchEvent(new Event('change'));
+      }
+    });
+
+    nextWeekBtn.addEventListener('click', async () => {
+      // Find next week index
+      const currentIndex = state.availableWeeks.findIndex(w => w.week === state.currentWeekNumber);
+      if (currentIndex !== -1 && currentIndex < state.availableWeeks.length - 1) {
+        const nextWeek = state.availableWeeks[currentIndex + 1];
+        weekSelector.value = nextWeek.week;
+        weekSelector.dispatchEvent(new Event('change'));
+      }
+    });
+
+    // Initialize the page when loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Test page loaded');
+      updateStateDisplay();
+    });
+  </script>
+</body>
+</html> 
