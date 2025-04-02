@@ -44,7 +44,7 @@ const testData = [
 ];
 
 // Import the functions from the consolidated module
-import { filterPlayersByName, sortPlayerData } from '../../../js/dataProcessing.js';
+import { filterPlayersByName, sortPlayerData } from '../../../js/data-processing/dataProcessing.js';
 
 describe('Data Analysis', () => {
   describe('Data Sorting', () => {

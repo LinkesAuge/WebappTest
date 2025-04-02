@@ -3,7 +3,7 @@
  *
  * Description: Core data processing functionality for player data
  * Usage:
- *     import { processPlayerData, calculateScores, filterPlayers, sortPlayerData } from './data-processing/dataProcessing.js';
+ *     import { processPlayerData, calculateScores, filterPlayers, sortPlayerData } from './js/data-processing/dataProcessing.js';
  */
 
 import * as state from '../state.js';
