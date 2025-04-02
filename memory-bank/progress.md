@@ -89,4 +89,4 @@ The ChefScore Analytics Dashboard is currently in active development, with recen
 - Initial load time: ~1.2 seconds
 - Chart rendering: ~0.3 seconds
 - Data processing: ~0.4 seconds for current dataset size
-- Memory usage: Moderate (optimization planned with refactoring) 
+- Memory usage: Moderate (optimization planned with refactoring)
