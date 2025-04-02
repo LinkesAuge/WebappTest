@@ -10,6 +10,13 @@
 // Import modules
 import * as config from './config.js';
 import * as utils from './utils.js';
+import * as state from './state.js';
+import * as dom from './dom.js';
+import * as i18n from './i18n.js';
+import { initializeDataLoading } from './data-loading/csvLoader.js';
+import { processData } from './data-processing/dataProcessing.js';
+import { renderTable } from './ui-updates/tableRenderer.js';
+import { initializeAllListeners, cleanupAllListeners } from './listeners/index.js';
 
 // Flag to prevent actions before the app is ready
 let isInitialized = false;
@@ -17,32 +24,61 @@ let isInitialized = false;
 /**
  * Application initialization
  */
-function init() {
+async function init() {
   try {
     console.log('Initializing modular application...');
     
-    // Log initialization for verification
-    console.log('Loaded modules:');
-    console.log('- config.js', { 
-      constants: { 
-        CSV_PATH: config.CSV_PATH,
-        RULES_PATH: config.RULES_PATH,
-        DEFAULT_LANGUAGE: config.DEFAULT_LANGUAGE
-      }
+    // Initialize core modules
+    dom.initializeDom();
+    state.initState();
+    await i18n.initLanguage();
+    
+    // Show loading indicator
+    dom.showLoading('Initializing application...');
+    
+    // Initialize data
+    const dataLoaded = await initializeDataLoading();
+    if (!dataLoaded) {
+      throw new Error('Failed to load application data');
+    }
+    
+    // Process data
+    const allPlayersData = state.getState('allPlayersData');
+    if (allPlayersData && allPlayersData.length > 0) {
+      const processedData = processData(allPlayersData);
+      state.setState('playerData', processedData);
+      state.setState('displayData', processedData); // Initial display data
+      
+      // Set initial sort state
+      state.setState('sortColumn', 'score');
+      state.setState('sortDirection', 'desc');
+    } else {
+      console.warn('No player data available to process');
+    }
+    
+    // Initialize UI components with reactive table
+    renderTable('player-table-container');
+    
+    // Initialize event listeners
+    initializeAllListeners();
+    
+    // Set up window unload handler for cleanup
+    window.addEventListener('beforeunload', () => {
+      cleanupAllListeners();
     });
-    console.log('- utils.js loaded with functions:', 
-      Object.keys(utils).filter(key => typeof utils[key] === 'function')
-    );
     
     // Set initialization flag
     isInitialized = true;
+    dom.hideLoading();
     console.log('Application initialization completed successfully.');
     
-    // Note: For now, we're not actually initializing any functionality.
-    // The original script.js is still loading and doing all the work.
-    // This serves as a proof of concept that our modules are loading correctly.
+    // Note: For now, we're not actually initializing all functionality.
+    // The original script.js is still loading and doing some of the work.
+    // This serves as a progressive implementation of our modular approach.
     
   } catch (error) {
+    dom.hideLoading();
+    dom.showError(`Error initializing application: ${error.message}`, true);
     console.error('Error initializing application:', error);
   }
 }

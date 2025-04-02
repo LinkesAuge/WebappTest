@@ -6,8 +6,74 @@
  *     Import directly: import { renderPlayerTable, renderStatsTable } from './ui-updates/tableRenderer.js';
  */
 
-import { getState } from '../state.js';
+import { getState, subscribe } from '../state.js';
 import { showElement, hideElement } from '../dom.js';
+
+/**
+ * Main table rendering function that connects to state management
+ * Renders and subscribes to state changes for reactive updates
+ * @param {string} containerId - ID of the container element to render into
+ * @param {Object} options - Rendering options
+ * @returns {HTMLElement} The rendered table element
+ */
+export function renderTable(containerId, options = {}) {
+  try {
+    // Get data from state
+    const displayData = getState('displayData') || [];
+    const sortColumn = getState('sortColumn');
+    const sortDirection = getState('sortDirection');
+    const playerFilter = getState('playerFilter');
+    
+    console.log(`Rendering table with ${displayData.length} items, sorted by ${sortColumn} ${sortDirection}`);
+    
+    // Set up the columns based on data
+    const columns = [
+      { field: 'rank', label: 'Rank', sortable: true },
+      { field: 'name', label: 'Player', sortable: true },
+      { field: 'team', label: 'Team', sortable: true },
+      { field: 'score', label: 'Score', sortable: true }
+    ];
+    
+    // Combine options with state values
+    const renderOptions = {
+      ...options,
+      sortable: true,
+      currentSortColumn: sortColumn,
+      currentSortDirection: sortDirection,
+      searchTerm: playerFilter
+    };
+    
+    // Render the player table
+    const table = renderPlayerTable(displayData, containerId, columns, renderOptions);
+    
+    // Subscribe to state changes to update the table reactively
+    subscribe('displayData', (newData) => {
+      console.log('Display data changed, re-rendering table');
+      renderTable(containerId, options);
+    });
+    
+    subscribe('sortColumn', (newSortColumn) => {
+      console.log(`Sort column changed to ${newSortColumn}, re-rendering table`);
+      renderTable(containerId, options);
+    });
+    
+    subscribe('sortDirection', (newSortDirection) => {
+      console.log(`Sort direction changed to ${newSortDirection}, re-rendering table`);
+      renderTable(containerId, options);
+    });
+    
+    subscribe('playerFilter', (newFilter) => {
+      console.log(`Player filter changed to ${newFilter}, re-rendering table`);
+      renderTable(containerId, options);
+    });
+    
+    return table;
+  } catch (error) {
+    console.error('Error rendering reactive table:', error);
+    hideElement(containerId);
+    return null;
+  }
+}
 
 /**
  * Render a table of player data
@@ -45,7 +111,10 @@ export function renderPlayerTable(players, containerId, columns, options = {}) {
       pagination: true,
       pageSize: 10,
       currentPage: 1,
-      showSearch: true
+      showSearch: true,
+      currentSortColumn: null,
+      currentSortDirection: 'asc',
+      searchTerm: ''
     };
 
     // Merge provided options with defaults
@@ -58,6 +127,21 @@ export function renderPlayerTable(players, containerId, columns, options = {}) {
       { field: 'team', label: 'Team', sortable: true },
       { field: 'score', label: 'Score', sortable: true }
     ];
+
+    // Apply filtering from state if searchTerm is provided
+    let displayPlayers = players;
+    if (tableOptions.searchTerm && tableOptions.searchTerm.trim() !== '') {
+      displayPlayers = searchPlayers(players, tableOptions.searchTerm);
+    }
+    
+    // Apply sorting from state if currentSortColumn is provided
+    if (tableOptions.currentSortColumn) {
+      displayPlayers = sortPlayers(
+        displayPlayers, 
+        tableOptions.currentSortColumn, 
+        tableOptions.currentSortDirection || 'asc'
+      );
+    }
 
     // Create table element
     const table = document.createElement('table');
@@ -76,8 +160,13 @@ export function renderPlayerTable(players, containerId, columns, options = {}) {
       
       if (column.sortable && tableOptions.sortable) {
         th.className = 'sortable';
-        th.dataset.field = column.field;
-        th.addEventListener('click', () => sortTable(table, column.field));
+        th.dataset.sort = column.field;
+        
+        // Add sort indicator if this is the currently sorted column
+        if (column.field === tableOptions.currentSortColumn) {
+          th.classList.add('sorted');
+          th.classList.add(tableOptions.currentSortDirection);
+        }
       }
       
       if (column.width) {
@@ -95,17 +184,17 @@ export function renderPlayerTable(players, containerId, columns, options = {}) {
     
     // Calculate pagination
     const totalPages = tableOptions.pagination ? 
-      Math.ceil(players.length / tableOptions.pageSize) : 1;
+      Math.ceil(displayPlayers.length / tableOptions.pageSize) : 1;
     
     const startIdx = tableOptions.pagination ? 
       (tableOptions.currentPage - 1) * tableOptions.pageSize : 0;
     
     const endIdx = tableOptions.pagination ? 
-      Math.min(startIdx + tableOptions.pageSize, players.length) : players.length;
+      Math.min(startIdx + tableOptions.pageSize, displayPlayers.length) : displayPlayers.length;
     
     // Render rows for current page
     for (let i = startIdx; i < endIdx; i++) {
-      const player = players[i];
+      const player = displayPlayers[i];
       const row = document.createElement('tr');
       
       // Add row classes
@@ -118,6 +207,11 @@ export function renderPlayerTable(players, containerId, columns, options = {}) {
       if (tableOptions.highlightTop && player.rank && player.rank <= tableOptions.highlightTop) {
         row.classList.add('highlight-top');
         row.classList.add(`rank-${player.rank}`);
+      }
+      
+      // Add player ID for row selection
+      if (player.id) {
+        row.dataset.playerId = player.id;
       }
       
       // Add row data cells
@@ -150,15 +244,15 @@ export function renderPlayerTable(players, containerId, columns, options = {}) {
     if (tableOptions.pagination && totalPages > 1) {
       renderPagination(container, tableOptions.currentPage, totalPages, pageNum => {
         tableOptions.currentPage = pageNum;
-        renderPlayerTable(players, containerId, tableColumns, tableOptions);
+        renderPlayerTable(displayPlayers, containerId, tableColumns, tableOptions);
       });
     }
 
-    // Add search box if enabled
-    if (tableOptions.showSearch) {
+    // Add search box if enabled and no external search term is provided
+    if (tableOptions.showSearch && !tableOptions.searchTerm) {
       renderSearchBox(container, searchTerm => {
-        const filtered = searchPlayers(players, searchTerm);
-        renderPlayerTable(filtered, containerId, tableColumns, {
+        tableOptions.searchTerm = searchTerm;
+        renderPlayerTable(players, containerId, tableColumns, {
           ...tableOptions,
           currentPage: 1 // Reset to first page on search
         });
@@ -204,77 +298,40 @@ export function renderStatsTable(stats, containerId, columns, options = {}) {
 }
 
 /**
- * Sort table data by the specified field
- * @param {HTMLElement} table - Table element
+ * Sort players by the specified field and direction
+ * @param {Array} players - Player data array
  * @param {string} field - Field to sort by
+ * @param {string} direction - Sort direction ('asc' or 'desc')
+ * @returns {Array} Sorted player array
  * @private
  */
-function sortTable(table, field) {
+function sortPlayers(players, field, direction = 'asc') {
+  if (!field || !players || !Array.isArray(players)) {
+    return players;
+  }
+  
   try {
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    
-    // Get current sort direction
-    const currentSortField = thead.querySelector('th.sorted');
-    let direction = 'asc';
-    
-    // Toggle sort direction if already sorted by this field
-    if (currentSortField && currentSortField.dataset.field === field) {
-      direction = currentSortField.classList.contains('asc') ? 'desc' : 'asc';
-      currentSortField.classList.toggle('asc');
-      currentSortField.classList.toggle('desc');
-    } else {
-      // Reset all sort indicators
-      thead.querySelectorAll('th').forEach(th => {
-        th.classList.remove('sorted', 'asc', 'desc');
-      });
+    return [...players].sort((a, b) => {
+      const valueA = a[field];
+      const valueB = b[field];
       
-      // Set new sort indicator
-      const newSortHeader = thead.querySelector(`th[data-field="${field}"]`);
-      if (newSortHeader) {
-        newSortHeader.classList.add('sorted', 'asc');
-      }
-    }
-    
-    // Get column index for sorting
-    const headerCells = Array.from(thead.querySelectorAll('th'));
-    const columnIndex = headerCells.findIndex(th => th.dataset.field === field);
-    
-    if (columnIndex === -1) {
-      console.error(`Column not found for field: ${field}`);
-      return;
-    }
-    
-    // Sort rows
-    rows.sort((rowA, rowB) => {
-      const cellA = rowA.querySelectorAll('td')[columnIndex];
-      const cellB = rowB.querySelectorAll('td')[columnIndex];
+      // Handle undefined or null values
+      if (valueA === undefined || valueA === null) return direction === 'asc' ? -1 : 1;
+      if (valueB === undefined || valueB === null) return direction === 'asc' ? 1 : -1;
       
-      if (!cellA || !cellB) {
-        return 0;
+      // Sort numerically if both values are numbers
+      if (typeof valueA === 'number' && typeof valueB === 'number') {
+        return direction === 'asc' ? valueA - valueB : valueB - valueA;
       }
       
-      const valueA = cellA.textContent.trim();
-      const valueB = cellB.textContent.trim();
-      
-      // Try to convert to numbers if possible
-      const numA = parseFloat(valueA);
-      const numB = parseFloat(valueB);
-      
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return direction === 'asc' ? numA - numB : numB - numA;
-      } else {
-        return direction === 'asc' ? 
-          valueA.localeCompare(valueB) : 
-          valueB.localeCompare(valueA);
-      }
+      // Sort alphabetically (case insensitive)
+      const strA = String(valueA).toLowerCase();
+      const strB = String(valueB).toLowerCase();
+      return direction === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
     });
-    
-    // Re-append sorted rows
-    rows.forEach(row => tbody.appendChild(row));
   } catch (error) {
-    console.error('Error sorting table:', error);
+    console.error('Error sorting players:', error);
+    return players;
   }
 }
 
