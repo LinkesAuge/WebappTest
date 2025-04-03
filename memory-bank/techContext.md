@@ -14,6 +14,9 @@
 - **Chrome DevTools**: Debugging and performance analysis
 - **Git**: Version control
 - **GitHub**: Code repository hosting
+- **Babel**: JavaScript transpiler for modern syntax
+- **ESLint**: Code quality and style enforcement
+- **npm/uv**: Package and dependency management
 
 ### Key Dependencies
 - **ApexCharts**: 
@@ -30,23 +33,48 @@
 - Modern web browser (Chrome, Firefox, Edge, Safari)
 - Code editor (VS Code recommended)
 - Git for version control
+- Node.js and npm/uv for dependency management
 
 ### Local Development
 1. Clone the repository
-2. No build process required - open index.html directly in a browser
-3. For local server (optional), use any simple HTTP server
+2. Install dependencies with `npm install` or `uv install`
+3. For development, open index.html directly or use a local server
 
-### Project Structure
+### Current Project Structure
 ```
 /
 ├── index.html         # Main application HTML
 ├── script.js          # Application JavaScript (all client-side logic)
 ├── icon.png           # Application icon
 ├── icon_xl.png        # Larger application icon
-├── data/
+├── data/              # Data files
 │   ├── data.csv       # Player chest data
 │   └── rules.csv      # Scoring rules
-└── Readme.md          # Project documentation
+├── memory-bank/       # Project documentation
+├── .babelrc           # Babel configuration
+├── .eslintrc          # ESLint configuration
+└── package.json       # Package dependencies
+```
+
+### Planned Project Structure
+```
+/
+├── app/                   # Application source code
+│   ├── index.html         # Main application HTML
+│   ├── script.js          # Application JavaScript logic
+│   └── assets/            # Static assets (icons, etc.)
+├── scripts/               # Utility scripts
+├── tests/                 # Test files
+│   ├── unit/              # Unit tests
+│   ├── integration/       # Integration tests
+│   └── e2e/               # End-to-end tests
+├── memory-bank/           # Project documentation
+├── data/                  # Data files
+│   ├── data.csv           # Player chest data
+│   └── rules.csv          # Scoring rules
+├── .babelrc               # Babel configuration
+├── .eslintrc              # ESLint configuration
+└── package.json           # Package dependencies
 ```
 
 ## Technical Constraints
@@ -79,12 +107,14 @@
 - Functional programming approach
 - Clear variable and function names
 - Comments for complex logic
+- ESLint rules for consistent style
 
 ### JavaScript Standards
 - Prefer const and let over var
 - Use arrow functions where appropriate 
 - Leverage modern array methods (map, filter, reduce)
 - Handle errors with try/catch blocks
+- Follow ESLint configuration
 
 ### DOM Manipulation
 - Direct DOM manipulation (no frameworks)

@@ -1,4 +1,9 @@
-# TB Chest Analyzer Project Rules
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Chest Analyzer Project Rules
 
 ## JavaScript Patterns
 - The application uses vanilla JavaScript with ES6+ features
@@ -7,6 +12,9 @@
 - The codebase uses an event-driven architecture
 - All view rendering is handled by specific render functions
 - Chart creation is delegated to ApexCharts library
+- DOM manipulation is done directly without frameworks
+- State variables track application status (allPlayersData, displayData)
+- DOM element references are cached for performance
 
 ## Data Processing Patterns
 - CSV data is loaded using the Fetch API
@@ -14,6 +22,11 @@
 - Data transformation converts all numeric values to numbers
 - Player data is stored in an array of objects
 - Sort state is tracked separately from the data
+- Primary data source is data.csv with player chest data
+- Secondary data source is rules.csv with chest scoring rules
+- Chest data has specific structure: Player name, total score, chest count, and individual chest sources
+- Data cleaning routines handle missing/invalid values
+- Aggregated stats are calculated dynamically from raw data
 
 ## UI/UX Patterns
 - The UI follows a dark fantasy theme inspired by "Total Battle"
@@ -22,24 +35,43 @@
 - Tables support sorting by clicking column headers
 - Charts use a consistent style with the ApexCharts library
 - Cards are used for grouping related information
+- Mobile-responsive layout with appropriate adaptations
+- Progressive disclosure pattern (overview first, then details)
+- Interactive elements have clear hover/active states
+- Color palette uses amber/gold primary (#f59e0b) with dark slate backgrounds
+- View switching handled through section visibility toggling
+
+## Data Visualization
+- Main chart types: Donut, Bar, Scatter, and Radar
+- Top Sources chart shows sources contributing most to score
+- Score Distribution shows player count in score brackets
+- Score vs. Chests visualizes correlation between metrics
+- Player detail view uses radar chart for top categories
+- Charts have consistent tooltips and interaction patterns
+- Charts support expansion to modal view
+- ApexCharts configurations follow consistent patterns
 
 ## Internationalization
 - Text content is stored in language dictionaries
 - The application supports German (default) and English
 - Language preference is stored in localStorage
 - Language switching happens dynamically without page reload
+- All UI elements use translation keys for localization
 
 ## Error Handling
 - Error states are shown with status messages
 - Network errors during CSV loading show appropriate messages
 - Data processing errors are caught and displayed to the user
 - Empty states are shown when data is not available
+- Console logging used for development debugging
+- Try/catch blocks contain errors to prevent application crashes
 
 ## File Structure
 - All code is contained in a single index.html file
 - External dependencies are loaded from CDNs
-- CSV data files are stored alongside the HTML file
+- CSV data files are stored in data/ directory
 - No build process or server-side components
+- Static file hosting is sufficient for deployment
 
 ## Function Organization
 - Functions are grouped by purpose:
@@ -48,30 +80,62 @@
   - Data processing
   - View rendering
   - Event handling
+  - Chart rendering
   - Utility functions
+- Event listeners attached during initialization
+- View switching handled by dedicated function
+
+## Data Flow
+1. CSV data is loaded and parsed into raw JavaScript objects
+2. Data is cleaned and processed for use in visualizations
+3. UI components are rendered based on processed data
+4. User interactions trigger event handlers
+5. Event handlers update UI or transition to different views
+
+## View Structure
+- Dashboard View (Übersicht): Statistics, ranking table, charts
+- Detailed Table View (Daten): Full data table with all columns
+- Charts View (Diagramme): Expanded versions of dashboard charts
+- Analytics View (Analytik): Category-based analysis
+- Score System View (Punktesystem): Scoring rules table
+- Player Detail View: Individual player statistics and charts
 
 ## Performance Considerations
 - Charts are created only when needed
 - Tables use efficient DOM updates
 - Sorting and filtering happens on already-loaded data
 - Large data processing operations include status updates
+- DOM references are cached rather than repeatedly queried
+- Data transformations happen once at load time
 
 ## Known Project Quirks
 - The application uses class/ID selectors extensively for DOM queries
 - Some functions are quite large and handle multiple responsibilities
 - The codebase uses multiple nested event listeners
 - Chart instances are tracked in a global object
-- There's a JavaScript linter error at lines 2084-2090 that needs fixing
+- Script.js file is large (4000+ lines) affecting maintainability
+- Performance may degrade with very large datasets
 
 ## Developer Workflow
 - Edit index.html directly to modify all aspects of the app
 - Test locally with a web server (no build process needed)
 - CSV files need to be available alongside the HTML file
 - Browser developer tools are essential for debugging
+- Manual testing for cross-browser compatibility
+- Mobile testing through browser device emulation
 
 ## Code Style Preferences
 - Functions use consistent error handling patterns
 - DOM updates follow a consistent pattern
 - Chart configurations use a consistent structure
 - Table rendering follows a consistent pattern
-- Event listeners use anonymous functions for handlers 
+- Event listeners use anonymous functions for handlers
+- ES6+ JavaScript features preferred where supported
+
+## Future Development Considerations
+- Potential optimization of large script.js file
+- Addition of automated testing
+- Enhancement of mobile experience
+- Extended analysis features and chart types
+- Improved error handling for malformed CSV data
+- Export functionality for generated charts 

@@ -7,8 +7,9 @@
     <!-- Title will be set by JS -->
     <title>Lade...</title>
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="./icon.png">
+    <!-- Favicon with fallback options -->
+    <link rel="icon" type="image/png" href="./assets/icon.png">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90' x='5' fill='%23F59E0B'>TB</text></svg>">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -134,7 +135,9 @@
                 
                 <!-- Title and Clan Name - Further reduced for mobile -->
                 <div class="flex-shrink-0 flex items-center gap-x-1 sm:gap-x-3">
-                     <img src="./icon_xl.png" alt="Clan Logo" class="h-7 w-7 sm:h-10 sm:w-10 mr-1 sm:mr-2">
+                     <!-- Added fallback styles in case image fails to load -->
+                     <img src="./assets/icon_xl.png" alt="Clan Logo" class="h-7 w-7 sm:h-10 sm:w-10 mr-1 sm:mr-2" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
+                     <div class="hidden h-7 w-7 sm:h-10 sm:w-10 mr-1 sm:mr-2 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 font-bold">TB</div>
                      <!-- Further reduced font size for mobile -->
                      <h1 class="text-xs sm:text-lg md:text-xl lg:text-2xl font-heading font-bold text-primary whitespace-nowrap">
                         <i class="fa-solid fa-treasure-chest mr-1 sm:mr-2 text-amber-400"></i>
