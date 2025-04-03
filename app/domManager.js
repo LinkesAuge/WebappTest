@@ -1,0 +1,434 @@
+/**
+ * domManager.js
+ * 
+ * Manages DOM element references and basic UI operations.
+ * This module caches references to frequently-used DOM elements
+ * to avoid repeated querySelector calls.
+ */
+
+// DOM element references - will be populated in assignElementReferences
+let elements = {
+  // Status elements
+  statusArea: null,
+  loadingSpinner: null,
+  statusMessage: null,
+  
+  // Header and navigation
+  downloadCsvHeaderButton: null,
+  breadcrumbNav: null,
+  breadcrumbDashboardLink: null,
+  breadcrumbCurrentPageItem: null,
+  breadcrumbCurrentPageName: null,
+  
+  // Main sections
+  emptyStateSection: null,
+  dashboardSection: null,
+  detailedTableSection: null,
+  chartsSection: null,
+  analyticsSection: null,
+  scoreSystemSection: null,
+  detailSection: null,
+  
+  // Statistics and info
+  statTotalPlayers: null,
+  statTotalScore: null,
+  statTotalChests: null,
+  statAvgScore: null,
+  statAvgChests: null,
+  lastUpdatedInfo: null,
+  
+  // Chart containers
+  topSourcesChartContainer: null,
+  scoreDistributionChartContainer: null,
+  scoreVsChestsChartContainer: null,
+  frequentSourcesChartContainer: null,
+  chartsTopSourcesContainer: null,
+  chartsDistributionContainer: null,
+  chartsScoreVsChestsContainer: null,
+  chartsFrequentSourcesContainer: null,
+  categoryChartContainer: null,
+  playerChartContainer: null,
+  modalChartContainer: null,
+  
+  // Tables and filters
+  rankingTableBody: null,
+  topChestsTableBody: null,
+  detailedTableContainer: null,
+  filterInput: null,
+  
+  // Player details
+  playerNameDetail: null,
+  playerRankDetail: null,
+  playerScoreDetail: null,
+  playerChestsDetail: null,
+  playerBreakdownList: null,
+  
+  // Category analysis
+  categorySelect: null,
+  categoryAnalysisContent: null,
+  categoryPrompt: null,
+  categoryRankingBody: null,
+  categoryNameTable: null,
+  categoryNameChart: null,
+  
+  // Score rules
+  scoreRulesTableContainer: null,
+  
+  // Modal
+  chartModal: null,
+  modalChartTitle: null,
+  modalCloseButton: null,
+  
+  // Mobile elements
+  mobileMenu: null,
+  mobileMenuButton: null,
+  mobileDownloadContainer: null,
+  downloadCsvMobileButton: null,
+  iconMenuClosed: null,
+  iconMenuOpen: null
+};
+
+// Additional element collections
+let collections = {
+  desktopNavLinks: [],
+  mobileNavLinks: [],
+  expandChartButtons: [],
+  backToDashboardButtons: [],
+  languageSwitchers: []
+};
+
+/**
+ * Assigns references to frequently used DOM elements to variables.
+ * This improves performance by avoiding repeated querySelector calls.
+ * @returns {boolean} True if all references were assigned successfully
+ */
+export function assignElementReferences() {
+  console.log("Assigning DOM Element References...");
+  try {
+    // Status elements
+    elements.statusArea = document.getElementById("status-area");
+    elements.loadingSpinner = document.getElementById("loading-spinner");
+    elements.statusMessage = document.getElementById("status-message");
+    
+    // Header and navigation
+    elements.downloadCsvHeaderButton = document.getElementById("download-csv-header-button");
+    elements.breadcrumbNav = document.getElementById("breadcrumb-nav");
+    elements.breadcrumbDashboardLink = document.getElementById("breadcrumb-dashboard-link");
+    elements.breadcrumbCurrentPageItem = document.getElementById("breadcrumb-current-page-item");
+    elements.breadcrumbCurrentPageName = document.getElementById("breadcrumb-current-page-name");
+    
+    // Main sections
+    elements.emptyStateSection = document.getElementById("empty-state-section");
+    elements.dashboardSection = document.getElementById("dashboard-section");
+    elements.detailedTableSection = document.getElementById("detailed-table-section");
+    elements.chartsSection = document.getElementById("charts-section");
+    elements.analyticsSection = document.getElementById("analytics-section");
+    elements.scoreSystemSection = document.getElementById("score-system-section");
+    elements.detailSection = document.getElementById("detail-section");
+    
+    // Statistics and info
+    elements.statTotalPlayers = document.getElementById("stat-total-players");
+    elements.statTotalScore = document.getElementById("stat-total-score");
+    elements.statTotalChests = document.getElementById("stat-total-chests");
+    elements.statAvgScore = document.getElementById("stat-avg-score");
+    elements.statAvgChests = document.getElementById("stat-avg-chests");
+    elements.lastUpdatedInfo = document.getElementById("last-updated-info");
+    
+    // Chart containers
+    elements.topSourcesChartContainer = document.getElementById("top-sources-chart-container");
+    elements.scoreDistributionChartContainer = document.getElementById("score-distribution-chart-container");
+    elements.scoreVsChestsChartContainer = document.getElementById("score-vs-chests-chart-container");
+    elements.frequentSourcesChartContainer = document.getElementById("frequent-sources-chart-container");
+    elements.chartsTopSourcesContainer = document.getElementById("charts-top-sources-container");
+    elements.chartsDistributionContainer = document.getElementById("charts-distribution-container");
+    elements.chartsScoreVsChestsContainer = document.getElementById("charts-score-vs-chests-container");
+    elements.chartsFrequentSourcesContainer = document.getElementById("charts-frequent-sources-container");
+    elements.categoryChartContainer = document.getElementById("category-chart-container");
+    elements.playerChartContainer = document.getElementById("player-chart-container");
+    elements.modalChartContainer = document.getElementById("modal-chart-container");
+    
+    // Tables and filters
+    elements.rankingTableBody = document.getElementById("ranking-table-body");
+    elements.topChestsTableBody = document.getElementById("top-chests-table-body");
+    elements.detailedTableContainer = document.getElementById("detailed-table-container");
+    elements.filterInput = document.getElementById("filter-input");
+    
+    // Player details
+    elements.playerNameDetail = document.getElementById("player-name-detail");
+    elements.playerRankDetail = document.getElementById("player-rank-detail");
+    elements.playerScoreDetail = document.getElementById("player-score-detail");
+    elements.playerChestsDetail = document.getElementById("player-chests-detail");
+    elements.playerBreakdownList = document.getElementById("player-breakdown-list");
+    
+    // Category analysis
+    elements.categorySelect = document.getElementById("category-select");
+    elements.categoryAnalysisContent = document.getElementById("category-analysis-content");
+    elements.categoryPrompt = document.getElementById("category-prompt");
+    elements.categoryRankingBody = document.getElementById("category-ranking-body");
+    elements.categoryNameTable = document.getElementById("category-name-table");
+    elements.categoryNameChart = document.getElementById("category-name-chart");
+    
+    // Score rules
+    elements.scoreRulesTableContainer = document.getElementById("score-rules-table-container");
+    
+    // Modal
+    elements.chartModal = document.getElementById("chart-modal");
+    elements.modalChartTitle = document.getElementById("modal-chart-title");
+    elements.modalCloseButton = document.getElementById("modal-close-button");
+    
+    // Mobile elements
+    elements.mobileMenu = document.getElementById("mobile-menu");
+    elements.mobileMenuButton = document.getElementById("mobile-menu-button");
+    elements.mobileDownloadContainer = document.getElementById("mobile-download-container");
+    elements.downloadCsvMobileButton = document.getElementById("download-csv-mobile-button");
+    elements.iconMenuClosed = document.getElementById("icon-menu-closed");
+    elements.iconMenuOpen = document.getElementById("icon-menu-open");
+    
+    // Collect element groups
+    collections.desktopNavLinks = document.querySelectorAll("header nav .nav-link");
+    collections.mobileNavLinks = document.querySelectorAll("#mobile-menu .nav-link");
+    collections.expandChartButtons = document.querySelectorAll("[data-chart-type]");
+    collections.backToDashboardButtons = [
+      document.getElementById("back-to-dashboard-from-detailed-table"),
+      document.getElementById("back-to-dashboard-from-analytics"),
+      document.getElementById("back-to-dashboard-from-detail")
+    ].filter(Boolean); // Filter out any null elements
+    collections.languageSwitchers = [
+      document.getElementById("lang-de"),
+      document.getElementById("lang-en")
+    ].filter(Boolean);
+
+    console.log("DOM Element References assigned.");
+    return true; // Return true to indicate successful assignment
+  } catch (error) {
+    console.error("Error assigning DOM element references:", error);
+    if (elements.statusMessage)
+      elements.statusMessage.textContent = "Critical error: UI elements missing.";
+    if (elements.statusArea) elements.statusArea.classList.add("text-red-500");
+    return false; // Return false to indicate failure
+  }
+}
+
+/**
+ * Show a specific view
+ * @param {string} viewName - The name of the view to show
+ */
+export function showView(viewName) {
+  console.log(`Showing view: ${viewName}`);
+  
+  // Hide all sections
+  elements.emptyStateSection.classList.add('hidden');
+  elements.dashboardSection.classList.add('hidden');
+  elements.detailedTableSection.classList.add('hidden');
+  elements.chartsSection.classList.add('hidden');
+  elements.analyticsSection.classList.add('hidden');
+  elements.scoreSystemSection.classList.add('hidden');
+  elements.detailSection.classList.add('hidden');
+  
+  // Show selected section
+  switch (viewName) {
+    case 'dashboard':
+      elements.dashboardSection.classList.remove('hidden');
+      break;
+    case 'detailed-table':
+      elements.detailedTableSection.classList.remove('hidden');
+      break;
+    case 'charts':
+      elements.chartsSection.classList.remove('hidden');
+      break;
+    case 'analytics':
+      elements.analyticsSection.classList.remove('hidden');
+      break;
+    case 'score-system':
+      elements.scoreSystemSection.classList.remove('hidden');
+      break;
+    case 'playerDetails':
+      elements.detailSection.classList.remove('hidden');
+      break;
+    default:
+      elements.emptyStateSection.classList.remove('hidden');
+  }
+  
+  // Update breadcrumb
+  updateBreadcrumb(viewName);
+}
+
+/**
+ * Update breadcrumb navigation
+ * @param {string} viewName - The name of the current view
+ */
+function updateBreadcrumb(viewName) {
+  if (viewName === 'dashboard') {
+    elements.breadcrumbNav.classList.add('hidden');
+    return;
+  }
+  
+  elements.breadcrumbNav.classList.remove('hidden');
+  
+  // Set current page name
+  let pageName = '';
+  switch (viewName) {
+    case 'detailed-table':
+      pageName = 'Detailed Data';
+      break;
+    case 'charts':
+      pageName = 'Charts';
+      break;
+    case 'analytics':
+      pageName = 'Analytics';
+      break;
+    case 'score-system':
+      pageName = 'Score System';
+      break;
+    case 'playerDetails':
+      pageName = 'Player Details';
+      break;
+  }
+  
+  elements.breadcrumbCurrentPageName.textContent = pageName;
+}
+
+/**
+ * Update active state of navigation links
+ * @param {string} viewName - The name of the active view
+ */
+export function updateNavLinkActiveState(viewName) {
+  // Desktop nav links
+  collections.desktopNavLinks.forEach(link => {
+    if (link.dataset.view === viewName) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+  
+  // Mobile nav links
+  collections.mobileNavLinks.forEach(link => {
+    if (link.dataset.view === viewName) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+
+/**
+ * Update visibility of header buttons based on data availability
+ * @param {boolean} dataAvailable - Whether data is available
+ */
+export function updateHeaderButtonsVisibility(dataAvailable) {
+  // Update download button visibility
+  if (elements.downloadCsvHeaderButton) {
+    elements.downloadCsvHeaderButton.disabled = !dataAvailable;
+    elements.downloadCsvHeaderButton.classList.toggle('opacity-50', !dataAvailable);
+    elements.downloadCsvHeaderButton.classList.toggle('cursor-not-allowed', !dataAvailable);
+  }
+  
+  // Update mobile download button visibility
+  if (elements.downloadCsvMobileButton) {
+    elements.downloadCsvMobileButton.disabled = !dataAvailable;
+  }
+}
+
+/**
+ * Toggle mobile menu visibility
+ */
+export function toggleMobileMenu() {
+  elements.mobileMenu.classList.toggle('hidden');
+  elements.iconMenuClosed.classList.toggle('hidden');
+  elements.iconMenuOpen.classList.toggle('hidden');
+}
+
+/**
+ * Open chart modal
+ * @param {string} chartType - The type of chart to show in modal
+ */
+export function openChartModal(chartType) {
+  elements.chartModal.classList.remove('hidden');
+  
+  // Set modal title
+  let title = '';
+  switch (chartType) {
+    case 'topSources':
+      title = 'Top Sources by Score';
+      break;
+    case 'scoreDistribution':
+      title = 'Score Distribution';
+      break;
+    case 'scoreVsChests':
+      title = 'Score vs. Chests';
+      break;
+    case 'frequentSources':
+      title = 'Most Frequent Sources';
+      break;
+  }
+  elements.modalChartTitle.textContent = title;
+  
+  // TODO: Implement chart resizing in modal
+}
+
+/**
+ * Close chart modal
+ */
+export function closeChartModal() {
+  elements.chartModal.classList.add('hidden');
+}
+
+/**
+ * Resets the dashboard UI elements to their default state
+ */
+export function resetDashboardUI() {
+  // Reset stats
+  if (elements.statTotalPlayers) elements.statTotalPlayers.textContent = "-";
+  if (elements.statTotalScore) elements.statTotalScore.textContent = "-";
+  if (elements.statTotalChests) elements.statTotalChests.textContent = "-";
+  if (elements.statAvgScore) elements.statAvgScore.textContent = "-";
+  if (elements.statAvgChests) elements.statAvgChests.textContent = "-";
+  
+  // Reset ranking table
+  if (elements.rankingTableBody) {
+    elements.rankingTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-slate-500">No data loaded.</td></tr>`;
+  }
+  
+  // Reset top chests table
+  if (elements.topChestsTableBody) {
+    elements.topChestsTableBody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-slate-500 text-xs">Loading...</td></tr>`;
+  }
+  
+  // Reset last updated
+  if (elements.lastUpdatedInfo) elements.lastUpdatedInfo.textContent = "";
+}
+
+/**
+ * Update the last updated timestamp display
+ * @param {string} timestamp - The formatted timestamp to display
+ * @param {Function} getText - Function to get translated text
+ */
+export function updateLastUpdatedTimestamp(timestamp, getText) {
+  if (!elements.lastUpdatedInfo) {
+    console.error('Last updated info element not found');
+    return;
+  }
+
+  try {
+    if (!timestamp || timestamp === getText('status.dateUnavailable')) {
+      elements.lastUpdatedInfo.textContent = getText('status.lastUpdatedUnavailable');
+      return;
+    }
+
+    // Format: "Last Updated: [timestamp]"
+    const label = getText('status.lastUpdatedLabel');
+    elements.lastUpdatedInfo.textContent = `${label} ${timestamp}`;
+    
+    // Add appropriate styling
+    elements.lastUpdatedInfo.classList.remove('text-red-500');
+    elements.lastUpdatedInfo.classList.add('text-slate-600');
+  } catch (error) {
+    console.error('Error updating timestamp:', error);
+    elements.lastUpdatedInfo.textContent = getText('status.lastUpdatedUnavailable');
+    elements.lastUpdatedInfo.classList.add('text-red-500');
+  }
+}
+
+// Export element references and collections
+export { elements, collections };

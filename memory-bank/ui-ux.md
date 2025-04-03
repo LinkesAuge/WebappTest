@@ -197,3 +197,42 @@ flowchart TD
 - ✅ Minimal design consideration
 - ✅ Functional but not optimized
 - ✅ Limited feedback for users 
+
+## Table Design Standards
+
+### Table Visual Hierarchy
+- **Headers**
+  - Sticky positioning at the top of scrollable containers
+  - Dark slate background with slight transparency (`bg-slate-800/75`)
+  - Primary color text for better contrast (`text-primary`)
+  - Uppercase text for emphasis
+  - Sort icons with opacity states to indicate sort status
+  - Hover effects to indicate interactivity
+
+- **Row Styling**
+  - Alternating row colors for better readability
+    - Even rows: transparent background
+    - Odd rows: semi-transparent slate background (`rgba(30, 41, 59, 0.4)`)
+  - Hover effect for clickable rows (`rgba(51, 65, 85, 0.5)`)
+  - Smooth color transitions for all interactive states
+  
+- **Column Layout**
+  - Text alignment based on content type:
+    - Text data (e.g., player names): Left-aligned
+    - Numeric data (e.g., scores, counts): Right-aligned
+  - Consistent padding with special cases:
+    - Standard columns: Even padding (`px-4 py-3`)
+    - Rank column: Compact width (`w-16`) with adjusted padding (`pr-4 pl-2`)
+
+- **Special Row Treatments**
+  - Top 3 players in ranking table receive medal emoji indicators (🥇, 🥈, 🥉)
+
+### Sorting Interaction
+- Click on column header to sort by that column
+- First click sorts descending, subsequent clicks toggle direction
+- Visual indicators:
+  - Active sort column: Full opacity icon (100%)
+  - Inactive sort columns: Reduced opacity icon (50%)
+  - Ascending sort: Up arrow (▲)
+  - Descending sort: Down arrow (▼)
+  - Hover: Increased opacity to indicate interactivity 

@@ -1,42 +1,76 @@
 {
-  "name": "chefscore-analytics",
+  "name": "chiller-chest-analyzer",
   "version": "1.0.0",
-  "description": "Analytics dashboard for Chef's Game player performance data",
-  "main": "index.html",
+  "description": "Analytics dashboard for The Chiller Clan's chest collection data",
+  "main": "app/index.js",
+  "type": "module",
   "scripts": {
-    "test": "node scripts/run-tests.js all",
-    "test:unit": "node scripts/run-tests.js unit",
-    "test:integration": "node scripts/run-tests.js integration",
-    "test:e2e": "node scripts/run-tests.js e2e",
-    "test:coverage": "node scripts/run-tests.js all -- --coverage",
-    "test:py": "python scripts/run_pytest.py",
-    "test:py:unit": "python scripts/run_pytest.py --unit",
-    "test:py:integration": "python scripts/run_pytest.py --integration",
-    "test:py:validation": "python scripts/run_pytest.py --validation",
-    "test:py:coverage": "python scripts/run_pytest.py --coverage",
-    "test:all": "python scripts/run_all_tests.py",
-    "test:all:coverage": "python scripts/run_all_tests.py --coverage",
-    "test:website": "python scripts/run_website_tests.py",
-    "test:website:unit": "python scripts/run_website_tests.py --unit",
-    "test:website:integration": "python scripts/run_website_tests.py --integration",
-    "test:website:e2e": "python scripts/run_website_tests.py --e2e",
-    "test:website:coverage": "python scripts/run_website_tests.py --coverage",
-    "test:setup": "python scripts/run_website_tests.py --setup"
+    "start": "python -m http.server 8000",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint app/**/*.js tests/**/*.js",
+    "format": "prettier --write \"app/**/*.{js,css,html}\" \"tests/**/*.js\"",
+    "build:css": "tailwindcss -i ./app/styles/main.css -o ./app/styles/output.css --minify",
+    "watch:css": "tailwindcss -i ./app/styles/main.css -o ./app/styles/output.css --watch"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.0.16",
-    "tailwindcss": "^4.0.16"
+    "chart.js": "^4.4.1",
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.35"
   },
   "devDependencies": {
-    "@babel/core": "^7.26.10",
-    "@babel/preset-env": "^7.26.9",
-    "@testing-library/dom": "^9.3.4",
-    "@testing-library/jest-dom": "^6.4.2",
-    "@types/jest": "^29.5.11",
+    "@babel/core": "^7.23.7",
+    "@babel/preset-env": "^7.23.7",
     "babel-jest": "^29.7.0",
-    "chart.js": "^4.4.8",
+    "eslint": "^8.56.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "jsdom": "^26.0.0"
-  }
+    "prettier": "^3.1.1"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "jest": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    }
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "printWidth": 100
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LinkesAuge/WebappTest.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LinkesAuge/WebappTest/issues"
+  },
+  "homepage": "https://github.com/LinkesAuge/WebappTest#readme"
 }

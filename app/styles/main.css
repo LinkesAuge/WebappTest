@@ -1,0 +1,252 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark Fantasy Theme Variables */
+    --background: 222.2 84% 4.9%;   /* slate-950 */
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 6.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 35.5 91.7% 32.9%; /* Amber/Gold */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 12.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 35.5 91.7% 32.9%;
+    --radius: 0.5rem;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { @apply bg-background text-foreground font-sans antialiased; font-feature-settings: "rlig" 1, "calt" 1; min-height: 100vh; background-color: hsl(var(--background)); color: hsl(var(--foreground)); font-family: 'Inter', sans-serif; }
+  
+  ::-webkit-scrollbar { width: 14px; height: 14px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--card)); }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--secondary)); border-radius: 10px; border: 3px solid hsl(var(--card)); }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary)); }
+  
+  /* Rank Highlights */
+  #ranking-table-body tr:nth-child(1) td:nth-child(2)::before { content: '🥇 '; @apply text-amber-400 inline-block mr-1; }
+  #ranking-table-body tr:nth-child(2) td:nth-child(2)::before { content: '🥈 '; @apply text-slate-400 inline-block mr-1; }
+  #ranking-table-body tr:nth-child(3) td:nth-child(2)::before { content: '🥉 '; @apply text-orange-500 inline-block mr-1; }
+  
+  /* Spinner */
+  .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: hsl(var(--primary)); width: 2rem; height: 2rem; animation: spin 1s ease-in-out infinite; margin: 1rem auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  /* Sticky Header - Needs lower z-index than modal */
+  #detailed-table-container thead,
+  #ranking-section thead,
+  #score-rules-table-container thead,
+  #category-analysis-content thead {
+    position: sticky; /* Required for top positioning */
+    top: 0; /* Stick to the top of the container */
+    @apply z-10; /* Keep table headers above table content but below modal */
+  }
+  
+  /* Focus Visible */
+  *:focus-visible { @apply outline-none ring-2 ring-offset-2 ring-offset-background ring-ring; }
+  
+  /* Active Nav Link Style (Desktop) */
+  header nav a.nav-link.active { @apply text-primary border-primary; }
+  
+  /* Mobile Active Nav Link Style */
+  #mobile-menu .nav-link.active { @apply bg-primary text-primary-foreground; }
+  
+  /* Language Switcher Style */
+  .lang-button.active { @apply bg-primary/20 text-primary; }
+  
+  /* Chart toolbar styling - Ensure it's above sticky headers but below modal */
+  .apexcharts-toolbar { @apply z-20; }
+  
+  /* Modal needs highest z-index */
+  #chart-modal { @apply z-50; }
+
+  /* Table Styles */
+  tbody tr:nth-child(odd) td {
+    background-color: rgba(30, 41, 59, 0.4); /* slate-800 with 40% opacity */
+  }
+
+  tbody tr:nth-child(even) td {
+    background-color: transparent;
+  }
+
+  tbody tr:hover td {
+    background-color: rgba(51, 65, 85, 0.5); /* slate-700 with 50% opacity */
+  }
+}
+
+@layer components {
+  /* Rank Highlights */
+  #ranking-table-body tr:nth-child(1) td:nth-child(2)::before { 
+    content: '🥇 '; 
+    @apply text-amber-400 inline-block mr-1; 
+  }
+  
+  #ranking-table-body tr:nth-child(2) td:nth-child(2)::before { 
+    content: '🥈 '; 
+    @apply text-slate-400 inline-block mr-1; 
+  }
+  
+  #ranking-table-body tr:nth-child(3) td:nth-child(2)::before { 
+    content: '🥉 '; 
+    @apply text-orange-500 inline-block mr-1; 
+  }
+  
+  /* Spinner */
+  .spinner { 
+    border: 4px solid rgba(255, 255, 255, 0.3); 
+    border-radius: 50%; 
+    border-top-color: hsl(var(--primary)); 
+    width: 2rem; 
+    height: 2rem; 
+    animation: spin 1s ease-in-out infinite; 
+    margin: 1rem auto; 
+  }
+  
+  @keyframes spin { 
+    to { transform: rotate(360deg); } 
+  }
+}
+
+@layer utilities {
+  /* Focus Visible */
+  *:focus-visible { 
+    @apply outline-none ring-2 ring-offset-2 ring-offset-background ring-ring; 
+  }
+  
+  /* Active Nav Link Style (Desktop) */
+  header nav a.nav-link.active { 
+    @apply text-primary border-primary; 
+  }
+  
+  /* Mobile Active Nav Link Style */
+  #mobile-menu .nav-link.active { 
+    @apply bg-primary text-primary-foreground; 
+  }
+  
+  /* Language Switcher Style */
+  .lang-button.active { 
+    @apply bg-primary/20 text-primary; 
+  }
+}
+
+/* Sort icon styles */
+.sort-icon {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-size: 10px;
+  transition: opacity 0.15s, color 0.15s;
+  color: hsl(var(--primary));
+}
+
+th[data-column] {
+  cursor: pointer;
+}
+
+th[data-column]:hover .sort-icon {
+  opacity: 1 !important;
+}
+
+/* Active sort state */
+.sort-icon.opacity-100 {
+  opacity: 1;
+  color: hsl(var(--primary));
+}
+
+.sort-icon.opacity-50 {
+  opacity: 0.5;
+}
+
+/* Remove unused opacity classes */
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-25 {
+  opacity: 0.25;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+/* Ranking highlight styles */
+.highlight-gold {
+  background: linear-gradient(to right, rgba(245, 158, 11, 0.1), transparent 80%);
+}
+
+.highlight-silver {
+  background: linear-gradient(to right, rgba(148, 163, 184, 0.1), transparent 80%);
+}
+
+.highlight-bronze {
+  background: linear-gradient(to right, rgba(180, 83, 9, 0.1), transparent 80%);
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1.5s linear infinite;
+}
+
+/* Sticky header */
+thead.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Focus visibility */
+.focus-visible:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Active nav link */
+.nav-link.active {
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+/* Modal z-index management */
+.modal-backdrop {
+  z-index: 40;
+}
+
+.modal {
+  z-index: 50;
+}
+
+/* Table specific styling outside of Tailwind layers */
+#ranking-table-container tbody tr:nth-child(odd) td,
+#detailed-table-container tbody tr:nth-child(odd) td,
+#score-rules-table-container tbody tr:nth-child(odd) td {
+  background-color: rgba(30, 41, 59, 0.4) !important; /* slate-800 with 40% opacity */
+}
+
+#ranking-table-container tbody tr:nth-child(even) td,
+#detailed-table-container tbody tr:nth-child(even) td,
+#score-rules-table-container tbody tr:nth-child(even) td {
+  background-color: transparent !important;
+}
+
+#ranking-table-container tbody tr:hover td,
+#detailed-table-container tbody tr:hover td,
+#score-rules-table-container tbody tr:hover td {
+  background-color: rgba(51, 65, 85, 0.5) !important; /* slate-700 with 50% opacity */
+} 

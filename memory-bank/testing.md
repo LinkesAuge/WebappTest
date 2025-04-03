@@ -1,103 +1,153 @@
-# Testing
+# Testing Strategy
 
-## Current Testing Status
+## Test Directory Structure
 
-- ❌ No tests currently available - all previous tests have been deleted
-- 🔄 Planning to implement a comprehensive testing framework from scratch
-- 📝 Will follow test-driven development approach for future features
-
-## Planned Test Directory Structure
+The testing framework for the application is organized as follows:
 
 ```
-/tests                      # Test directory (to be created)
-├── unit/                   # For testing individual functions
-├── integration/            # For testing component interactions
-├── e2e/                    # For testing user flows
-└── fixtures/               # For test data and helpers
+/tests
+├── __init__.js                 # Directory initialization
+├── setup.js                    # Jest setup file
+├── README.md                   # Testing documentation
+├── unit/                       # Unit tests
+│   ├── __init__.js             # Unit tests initialization
+│   ├── app.test.js             # Tests for app module
+│   ├── dataLoader.test.js      # Tests for dataLoader module
+│   ├── domManager.test.js      # Tests for domManager module
+│   ├── i18n.test.js            # Tests for i18n module
+│   └── utils.test.js           # Tests for utils module
+└── integration/                # Integration tests
+    ├── __init__.js             # Integration tests initialization
+    └── app.test.js             # Integration tests for the application
 ```
 
-## Current Testing Approach
+## Test Types
 
-With no automated tests in place, the project currently relies on manual testing:
+The application uses two primary types of tests:
 
-1. **Manual Testing**
-   - Visual verification of layout and design
-   - Testing on different browsers and devices
-   - Validation of user flows and interactions
-   - Performance testing
+1. **Unit Tests**: Focus on testing individual functions and modules in isolation, with all dependencies mocked.
+2. **Integration Tests**: Test how different modules work together, with fewer mocks.
 
-## Manual Test Procedure
+## Running Tests
 
-### Current Test Workflow
+Tests can be run using the following npm scripts:
 
-1. **Setup**
-   - Load the application in target browser
-   - Open browser developer tools (F12)
-   - Clear localStorage if needed (`localStorage.clear()` in console)
+```bash
+npm run test           # Run all tests
+npm run test:watch     # Run tests in watch mode
+npm run test:coverage  # Run tests with coverage report
+npm run test:unit      # Run only unit tests
+npm run test:integration # Run only integration tests
+```
 
-2. **Core Functionality Testing**
-   - Verify data loads correctly
-   - Check all views can be accessed
-   - Confirm tables are sortable
-   - Validate chart displays
-   - Test player detail view
-   - Verify summary statistics
+## Key Testing Tools & Frameworks
 
-3. **Language Testing**
-   - Switch language to German
-   - Verify all UI text changes appropriately
-   - Check charts update with translated labels
-   - Confirm tables show translated headers
-   - Switch back to English and verify
+- **Jest**: Main testing framework
+- **JSDOM**: DOM simulation environment
+- **babel-jest**: For transpiling JavaScript code for testing
+- **Mock implementations**: For simulating browser APIs and external dependencies
 
-4. **Responsive Testing**
-   - Resize browser window to various dimensions
-   - Use browser DevTools device emulation
-   - Verify layout adapts appropriately
-   - Confirm all functions remain accessible
+## Special Test Features
 
-## Error Detection
+### Mock Implementation of Browser APIs
 
-Currently, errors are detected through:
+To test browser-dependent code, we've created mock implementations for:
 
-1. **Console Logging**
-   - Extensive logging in key functions
-   - Error messages for failed operations
-   - Status updates for async operations
+- **localStorage**: For persistent storage testing
+- **fetch**: For API call testing
+- **Document methods**: For DOM manipulation testing
+- **ApexCharts**: For chart rendering testing
 
-2. **Visual Inspection**
-   - Checking for rendering issues
-   - Verifying data presentation accuracy
-   - Ensuring responsive behavior
+### Test Setup
 
-3. **User Feedback**
-   - Status messages for users
-   - Clear error states
-   - Loading indicators
+The `tests/setup.js` file initializes the test environment before all tests run:
 
-## Planned Testing Tools & Frameworks
+1. Imports and sets up Jest DOM
+2. Mocks global browser objects (fetch, localStorage, etc.)
+3. Mocks external libraries (PapaParse, ApexCharts)
+4. Cleans up mocks after each test
 
-For future implementation, we plan to use:
+## Common Test Fixtures
 
-- **pytest** - Primary testing framework
-- **pytest-cov** - For test coverage reports
-- **pytest plugins** - For extending testing capabilities
-- **Browser automation** - For end-to-end testing
+Key test fixtures include:
 
-## Testing Goals
+1. **Sample player data**: Consistent test data for player records
+2. **Sample rules data**: Test data for scoring rules
+3. **DOM Structure**: HTML structure for testing DOM manipulation
 
-1. **Create Testing Infrastructure**
-   - Set up testing environment
-   - Create initial test structure
-   - Implement first basic tests
+## Test Patterns
 
-2. **Develop Comprehensive Test Suite**
-   - Cover core functionality with unit tests
-   - Implement integration tests for component interactions
-   - Create end-to-end tests for critical user flows
-   - Achieve >95% test coverage
+### Unit Test Pattern
 
-3. **Integrate with CI/CD**
-   - Set up automated test runs
-   - Add test reporting
-   - Implement quality gates 
+```javascript
+describe('Module or function name', () => {
+  // Setup before tests
+  beforeEach(() => {
+    // Reset mocks, create test data
+  });
+  
+  test('specific functionality being tested', () => {
+    // Arrange: Set up test conditions
+    // Act: Call the function being tested
+    // Assert: Verify the expected outcomes
+  });
+});
+```
+
+### Integration Test Pattern
+
+```javascript
+describe('Integration scenario', () => {
+  // Setup before tests
+  beforeEach(() => {
+    // Create more complex test environment
+  });
+  
+  test('modules working together correctly', () => {
+    // Arrange: Set up test data and conditions
+    // Act: Exercise multiple modules together
+    // Assert: Verify the combined behavior
+  });
+});
+```
+
+## Specialized Test Cases
+
+1. **Asynchronous operations**: Tests for data loading, API calls
+2. **Event handling**: Tests for UI interactions
+3. **Internationalization**: Tests for language switching and text rendering
+4. **State management**: Tests for application state transitions
+
+## Common Test Scenarios
+
+1. **Data loading flow**: Testing the complete data loading process
+2. **Navigation between views**: Testing view transitions and state changes
+3. **Data sorting and filtering**: Testing data manipulation functions
+4. **UI updates**: Testing DOM updates in response to data changes
+5. **Error handling**: Testing application behavior during error conditions
+
+## Best Practices
+
+1. **Test isolation**: Each test should be independent
+2. **Proper mocking**: Mock external dependencies but not the code being tested
+3. **Coverage goals**: Aim for at least 95% test coverage
+4. **Test readability**: Use clear descriptions and organized test structure
+5. **Fail-fast approach**: Test the most critical functionality first
+6. **Test edge cases**: Include tests for boundary conditions and error scenarios
+
+## Current Status and Next Steps
+
+Currently, the test suite is in development with the following status:
+
+- Basic test structure is in place
+- Unit tests are created for all modules
+- Integration tests demonstrate cross-module functionality
+- Several tests are failing due to DOM mocking issues
+
+Planned improvements:
+
+1. Fix DOM element mocking in tests
+2. Improve localStorage mocking
+3. Add more comprehensive test coverage for edge cases
+4. Add end-to-end tests for critical user flows
+5. Add performance tests for data-intensive operations 

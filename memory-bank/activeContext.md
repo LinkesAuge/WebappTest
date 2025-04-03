@@ -1,45 +1,173 @@
 # Active Context
 
 ## Current Focus
-- Transitioning from "Chest Analyzer" to "ChefScore Analytics Dashboard"
-- Building testing infrastructure from scratch (all previous tests deleted)
-- Restructuring project folder organization
-- Improving user experience on mobile devices
-- Ensuring accuracy of data visualization and analysis
 
-## Recent Changes
-- Removed all previous tests to start fresh with a proper testing approach
-- Set up modern development environment with Babel and ESLint
-- Added configuration files (.babelrc, .eslintrc, package.json)
-- Implemented responsive design for better mobile compatibility
-- Added chart expansion feature for more detailed analysis
-- Improved sorting functionality in tables
-- Enhanced internationalization support for German and English
+We are actively working on modernizing the application's architecture by implementing a modular approach and establishing a solid testing infrastructure. We have recently fixed critical initialization and data loading issues that were preventing the application from functioning correctly.
+
+### Current Stage: Modularization & Testing + Bug Fixing
+
+The application has been refactored from its original monolithic script.js file into a modular structure with clear separation of concerns:
+
+1. **Core Modules**
+   - `dataLoader.js`: Handles data fetching, parsing, and processing
+   - `domManager.js`: Manages DOM references and basic UI operations
+   - `i18n.js`: Handles internationalization and language switching
+   - `utils.js`: Contains utility functions for formatting, sorting, etc.
+   - `app.js`: Core application logic and integration of other modules
+
+2. **Testing Infrastructure**
+   - Jest testing framework is set up
+   - Unit tests are created for all modules
+   - Integration tests demonstrate cross-module functionality
+   - Test mocks are implemented for browser APIs
+   - Test failures are currently being addressed
+
+3. **Recently Fixed Issues**
+   - Initialization sequence in `app.js` has been corrected to ensure proper loading order
+   - Cross-module utility references have been fixed to prevent "utils is not defined" errors
+   - Data cleaning and processing has been improved for better handling of numeric values
+   - Sort state initialization has been fixed to prevent null reference errors
+   - Sort icon visibility and rendering has been enhanced
+
+### Immediate Tasks
+
+1. **Continue Test Improvements**
+   - Address DOM mocking issues in tests
+   - Improve localStorage mocking
+   - Fix integration issues between modules
+   - Ensure proper cleanup in tests
+
+2. **Enhance Error Handling**
+   - Add more comprehensive error checking
+   - Improve user feedback for error states
+   - Handle edge cases in data loading
+   - Add validation for all data operations
+
+3. **Refine Module Integration**
+   - Further optimize cross-module dependencies
+   - Improve data flow between components
+   - Enhance error propagation across module boundaries
+
+## Key Decisions
+
+1. **Modular Architecture**
+   - Each module has a clear responsibility
+   - Modules export a well-defined interface
+   - Cross-module dependencies are explicitly set
+   - State is managed centrally in the app module
+
+2. **Testing Approach**
+   - Test-driven development for new features
+   - Unit tests focus on isolated functionality
+   - Integration tests verify module interactions
+   - Mocking approach for browser APIs
+
+3. **Code Organization**
+   - Flat module structure for now
+   - Clear separation of concerns
+   - Functions grouped by logical purpose
+   - Core constants defined at module level
+
+4. **Bug Fixing Strategy**
+   - Prioritize initialization and cross-module dependencies
+   - Focus on critical data flow paths
+   - Implement defensive programming techniques
+   - Add more detailed logging for debugging
+
+## Current Challenges
+
+1. **DOM Testing**
+   - Properly mocking DOM elements for tests
+   - Handling event listeners in tests
+   - Simulating user interactions
+   - Managing DOM state between tests
+
+2. **Asynchronous Testing**
+   - Testing data loading operations
+   - Handling promises and async/await
+   - Ensuring proper test completion
+   - Avoiding race conditions in tests
+
+3. **Browser API Mocking**
+   - Creating realistic localStorage behavior
+   - Mocking fetch API for data loading
+   - Simulating browser events
+   - Managing global state in tests
+
+4. **Initialization Order**
+   - Ensuring proper module loading sequence
+   - Handling cross-module dependencies
+   - Managing state initialization
+   - Preventing circular dependencies
+
+## Next Developmental Phases
+
+1. **Complete Test Stabilization**
+   - Fix all test failures
+   - Ensure reliable test runs
+   - Improve test documentation
+   - Establish CI integration
+
+2. **Enhanced Chart Rendering**
+   - Create chart-specific abstraction module
+   - Improve chart configuration management
+   - Add more visualization options
+   - Optimize chart performance
+
+3. **Export Functionality**
+   - Add support for multiple export formats
+   - Improve CSV generation
+   - Add export configurations
+   - Enhance filename handling
+
+## Current Focus: UI Refinements and Table Improvements
+
+### Recent Changes
+- **Sort Icon Visibility and Behavior**
+  - Fixed sort icons to display with proper opacity (100% for active column, 50% for inactive)
+  - Ensured correct arrow direction logic (▲ for ascending, ▼ for descending)
+  - Applied primary theme color to icons for better visibility
+
+- **Table Appearance Enhancements**
+  - Implemented alternating row colors in all tables using multiple approaches for reliability:
+    - CSS nth-child selectors with !important rules
+    - Direct inline styles on rows
+    - Properly targeted tbody elements by ID
+  - Added hover effects for clickable rows with smooth transitions
+  - Narrowed the rank column width (w-16) for more efficient space usage
+  - Adjusted padding and alignment for rank column to improve readability
+
+- **Translation Fixes**
+  - Fixed header translations in tables by correctly mapping column names to translation keys
+  - Added proper case handling for column names (uppercase/lowercase) in translation key mapping
+  - Ensured rank column shows the correct translation ("Rang" in German)
+
+### Technical Improvements
+- Applied more robust CSS styling techniques using specific selectors to target table elements
+- Improved hover effects with proper transition animations
+- Enhanced table readability through consistent spacing and alignment
+
+### Next Steps
+- Consider adding export functionality for table data
+- Review mobile view of tables for responsive design improvements
+- Test performance with large datasets
 
 ## Next Steps
+- Continue fixing test failures and improving test coverage
+- Enhance error handling for edge cases
+- Add more comprehensive validation for all data operations
+- Optimize performance for large datasets
+- Improve user feedback for error states
 - Create app/ folder structure and move files according to planned architecture
 - Implement testing infrastructure from scratch
 - Develop initial tests following test-driven development approach
 - Achieve >95% test coverage as per project requirements
-- Finalize the transition to "ChefScore Analytics Dashboard"
-- Consider adding more visualization types for deeper analysis
-- Improve error handling for malformed CSV data
-- Optimize chart rendering for better performance
-- Explore adding download options for visualization results
-- Integrate testing with CI/CD pipeline
-
-## Key Decisions
-- Transitioning from "Chest Analyzer" to "ChefScore Analytics Dashboard"
-- Adopting test-driven development for all new features
-- Planning to use pytest for all testing needs
-- Using UV for dependency management
-- Using ApexCharts for all visualization needs
-- Implementing client-side only processing to eliminate server dependencies
-- Supporting only modern browsers to enable use of latest JavaScript features
-- Using Tailwind CSS for styling to speed up development
-- Storing language preference in localStorage
 
 ## Technical Considerations
+- Proper initialization sequence for modules to prevent undefined references
+- Defensive programming techniques for data validation and error handling
+- Clear interfaces between modules to manage dependencies
+- Consistent error propagation across module boundaries
 - Migration strategy from flat structure to modular architecture
 - Balancing between maintaining the existing functionality and adding new features
 - Potential optimization of the large script.js file (approximately 4000+ lines)
@@ -49,6 +177,7 @@
 - Proper path handling when moving files to new folder structure
 
 ## Timeline Expectations
+- Complete remaining bug fixes within 1 week
 - Create folder structure and move files within 1 week
 - Set up testing infrastructure and implement initial tests within 2-3 weeks
 - Finalize transition to "ChefScore Analytics Dashboard" within 1 month
