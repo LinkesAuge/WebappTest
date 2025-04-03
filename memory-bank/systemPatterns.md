@@ -6,152 +6,146 @@
 flowchart TD
     subgraph FrontEnd
         UI[UI Components]
-        Controllers[Controllers]
+        EventHandlers[Event Handlers]
         DataProcessors[Data Processors]
-        Visualizers[Visualizers]
-        Storage[Client Storage]
+        Visualizers[Chart Rendering]
+        Storage[localStorage]
     end
 
     CSV[CSV Data Files] --> DataProcessors
-    DataProcessors --> Controllers
-    Controllers --> UI
-    Controllers --> Visualizers
+    DataProcessors --> EventHandlers
+    EventHandlers --> UI
+    EventHandlers --> Visualizers
     Visualizers --> UI
-    Controllers <--> Storage
+    EventHandlers <--> Storage
 ```
 
-The ChefScore Analytics Dashboard follows a client-side MVC-like architecture with these key components:
+The Chest Analyzer follows a client-side single-page application architecture with these key components:
 
 ### Data Layer
-- **CSV Parser**: Handles loading and parsing raw CSV data
-- **Data Transformer**: Processes raw data into structures optimized for visualization
-- **Data Cache**: Stores processed data in memory for fast access
+- **CSV Parser (PapaParse)**: Handles loading and parsing raw CSV data
+- **Data Processor**: Cleans and transforms raw data for visualization
+- **localStorage**: Stores user preferences (language selection)
 
-### Controller Layer
-- **Main Controller**: Manages application flow and view transitions
-- **Table Controller**: Handles table rendering, sorting, and filtering
-- **Chart Controller**: Manages chart creation and interactions
-- **Language Controller**: Handles language switching and text rendering
+### Core Functionality
+- **Event Handlers**: Manage user interactions and view transitions
+- **DOM Manipulation**: Updates the UI based on user actions and data changes
+- **Table Management**: Handles rendering, sorting, and filtering of data tables
 
 ### View Layer
 - **UI Components**: Dashboard, tables, modals, navigation elements
-- **Chart Components**: Various chart types (bar, scatter, radar, etc.)
-- **Detail Views**: Player-specific views and breakdowns
-
-### Storage Layer
-- **localStorage**: Persists user preferences and settings
+- **ApexCharts**: Various chart types (donut, bar, scatter, radar)
+- **Internationalization**: Language switching functionality
 
 ## Key Technical Decisions
 
 ### 1. Frontend-Only Architecture
 The application runs entirely in the browser without a backend server. This decision was made to:
 - Eliminate server dependencies for deployment
-- Allow offline usage once loaded
 - Simplify hosting requirements
 - Enable direct loading of local CSV files
 
-### 2. Modular JavaScript Structure
-The codebase is organized into modular components with clear responsibilities:
-- **Initialization**: Application bootstrap and setup
-- **Data Processing**: Data loading, parsing, and transformation
-- **Visualization**: Chart creation and configuration
-- **UI Management**: DOM manipulation and event handling
-- **Utilities**: Helper functions and common operations
+### 2. Monolithic JavaScript Structure
+The codebase is organized in a single script.js file with:
+- **State Variables**: Application state tracking
+- **DOM Element References**: Cached references to frequent DOM elements
+- **Function Groups**: Functions organized by purpose
+- **Event Handlers**: Functions to handle user interactions
 
 ### 3. Chart Library Selection
-Chart.js was selected as the visualization library because it:
-- Provides all required chart types
-- Has good performance with large datasets
+ApexCharts was selected as the visualization library because it:
+- Provides all required chart types (donut, bar, scatter, radar)
+- Has good performance with datasets
 - Offers consistent styling and interaction patterns
 - Supports responsive sizing
-- Has well-documented customization options
+- Has good integration with the dark theme
 
 ### 4. Internationalization Approach
 Internationalization is implemented using:
-- Translation dictionaries stored as JavaScript objects
+- Translation objects stored as JavaScript objects
 - Text key substitution based on selected language
 - Persistent language preference in localStorage
 - On-the-fly language switching without page reload
 
-## Design Patterns in Use
+## Implementation Patterns
 
-### Module Pattern
-The application uses the module pattern to organize code into self-contained units with private and public interfaces. This provides encapsulation and prevents global namespace pollution.
-
-```javascript
-const DataProcessor = (function() {
-    // Private variables and functions
-    let processedData = null;
-    
-    function processRawData(rawData) {
-        // Implementation
-    }
-    
-    // Public API
-    return {
-        loadData: function(csvData) {
-            // Implementation using private functions
-        },
-        getProcessedData: function() {
-            return processedData;
-        }
-    };
-})();
-```
-
-### Observer Pattern
-The application implements a simple observer pattern for events like data loading, language changes, and view transitions.
+### Function Organization
+The application organizes code by function purpose:
 
 ```javascript
-// Event publisher
-function notifyLanguageChange(newLanguage) {
-    // Notify all subscribers
+// --- CONFIGURATION CONSTANTS ---
+const CSV_FILE_PATH = "./data/data.csv";
+const RULES_CSV_FILE_PATH = "./data/rules.csv";
+
+// --- STATE VARIABLES ---
+let allPlayersData = []; // Holds the raw, cleaned data for all players
+let displayData = []; // Holds the data currently being displayed
+
+// --- DOM ELEMENT REFERENCES ---
+let statusArea, loadingSpinner, statusMessage; // etc.
+
+// --- INITIALIZATION ---
+function initializeApp() {
+  // Application bootstrap logic
 }
 
-// Event subscribers
-function updateUIForLanguage(newLanguage) {
-    // Update UI elements
+// --- EVENT HANDLERS ---
+function handleFilter(event) {
+  // Filter implementation
 }
-```
 
-### Factory Pattern
-Chart creation uses a factory pattern to instantiate different chart types with consistent configuration.
+// --- DATA PROCESSING ---
+async function loadStaticCsvData() {
+  // Data loading and processing logic
+}
 
-```javascript
-function createChart(type, data, options) {
-    // Common configuration
-    const baseConfig = {
-        responsive: true,
-        // Other common settings
-    };
-    
-    // Type-specific configuration
-    switch(type) {
-        case 'bar':
-            // Bar chart specific settings
-            break;
-        case 'radar':
-            // Radar chart specific settings
-            break;
-        // Other chart types
-    }
-    
-    // Create and return the chart
+// --- UI RENDERING ---
+function renderDashboard() {
+  // Dashboard rendering logic
+}
+
+// --- CHART RENDERING ---
+function renderTopSourcesChart(containerId) {
+  // Chart creation logic
 }
 ```
 
-### Strategy Pattern
-Data processing strategies are selected based on data characteristics:
+### Event Handling Pattern
+The application uses direct event listeners attached during initialization:
 
 ```javascript
-function processData(data, type) {
-    switch(type) {
-        case 'ranking':
-            return processRankingData(data);
-        case 'distribution':
-            return processDistributionData(data);
-        // Other processing strategies
-    }
+function setupEventListeners() {
+  if (filterInput) {
+    filterInput.addEventListener("input", handleFilter);
+  }
+  
+  if (rankingTableBody) {
+    rankingTableBody.addEventListener("click", handleTableRowClick);
+  }
+  
+  // Additional listeners...
+}
+```
+
+### View Management Pattern
+The application uses a view switching approach to show/hide sections:
+
+```javascript
+function switchView(viewName, contextData = null) {
+  // Hide all sections
+  [dashboardSection, detailedTableSection, /* etc */].forEach(section => {
+    if (section) section.classList.add("hidden");
+  });
+  
+  // Show the requested section
+  if (viewName === "dashboard" && dashboardSection) {
+    dashboardSection.classList.remove("hidden");
+    // Additional dashboard setup...
+  } else if (viewName === "detailed-table" && detailedTableSection) {
+    detailedTableSection.classList.remove("hidden");
+    // Additional detailed table setup...
+  }
+  // Additional view handling...
 }
 ```
 
@@ -159,33 +153,25 @@ function processData(data, type) {
 
 ### Data Flow
 1. CSV data is loaded and parsed into raw JavaScript objects
-2. Raw data is transformed into specialized formats for different visualizations
-3. Controllers manage data access for UI components
-4. UI components render based on the processed data
-5. User interactions trigger controller methods for view updates
+2. Data is cleaned and processed for use in visualizations
+3. UI components are rendered based on the processed data
+4. User interactions trigger event handlers
+5. Event handlers update the UI or transition to different views
 
 ### View Hierarchy
-- **Root Container**: Main application wrapper
-  - **Header**: Navigation and language controls
-  - **Dashboard View**: Main overview
-    - **Stats Cards**: Summary statistics
-    - **Main Table**: Ranking table
-    - **Chart Grid**: Dashboard charts
-  - **Detail Views**: Secondary screens
-    - **Charts View**: Expanded charts
-    - **Analytics View**: Category analysis
-    - **Player Detail**: Individual player view
-
-### Dependency Relationships
-- Chart components depend on the Chart.js library
-- UI components depend on Controllers for data
-- Controllers depend on Data Processors for structured data
-- All text-containing components depend on the Language Controller
+- **Header**: Navigation and language controls
+- **Main Content Area**:
+  - **Dashboard View**: Main overview with statistics, ranking table, and charts
+  - **Detailed Table View**: Full data table with all columns
+  - **Charts View**: Expanded versions of dashboard charts
+  - **Analytics View**: Category-based analysis
+  - **Score System View**: Scoring rules table
+  - **Player Detail View**: Individual player statistics and charts
 
 ## Error Handling Strategy
 
-1. **Data Validation**: Verify CSV structure and content before processing
-2. **Graceful Degradation**: Display alternate content when data is missing
-3. **User Feedback**: Show error messages when operations fail
-4. **Error Boundaries**: Contain errors within components without crashing the application
-5. **Defensive Programming**: Use null checks and type validation to prevent runtime errors 
+1. **Input Validation**: Verify CSV data before processing
+2. **Graceful Degradation**: Show meaningful content when operations fail
+3. **User Feedback**: Display status messages for operations
+4. **Console Logging**: Detailed logs for debugging
+5. **Try/Catch Blocks**: Contain errors to prevent application crashes 

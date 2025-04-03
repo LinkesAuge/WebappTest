@@ -10,8 +10,8 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- CONFIGURATION CONSTANTS ---
-  const CSV_FILE_PATH = "./data.csv";
-  const RULES_CSV_FILE_PATH = "./rules.csv";
+  const CSV_FILE_PATH = "./data/data.csv";
+  const RULES_CSV_FILE_PATH = "./data/rules.csv";
   const DEFAULT_LANGUAGE = "de";
   const LANG_STORAGE_KEY = "tbAnalyzerLanguage";
   const LOCALSTORAGE_DATA_KEY = "tbAnalyzerStoredData_Client_v2_Static";

@@ -3,10 +3,10 @@
 ## Technologies Used
 
 ### Core Technologies
-- **JavaScript (ES6+)**: Primary programming language
+- **JavaScript (ES6+)**: Primary programming language for client-side logic
 - **HTML5**: Document structure and semantic elements
-- **CSS3**: Styling with Flexbox and Grid layouts
-- **Chart.js**: Data visualization library for interactive charts
+- **CSS3 / Tailwind CSS**: Styling via Tailwind CSS utility classes with custom variables
+- **ApexCharts**: Data visualization library for interactive charts
 - **PapaParse**: CSV parsing library
 
 ### Development Environment
@@ -16,12 +16,13 @@
 - **GitHub**: Code repository hosting
 
 ### Key Dependencies
-- **Chart.js**: v4.x
-  - Used for all data visualizations
-  - Extended with custom plugins for additional functionality
-- **PapaParse**: v5.x  
-  - Handles CSV parsing with support for various formats
-  - Streaming capabilities for large files
+- **ApexCharts**: 
+  - Used for all data visualizations (donut, bar, scatter, radar charts)
+  - Provides consistent styling and interaction options
+  - Supports responsive sizing and theming
+- **PapaParse**: 
+  - Handles CSV parsing with header support
+  - Enables dynamic typing and error handling
 
 ## Development Setup
 
@@ -31,40 +32,34 @@
 - Git for version control
 
 ### Local Development
-1. Clone the repository:
-   ```
-   git clone https://github.com/username/chefscore.git
-   ```
-2. No build process required - open index.html directly or use a local server
-3. For local server (optional):
-   ```
-   npx serve
-   ```
+1. Clone the repository
+2. No build process required - open index.html directly in a browser
+3. For local server (optional), use any simple HTTP server
 
 ### Project Structure
 ```
 /
 ├── index.html         # Main application HTML
-├── script.js          # Application JavaScript
-├── data.csv           # Sample player data
-├── rules.csv          # Scoring rules
-├── Readme.md          # Project documentation
-├── .vscode/           # Editor settings
-└── node_modules/      # Dependencies (minimal)
+├── script.js          # Application JavaScript (all client-side logic)
+├── icon.png           # Application icon
+├── icon_xl.png        # Larger application icon
+├── data/
+│   ├── data.csv       # Player chest data
+│   └── rules.csv      # Scoring rules
+└── Readme.md          # Project documentation
 ```
 
 ## Technical Constraints
 
 ### Browser Support
-- Modern browsers (last 2 versions)
-- No IE11 support required
+- Modern browsers (Chrome, Firefox, Edge, Safari)
 - Mobile browser support required
 
 ### Performance Requirements
-- Handle up to 10,000 player records
-- Initial load under 3 seconds for typical datasets
-- Chart rendering under 500ms
-- Smooth scrolling and interactions
+- Handle the clan's player dataset efficiently
+- Initial load under 3 seconds
+- Chart rendering and interactions must be smooth
+- Responsive on various device sizes
 
 ### Security Considerations
 - Client-side application with no server components
@@ -75,58 +70,54 @@
 ### Hosting Requirements
 - Static file hosting only
 - No backend/server requirements
-- Small footprint (<500KB total excluding sample data)
+- All processing happens client-side
 
 ## Development Guidelines
 
 ### Code Style
 - ES6+ JavaScript features
-- Consistent indentation (2 spaces)
-- Descriptive variable and function names
+- Functional programming approach
+- Clear variable and function names
 - Comments for complex logic
-- Function-based organization
 
 ### JavaScript Standards
 - Prefer const and let over var
-- Use arrow functions where appropriate
+- Use arrow functions where appropriate 
 - Leverage modern array methods (map, filter, reduce)
-- Employ destructuring for cleaner code
-- Use optional chaining and nullish coalescing for safer property access
+- Handle errors with try/catch blocks
 
 ### DOM Manipulation
-- Prefer direct DOM manipulation over frameworks
-- Use data attributes for JavaScript hooks
-- Create elements with document.createElement
-- Update classes with classList API
-- Employ event delegation for dynamically created elements
+- Direct DOM manipulation (no frameworks)
+- DOM element references stored in variables
+- Event delegation for dynamically created elements
+- Status indicators for loading and operations
 
 ### Data Processing
-- Validate CSV data structure before processing
-- Transform data into optimal format for each visualization
-- Cache processed results to avoid redundant calculations
-- Handle edge cases (empty data, malformed entries)
+- Load CSV data with PapaParse
+- Clean and transform data for visualization
+- Sort and filter based on user selections
+- Calculate aggregate statistics from raw data
 
 ### Charts and Visualizations
-- Consistent color scheme across all charts
-- Clear labels and legends
-- Interactive tooltips for data exploration
+- Consistent color scheme using CSS variables
+- Clear labels and tooltips
+- Interactive features (expandable charts, tooltips)
 - Responsive sizing for all device types
-- Appropriate chart types for each data relationship
 
 ## Integration Points
 
 ### Data Files
-- CSV files with specific column structures
-- Column names must match expected format
-- Data validation checks structure on load
+- data.csv: Contains player names, scores, chest counts, and chest sources
+- rules.csv: Contains scoring rules for different chest types
 
 ### Localization
-- Translation keys in dedicated objects
-- All UI text references translation system
-- RTL layout support not currently implemented
+- Translation keys in dedicated JavaScript objects
+- UI elements reference i18n keys
+- Language preference stored in localStorage
+- German (de) and English (en) supported
 
 ### Responsiveness
-- CSS media queries for layout adaptation
-- Flexible grid system for component sizing
-- Touch-friendly targets for mobile devices
-- Alternative views for small screens where needed 
+- Tailwind CSS utility classes for responsive layout
+- Mobile-first navigation with hamburger menu
+- Flexible chart sizing
+- Scrollable tables for small screens 

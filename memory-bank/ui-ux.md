@@ -45,64 +45,57 @@ flowchart TD
 - **Card Background**: Darker slate (#1e293b) - Card and section backgrounds
 - **Text Primary**: White (#ffffff) - Main text
 - **Text Secondary**: Light gray (#94a3b8) - Secondary and supporting text
-- **Border**: Medium slate (#334155) - Borders and dividers
-- **Accent**: Teal (#0d9488) - Highlights and accents
-- **Error**: Red (#ef4444) - Error messages and alerts
-- **Success**: Green (#10b981) - Success messages
-- **Info**: Blue (#3b82f6) - Informational messages
+- **Border**: Amber/Gold with lower opacity - Borders and dividers
+- **Secondary**: Rose (#e11d48) - Used for accent elements
 
 ### Typography
 
 - **Primary Font**: Inter (sans-serif)
-- **Secondary Font**: Serif font for decorative headings
+- **Secondary Font**: Merriweather (serif) 
+- **Heading Font**: Cinzel Decorative (for fantasy elements)
 - **Base Size**: 16px
-- **Scale**: 1.25 (major third)
-
-### Spacing
-
-- **Base Unit**: 0.25rem (4px)
-- **Scale**: 4px, 8px, 16px, 24px, 32px, 48px, 64px
 
 ### Components
 
 #### Cards
 - Rounded corners (0.5rem)
-- Subtle shadows
-- Border accent on important cards
-- Padding: 1.5rem
+- Dark background with border
+- Icon + heading combinations
+- Shadow effects for depth
+- Consistent internal spacing
 
 #### Tables
-- Alternating row colors for readability
-- Hover effect on interactive rows
-- Thin borders between rows
 - Sticky headers
+- Alternating row shades
+- Clickable rows for detail views
 - Sortable columns with indicators
+- Horizontal scrolling for wide tables
 
 #### Charts
-- Consistent color scheme across chart types
-- Tooltips for additional information
-- Interactive elements (hover effects)
-- Expand buttons for larger views
-- Loading spinners during rendering
+- ApexCharts library implementation
+- Consistent theme across chart types
+- Interactive tooltips
+- Expand option to view in modal
+- Responsive sizing
 
 #### Buttons
 - Clear hover states
-- Focus indicators
-- Consistent padding (0.5rem 1rem)
-- Text or icon buttons as appropriate
+- Icon + text combinations
+- Border styling for secondary actions
+- Focus indicators for accessibility
 
-#### Forms
-- Clearly labeled inputs
-- Sufficient spacing between elements
-- Error states with helpful messages
-- Focus states for accessibility
+#### Navigation
+- Tab-like desktop navigation
+- Mobile hamburger menu
+- Active state indicators
+- Language switcher in header
 
 ## View Specifications
 
 ### Dashboard View
-- Summary statistics in card grid at top
+- Summary statistics in 5-card grid at top
 - Main ranking table with filtering
-- Four chart cards in 2x2 grid
+- Four chart cards (Top Sources, Score Distribution, Score vs. Chests, Frequent Sources)
 - Top 5 players by chest count in sidebar
 
 ### Detailed Table View
@@ -114,7 +107,7 @@ flowchart TD
 ### Charts View
 - Large versions of the dashboard charts
 - 2x2 grid layout
-- Description text for each chart
+- Consistent expand buttons
 - Consistent interactive features
 
 ### Analytics View
@@ -129,10 +122,10 @@ flowchart TD
 - Points column with clear formatting
 
 ### Player Detail View
-- Player information card with key stats
+- Player information card with key stats (rank, score, chests)
 - Score breakdown list by category
 - Radar chart showing top performance areas
-- Download option for player data
+- Download option for player data as JSON
 
 ### Chart Modal
 - Expanded version of a single chart
@@ -143,32 +136,31 @@ flowchart TD
 ## Interaction Patterns
 
 ### Navigation
-- Primary navigation via header links
+- Primary navigation via header tabs
 - Back buttons for nested views
-- Breadcrumb trail for context
+- Breadcrumb path for context
 
 ### Table Interactions
-- Click column headers to sort
+- Click column headers to sort (ascending/descending)
 - Click rows to view details
-- Filter input for quick searching
+- Filter input for player name search
 - Horizontal scrolling for wide tables
 
 ### Chart Interactions
 - Hover for tooltips with detailed data
-- Click expand button for larger view
+- Click expand button for larger view in modal
 - Chart-specific interactions (zoom, pan)
-- Legend toggles for data series
+- Download options via ApexCharts menu
 
 ### Language Switching
-- Language toggle buttons in header
+- Language toggle buttons in header (DE/EN)
 - Immediate UI update on language change
-- Persistent preference across sessions
+- Persistent preference in localStorage
 
 ### Status Messages
-- Temporary notifications for actions
-- Color-coded by message type
-- Auto-dismissal after timeout
-- User-dismissible
+- Central status area for notifications
+- Loading spinner for async operations
+- Error messages for failed operations
 
 ## Key UX Principles
 
@@ -177,9 +169,8 @@ flowchart TD
 3. **Feedback**: Provide clear feedback for all user actions
 4. **Efficiency**: Minimize clicks for common tasks
 5. **Learnability**: Intuitive interface requiring minimal instruction
-6. **Error Prevention**: Guide users away from errors
-7. **Performance Focus**: Optimize for responsiveness and speed
-8. **Accessibility**: Design for users of all abilities
+6. **Performance Focus**: Optimize for responsiveness and speed
+7. **Dark Theme**: Fantasy-inspired dark theme matching the game's aesthetic
 
 ## UX Rubric
 

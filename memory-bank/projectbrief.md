@@ -1,24 +1,26 @@
-# Project Brief: ChefScore Analytics Dashboard
+# Project Brief: Chest Analyzer
 
 ## Overview
-ChefScore is a web-based analytics dashboard designed to track and visualize player performance data for the mobile game Chef's Game. The application provides insights into player scores, chest collections, and various player statistics through interactive tables and charts.
+The Chest Analyzer is a single-page web application designed for players and members of the "The Chiller" clan in the game "Total Battle". Its primary goal is to load, process, analyze, and visualize player chest data exported from the game in CSV format. This tool allows users to gain insights into individual and comparative performance based on chest collection metrics.
+
+In the browser game "Total Battle" players can collect chests which can be of many different types, each of which can have various different sources and that all get a score based on rules set by our site.
 
 ## Core Requirements
 
 ### 1. Data Visualization
 - Display player performance data in interactive, sortable tables
-- Visualize player statistics through various chart types (bar, scatter, radar)
+- Visualize player statistics through various chart types (donut, bar, scatter, radar)
 - Enable filtering and sorting of player data
 - Support expanding charts to detailed views
 
 ### 2. Player Detail Views
 - Show individual player performance metrics in a dedicated view
 - Display player scores by category in a radar chart
-- Provide breakdowns of player achievements
+- Provide breakdowns of player chest sources
 
 ### 3. Cross-Section Analysis
 - Enable analysis of performance by category
-- Display rankings within each scoring category
+- Display rankings within each chest source category
 - Visualize distribution of scores across players
 
 ### 4. Internationalization
@@ -39,40 +41,34 @@ ChefScore is a web-based analytics dashboard designed to track and visualize pla
 ## Technical Goals
 
 ### 1. Frontend Architecture
-- Maintain a clean, modular JavaScript structure
-- Implement consistent error handling
+- Implement clean JavaScript structure
+- Handle errors consistently
 - Follow best practices for web performance
 
 ### 2. Data Management
 - Efficient loading and parsing of CSV data
-- Intelligent caching to improve performance
+- Use localStorage for user preferences
 - Structured data transformation for visualization
 
 ### 3. UI/UX Quality
 - Create an intuitive, easy-to-navigate interface
-- Implement consistent visual design
+- Implement consistent visual design with dark fantasy theme
 - Provide clear feedback for user actions
-
-### 4. Testing
-- Implement comprehensive testing strategy
-- Ensure cross-browser compatibility
-- Validate responsive design across devices
 
 ## Constraints
 
 ### 1. Technology
 - Frontend-only implementation (no server-side processing)
 - CSV as the primary data source format
-- Modern browser support (no IE11 support required)
+- Modern browser support only
 
 ### 2. Performance
-- Must handle datasets of up to 10,000 players
+- Must handle the clan's dataset efficiently
 - Chart rendering must remain smooth and responsive
-- Initial load time target under 3 seconds for typical datasets
+- Initial load time target under 3 seconds
 
 ## Success Criteria
 - Users can easily navigate between different views
-- Data visualizations provide clear insights
+- Data visualizations provide clear insights into chest collection performance
 - All core functionality works across supported browsers
-- Performance remains acceptable with large datasets
 - Interface is intuitive and requires minimal explanation 

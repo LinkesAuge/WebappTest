@@ -1,14 +1,15 @@
-# TB Chest Analyzer - Documentation (Client-Side Static Data Version)
+# Chest Analyzer - Documentation
 
 ## 1. Overview
 
 **Purpose:**
 
-The TB Chest Analyzer is a single-page web application designed for players and members of the "The Chiller" clan in the game "Total Battle". Its primary goal is to load, process, analyze, and visualize player chest data exported from the game in CSV format. This tool allows users to gain insights into individual and comparative performance based on chest collection metrics.
+The Chest Analyzer is a single-page web application designed for players and members of the "The Chiller" clan in the game "Total Battle". Its primary goal is to load, process, analyze, and visualize player chest data exported from the game in CSV format. This tool allows users to gain insights into individual and comparative performance based on chest collection metrics.
+In the browser game "Total Battle" players can collect chests which can be of many different types, each of which can have various different sources and that all get a score based on rules set by our site.
 
 **Version Type:**
 
-This specific version operates **entirely client-side**. It fetches its primary dataset (`data.csv`) and scoring rules (`rules.csv`) from static files hosted alongside the main `index.html` file. It uses the user's web browser to perform all calculations and rendering. Data persistence across browser sessions relies on the static nature of the hosted CSV files (updated by the website owner) and `localStorage` for user preferences like language selection.
+This specific version operates **entirely client-side**. It fetches its primary dataset (`data/data.csv`) and scoring rules (`data/rules.csv`) from static files hosted alongside the main `index.html` file. It uses the user's web browser to perform all calculations and rendering. Data persistence across browser sessions relies on the static nature of the hosted CSV files (updated by the website owner) and `localStorage` for user preferences like language selection.
 
 **Target Audience:**
 
@@ -17,7 +18,7 @@ This specific version operates **entirely client-side**. It fetches its primary 
 
 ## 2. Core Features
 
-*   **Static Data Loading:** Automatically fetches and parses predefined `data.csv` and `rules.csv` files on page load.
+*   **Static Data Loading:** Automatically fetches and parses predefined `data/data.csv` and `data/rules.csv` files on page load.
 *   **Multilingual Interface:**
     *   Defaults to German (`de`).
     *   Provides a simple switcher in the header to toggle between German (`DE`) and English (`EN`).
@@ -29,7 +30,7 @@ This specific version operates **entirely client-side**. It fetches its primary 
     *   Analytik / Analytics
     *   Punktesystem / Score System
 *   **Dashboard View (`Übersicht`):**
-    *   **Aggregated Statistics:** Displays cards showing total players analyzed, total overall score, total chests collected, average score per player, and average chests per player from the loaded `data.csv`.
+    *   **Aggregated Statistics:** Displays cards showing total players analyzed, total overall score, total chests collected, average score per player, and average chests per player from the loaded `data/data.csv`.
     *   **Overall Player Ranking:** A primary table showing all players ranked by Total Score (default). Supports sorting by Rank, Player Name, Total Score, and Chest Count. Includes visual highlighting for the top 3 ranks. Provides text-based filtering by Player Name.
     *   **Visualizations:**
         *   *Top Sources by Score:* Donut chart showing the top 7 chest sources contributing most to the total score across all players (plus an 'Others' category).
@@ -39,7 +40,7 @@ This specific version operates **entirely client-side**. It fetches its primary 
     *   **Top 5 by Chest Count:** A small summary table listing the players with the highest `CHEST_COUNT`. Rows are clickable to navigate to the player's detail view.
     *   **Chart Modal:** An "expand" icon on each dashboard chart card allows viewing a larger version of the chart in a modal window.
 *   **Full Data Table View (`Daten`):**
-    *   Displays a comprehensive table containing *all* columns (core stats + all chest sources) from `data.csv` for *all* players.
+    *   Displays a comprehensive table containing *all* columns (core stats + all chest sources) from `data/data.csv` for *all* players.
     *   Supports sorting by clicking any column header (ascending/descending toggle).
     *   Horizontally scrollable to accommodate numerous columns.
 *   **Charts View (`Diagramme`):**
@@ -49,7 +50,7 @@ This specific version operates **entirely client-side**. It fetches its primary 
     *   **Category Analysis:** Allows selecting a specific chest source category from a dropdown. Displays a table ranking players by score within that category and a bar chart visualizing the score distribution for that category.
     *   **Placeholders:** Includes designated areas for future "Player Analysis" (e.g., comparisons) and "Clan Analysis" (e.g., aggregate trends) features.
 *   **Score System View (`Punktesystem`):**
-    *   Fetches data from `rules.csv`.
+    *   Fetches data from `data/rules.csv`.
     *   Displays a sortable table showing the scoring rules (Typ/Type, Level, Punkte/Points). Supports sorting by each column.
 *   **Player Detail View:**
     *   Accessed by clicking a player row in the main ranking or top chests tables.
@@ -87,11 +88,9 @@ This version requires only two or three files to be hosted together:
 
 # ChefScore Analytics Dashboard
 
-A web application for analyzing chef performance data, scores, and trends.
 
 ## Project Status
 
-The ChefScore Analytics Dashboard is currently in development. We've set up the testing infrastructure and are working on implementing the core features.
 
 ### Current Status:
 - ✅ Testing infrastructure setup complete
@@ -107,73 +106,8 @@ The ChefScore Analytics Dashboard is currently in development. We've set up the 
 ├── app/                   # Application source code
 ├── scripts/               # Utility scripts 
 ├── tests/                 # Test files
-│   ├── e2e/               # End-to-end tests
-│   ├── fixtures/          # Test data and fixtures
-│   ├── helpers/           # Test utilities and mocks
-│   ├── integration/       # Integration tests
-│   └── unit/              # Unit tests
 ├── memory-bank/           # Project documentation
 ├── .babelrc               # Babel configuration
 ├── .eslintrc              # ESLint configuration
-├── jest.config.js         # Jest configuration
 └── package.json           # Package dependencies
 ```
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm test`
-
-Runs all the tests. The test types include:
-
-- **Unit Tests**: Test individual functions and components in isolation
-- **Integration Tests**: Test interactions between components
-- **End-to-End Tests**: Test the full application flow
-
-### `npm run test:unit`
-
-Runs only the unit tests.
-
-### `npm run test:integration`
-
-Runs only the integration tests.
-
-### `npm run test:e2e`
-
-Runs only the end-to-end tests.
-
-### `npm run test:coverage`
-
-Runs all tests and generates a coverage report.
-
-## Testing Status
-
-The testing infrastructure is set up, but several tests are still failing. The main issues are:
-
-1. **Chart Rendering Tests**: Need to properly mock the Chart.js library
-2. **Data Processing Tests**: Some type conversion issues in the test mocks
-3. **Mock Functions**: Need to ensure all mock functions are properly implemented
-
-## Testing Architecture
-
-The test architecture follows the approach outlined in `memory-bank/testing.md`. Key features include:
-
-- **Mocking Strategy**: Using Jest mock functions for API calls, localStorage, and external libraries
-- **Test Fixtures**: Sample data in JSON/CSV format for consistent test scenarios
-- **DOM Testing**: Using JSDOM for simulating browser environment
-
-## Troubleshooting
-
-If you encounter issues with running tests:
-
-1. Check that all dependencies are installed (`npm install`)
-2. Ensure your Node.js version is compatible (v14+ recommended)
-3. If encountering path issues on Windows, try using the `--no-cache` flag
-
-## Next Steps
-
-1. Fix failing tests
-2. Implement missing mock functions
-3. Increase test coverage to reach 95%+
-4. Integrate tests with CI/CD pipeline
