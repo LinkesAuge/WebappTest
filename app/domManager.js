@@ -435,9 +435,9 @@ export function openChartModal(chartType, event) {
 
 /**
  * Render the Top10 by Chest Count table in the modal
- * @param {HTMLElement} container - The container element to render the table in
+ * @param {HTMLElement} container - The container element to render the chart in
  */
-function renderTopChestsInModal(container) {
+export function renderTopChestsInModal(container = elements.modalChartContainer) {
   try {
     if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
       container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
@@ -449,33 +449,26 @@ function renderTopChestsInModal(container) {
       .sort((a, b) => b.CHEST_COUNT - a.CHEST_COUNT)
       .slice(0, 10); // Show exactly top 10 players
     
-    // Create table HTML
-    const tableHTML = `
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="sticky top-0 bg-slate-800/75 backdrop-blur-sm z-10">
-            <tr>
-              <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerPlayer')}</th>
-              <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerChests')}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-700/50">
-            ${sortedData.map(player => `
-              <tr class="hover:bg-slate-700/30">
-                <td class="px-3 py-2 whitespace-nowrap text-left">${player.PLAYER}</td>
-                <td class="px-3 py-2 whitespace-nowrap text-right">${utils.formatNumber(player.CHEST_COUNT)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
+    // Prepare data for chart
+    const players = sortedData.map(player => player.PLAYER);
+    const chestCounts = sortedData.map(player => player.CHEST_COUNT);
     
-    // Set table HTML
-    container.innerHTML = tableHTML;
+    // Create chart
+    const chart = chartRenderer.createBarChart(
+      'modal-chart-container',
+      [{
+        name: i18n.getText('table.headerChests'),
+        data: chestCounts
+      }],
+      players,
+      i18n.getText('dashboard.topChestsTitle')
+    );
+    
+    // Store the chart with a consistent key
+    chartRenderer.chartRegistry.modalChart = chart;
   } catch (error) {
-    console.error('Error rendering top chests table in modal:', error);
-    container.innerHTML = '<div class="text-center text-red-500">Error rendering table</div>';
+    console.error('Error rendering top chests chart in modal:', error);
+    container.innerHTML = '<div class="text-center text-red-500">Error rendering chart</div>';
   }
 }
 

@@ -13,7 +13,7 @@ import * as dataLoader from './dataLoader.js';
 import * as domManager from './domManager.js';
 import * as i18n from './i18n.js';
 import * as utils from './utils.js';
-import { setupEventListeners } from './eventListeners.js';
+import { initEventListeners, applyDetailedTableStickyColumn } from './eventListeners.js';
 import * as tableRenderer from './renderer/tableRenderer.js';
 import * as chartRenderer from './renderer/chartRenderer.js';
 import * as dashboardRenderer from './renderer/dashboardRenderer.js';
@@ -27,13 +27,18 @@ let scoreRulesData = [];
 
 // Sort state - will be initialized properly in initializeApp
 let dashboardSortState = {
-  column: null,
-  direction: null
+  column: 'TOTAL_SCORE',
+  direction: 'desc'
+};
+
+const detailedTableSortState = {
+  column: 'TOTAL_SCORE',
+  direction: 'desc'
 };
 
 const scoreRulesSortState = {
-  column: 'Punkte',
-  direction: 'desc'
+  column: 'Typ',
+  direction: 'asc'
 };
 
 /**
@@ -82,7 +87,7 @@ async function initializeApp() {
     utils.updateSortIcons(dashboardSortState.column, dashboardSortState.direction, '#ranking-table-container th[data-column]');
     
     // Set up event listeners
-    setupEventListeners();
+    initEventListeners();
     
     // Try to load data from localStorage first
     const storedData = dataLoader.loadDataFromLocalStorage();
@@ -96,6 +101,32 @@ async function initializeApp() {
       // Load fresh data with isFirstInit=true
       await loadAndRenderData(true);
     }
+
+    // Add window resize listener for handling responsive changes
+    let isMobile = window.innerWidth <= 640;
+    window.addEventListener('resize', utils.debounce(() => {
+      const newIsMobile = window.innerWidth <= 640;
+      // Only re-render if we've crossed the mobile threshold
+      if (isMobile !== newIsMobile) {
+        isMobile = newIsMobile;
+        
+        // Get the current view to determine what to re-render
+        const currentView = getCurrentView();
+        
+        if (currentView === 'dashboard' && displayData.length > 0) {
+          // Re-render the dashboard table if we're on the dashboard
+          renderPlayerTable(displayData);
+        } else if (currentView === 'detailed-table') {
+          // Re-render the detailed table if we're on that view
+          renderDetailedDataTable();
+          
+          // Apply sticky column for detailed table
+          setTimeout(() => {
+            applyDetailedTableStickyColumn();
+          }, 200);
+        }
+      }
+    }, 250)); // 250ms debounce to avoid excessive re-renders
   } catch (error) {
     console.error('Error during initialization:', error);
     utils.setStatus(i18n.getText('status.error'), 'error');
@@ -103,57 +134,74 @@ async function initializeApp() {
 }
 
 /**
- * Handle navigation between views
+ * Handle navigation to different views
+ * @param {string} viewName - Name of the view to navigate to
  */
 function handleViewNavigation(viewName) {
-  console.log(`Navigating to view: ${viewName}`);
+  if (!viewName) return;
   
-  // If view name is invalid, default to dashboard
-  const validViews = [
-    'dashboard',
-    'detailed-table',
-    'charts',
-    'analytics',
-    'score-system',
-    'playerDetails',
-    'categoryAnalysis',
-    'scoreRules'
-  ];
+  console.log('Navigating to view:', viewName);
   
-  if (!validViews.includes(viewName)) {
-    console.warn(`Invalid view name: ${viewName}, defaulting to dashboard`);
-    viewName = 'dashboard';
-  }
-  
-  // Update UI for the selected view
+  // Show the appropriate section
   domManager.showView(viewName);
+  
+  // Update active nav state
   domManager.updateNavLinkActiveState(viewName);
   
-  // Perform view-specific actions
+  // Handle specific view logic
   switch (viewName) {
-    case 'score-system':
-      if (scoreRulesData.length === 0) {
-        dataLoader.loadScoreRulesData(scoreRulesData, utils.sortData, scoreRulesSortState)
-          .then(success => {
-            if (success) {
-              renderScoreRulesTable(scoreRulesData);
-            }
-          });
-      } else {
-        renderScoreRulesTable(scoreRulesData);
-      }
+    case 'dashboard':
+      // Apply any specific dashboard initializations
+      break;
+      
+    case 'detailed-table':
+      // Render the detailed data table
+      renderDetailedDataTable();
+      
+      // Try to apply sticky column logic after a small delay to ensure DOM is ready
+      setTimeout(() => {
+        // Use the imported function
+        applyDetailedTableStickyColumn();
+      }, 100);
+      break;
+      
+    case 'charts':
+      // Re-render the charts to ensure correct sizing
+      chartRenderer.renderChartsSection(allPlayersData);
       break;
       
     case 'analytics':
+      // Analytics initialization
       if (allPlayersData.length > 0) {
         createCategoryAnalysisView(allPlayersData, allColumnHeaders);
       }
       break;
       
-    case 'charts':
-      if (allPlayersData.length > 0) {
-        dashboardRenderer.renderDashboardCharts(allPlayersData);
+    case 'score-system':
+      // Render score rules table if not already done
+      if (scoreRulesData.length > 0) {
+        renderScoreRulesTable(scoreRulesData);
+      } else {
+        // Score rules not loaded yet, load them
+        dataLoader.loadScoreRulesData(scoreRulesData, utils.sortData, scoreRulesSortState)
+          .then(success => {
+            if (success) {
+              renderScoreRulesTable(scoreRulesData);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading score rules:', error);
+            utils.setStatus(i18n.getText('status.errorRules'), 'error');
+          });
       }
+      break;
+      
+    case 'playerDetails':
+      // Player details handled elsewhere through showPlayerDetails function
+      break;
+      
+    default:
+      console.warn('Unknown view name:', viewName);
       break;
   }
 }
@@ -325,9 +373,9 @@ function renderDashboard() {
     avgChestsElement.textContent = utils.formatNumber(stats.avgChests, 0);
   }
   
-  // Render top players table
-  dashboardRenderer.renderTopPlayersTable(
-    document.getElementById('top-chests-table-body'),
+  // Render top players chart instead of table
+  dashboardRenderer.renderTopPlayersChart(
+    'top-chests-chart-container',
     allPlayersData,
     10
   );
@@ -358,8 +406,20 @@ function renderPlayerTable(data) {
   // Define headers for the table
   const headers = ['RANK', 'PLAYER', 'TOTAL_SCORE', 'CHEST_COUNT'];
   
+  // Check if we're on mobile (screen width <= 640px)
+  const isMobile = window.innerWidth <= 640;
+  
+  // For mobile, limit to 20 rows initially
+  let displayData = data;
+  let showMoreNeeded = false;
+  
+  if (isMobile && data.length > 20) {
+    displayData = data.slice(0, 20);
+    showMoreNeeded = true;
+  }
+  
   // Add rank to each player
-  const dataWithRank = data.map((player, index) => ({
+  const dataWithRank = displayData.map((player, index) => ({
     ...player,
     RANK: index + 1
   }));
@@ -373,12 +433,118 @@ function renderPlayerTable(data) {
     handleSortClick,
     (event) => {
       const index = parseInt(event.currentTarget.dataset.index);
-      const player = data[index];
+      const player = displayData[index];
       if (player) {
         showPlayerDetails(player, index + 1);
       }
     }
   );
+  
+  // If on mobile and we have more data to show, add a "Show More" button
+  if (showMoreNeeded) {
+    // Check if a "Show More" button already exists
+    let showMoreButton = container.querySelector('.show-more-button');
+    
+    if (!showMoreButton) {
+      // Create and add the "Show More" button with inline styles
+      showMoreButton = document.createElement('button');
+      showMoreButton.textContent = i18n.getText('table.showMore') || 'Show All Players';
+      showMoreButton.id = 'show-more-ranking';
+      
+      // Apply inline styles directly for maximum compatibility
+      Object.assign(showMoreButton.style, {
+        display: 'block',
+        width: '80%',
+        margin: '0.5rem auto',
+        textAlign: 'center',
+        padding: '0.5rem 1rem',
+        backgroundColor: 'rgba(245, 158, 11, 0.8)',
+        color: '#0f172a',
+        fontSize: '0.75rem',
+        fontWeight: '600',
+        borderRadius: '4px',
+        border: '1px solid #f59e0b',
+        cursor: 'pointer',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+        transition: 'all 0.2s ease'
+      });
+      
+      // Add a few backup classes for any additional styling
+      showMoreButton.className = 'show-more-button btn btn-amber';
+      
+      // Adjust for mobile if needed
+      if (window.innerWidth <= 640) {
+        Object.assign(showMoreButton.style, {
+          width: '90%',
+          padding: '0.4rem 0.75rem',
+          fontSize: '0.7rem',
+          margin: '0.4rem auto'
+        });
+      }
+      
+      // Add even smaller screen adjustments
+      if (window.innerWidth <= 360) {
+        Object.assign(showMoreButton.style, {
+          width: '85%',
+          padding: '0.3rem 0.5rem',
+          fontSize: '0.65rem',
+          margin: '0.3rem auto'
+        });
+      }
+      
+      container.appendChild(showMoreButton);
+      
+      // Add hover effect through event listeners
+      showMoreButton.addEventListener('mouseover', () => {
+        showMoreButton.style.backgroundColor = 'rgba(245, 158, 11, 0.9)';
+        showMoreButton.style.transform = 'translateY(-1px)';
+        showMoreButton.style.boxShadow = '0 3px 5px rgba(0, 0, 0, 0.4)';
+      });
+      
+      showMoreButton.addEventListener('mouseout', () => {
+        showMoreButton.style.backgroundColor = 'rgba(245, 158, 11, 0.8)';
+        showMoreButton.style.transform = 'none';
+        showMoreButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3)';
+      });
+      
+      showMoreButton.addEventListener('mousedown', () => {
+        showMoreButton.style.transform = 'translateY(1px)';
+        showMoreButton.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.3)';
+      });
+      
+      showMoreButton.addEventListener('mouseup', () => {
+        showMoreButton.style.transform = 'translateY(-1px)';
+        showMoreButton.style.boxShadow = '0 3px 5px rgba(0, 0, 0, 0.4)';
+      });
+      
+      // Add click event listener to the button
+      showMoreButton.addEventListener('click', () => {
+        // Re-render the table with all data
+        const fullDataWithRank = data.map((player, index) => ({
+          ...player,
+          RANK: index + 1
+        }));
+        
+        tableRenderer.renderDataTable(
+          container,
+          fullDataWithRank,
+          headers,
+          dashboardSortState,
+          handleSortClick,
+          (event) => {
+            const index = parseInt(event.currentTarget.dataset.index);
+            const player = data[index];
+            if (player) {
+              showPlayerDetails(player, index + 1);
+            }
+          }
+        );
+        
+        // Remove the "Show More" button
+        showMoreButton.remove();
+      });
+    }
+  }
 }
 
 /**
@@ -582,8 +748,8 @@ function resetStateAndUI() {
   // Reset sort states
   dashboardSortState.column = utils.CORE_COLUMNS.TOTAL_SCORE;
   dashboardSortState.direction = 'desc';
-  scoreRulesSortState.column = 'Punkte';
-  scoreRulesSortState.direction = 'desc';
+  scoreRulesSortState.column = 'Typ';
+  scoreRulesSortState.direction = 'asc';
   
   // Reset UI
   domManager.showView('dashboard');
@@ -596,6 +762,227 @@ function resetStateAndUI() {
       chart.destroy();
     }
   });
+}
+
+/**
+ * Render detailed data table
+ */
+function renderDetailedDataTable() {
+  console.log('Rendering detailed data table...');
+  
+  const container = document.getElementById('detailed-table-container');
+  if (!container) return;
+  
+  // Get all column headers
+  const headers = allColumnHeaders;
+  
+  // Initialize sort state if not already done
+  if (!detailedTableSortState.column) {
+    detailedTableSortState.column = utils.CORE_COLUMNS.TOTAL_SCORE;
+    detailedTableSortState.direction = 'desc';
+  }
+  
+  // Sort the data
+  const sortedData = utils.sortData(
+    detailedTableSortState.column,
+    detailedTableSortState.direction,
+    true,
+    [...allPlayersData],
+    detailedTableSortState
+  );
+  
+  // Check if we're on mobile (screen width <= 640px)
+  const isMobile = window.innerWidth <= 640;
+  
+  // For mobile, limit to 20 rows initially
+  let displayData = sortedData;
+  let showMoreNeeded = false;
+  
+  if (isMobile && sortedData.length > 20) {
+    displayData = sortedData.slice(0, 20);
+    showMoreNeeded = true;
+  }
+  
+  // Render table using the shared renderer
+  tableRenderer.renderDataTable(
+    container,
+    displayData,
+    headers,
+    detailedTableSortState,
+    handleDetailedTableSortClick,
+    null, // No row handler for detailed table
+    true  // Enable sticky first column for detailed table
+  );
+  
+  // Update sort icons
+  utils.updateSortIcons(
+    detailedTableSortState.column,
+    detailedTableSortState.direction,
+    '#detailed-table-container th[data-column]'
+  );
+  
+  // Apply sticky column styles with a delay to ensure DOM is ready
+  setTimeout(() => {
+    console.log('Applying sticky column styling after table render');
+    applyDetailedTableStickyColumn();
+    
+    // Apply a second time after a longer delay to ensure it sticks
+    setTimeout(() => {
+      console.log('Re-applying sticky column styling to ensure it works');
+      applyDetailedTableStickyColumn();
+    }, 300);
+  }, 100);
+  
+  // If on mobile and we have more data to show, add a "Show More" button
+  if (showMoreNeeded) {
+    // Check if a "Show More" button already exists
+    let showMoreButton = container.querySelector('.show-more-button');
+    
+    if (!showMoreButton) {
+      // Create and add the "Show More" button with inline styles
+      showMoreButton = document.createElement('button');
+      showMoreButton.textContent = i18n.getText('table.showMore') || 'Show All Players';
+      showMoreButton.id = 'show-more-ranking';
+      
+      // Apply inline styles directly for maximum compatibility
+      Object.assign(showMoreButton.style, {
+        display: 'block',
+        width: '80%',
+        margin: '0.5rem auto',
+        textAlign: 'center',
+        padding: '0.5rem 1rem',
+        backgroundColor: 'rgba(245, 158, 11, 0.8)',
+        color: '#0f172a',
+        fontSize: '0.75rem',
+        fontWeight: '600',
+        borderRadius: '4px',
+        border: '1px solid #f59e0b',
+        cursor: 'pointer',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+        transition: 'all 0.2s ease'
+      });
+      
+      // Add a few backup classes for any additional styling
+      showMoreButton.className = 'show-more-button btn btn-amber';
+      
+      // Adjust for mobile if needed
+      if (window.innerWidth <= 640) {
+        Object.assign(showMoreButton.style, {
+          width: '90%',
+          padding: '0.4rem 0.75rem',
+          fontSize: '0.7rem',
+          margin: '0.4rem auto'
+        });
+      }
+      
+      // Add even smaller screen adjustments
+      if (window.innerWidth <= 360) {
+        Object.assign(showMoreButton.style, {
+          width: '85%',
+          padding: '0.3rem 0.5rem',
+          fontSize: '0.65rem',
+          margin: '0.3rem auto'
+        });
+      }
+      
+      container.appendChild(showMoreButton);
+      
+      // Add hover effect through event listeners
+      showMoreButton.addEventListener('mouseover', () => {
+        showMoreButton.style.backgroundColor = 'rgba(245, 158, 11, 0.9)';
+        showMoreButton.style.transform = 'translateY(-1px)';
+        showMoreButton.style.boxShadow = '0 3px 5px rgba(0, 0, 0, 0.4)';
+      });
+      
+      showMoreButton.addEventListener('mouseout', () => {
+        showMoreButton.style.backgroundColor = 'rgba(245, 158, 11, 0.8)';
+        showMoreButton.style.transform = 'none';
+        showMoreButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3)';
+      });
+      
+      showMoreButton.addEventListener('mousedown', () => {
+        showMoreButton.style.transform = 'translateY(1px)';
+        showMoreButton.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.3)';
+      });
+      
+      showMoreButton.addEventListener('mouseup', () => {
+        showMoreButton.style.transform = 'translateY(-1px)';
+        showMoreButton.style.boxShadow = '0 3px 5px rgba(0, 0, 0, 0.4)';
+      });
+      
+      // Add click event listener to the button
+      showMoreButton.addEventListener('click', () => {
+        // Re-render the table with all data
+        tableRenderer.renderDataTable(
+          container,
+          sortedData,
+          headers,
+          detailedTableSortState,
+          handleDetailedTableSortClick,
+          null, // No row handler for detailed table
+          true  // Keep sticky first column when showing all data
+        );
+        
+        // Update sort icons
+        utils.updateSortIcons(
+          detailedTableSortState.column,
+          detailedTableSortState.direction,
+          '#detailed-table-container th[data-column]'
+        );
+        
+        // Apply sticky column again after showing all data
+        setTimeout(() => {
+          applyDetailedTableStickyColumn();
+        }, 100);
+        
+        // Remove the "Show More" button
+        showMoreButton.remove();
+      });
+    }
+  }
+}
+
+/**
+ * Handle sorting for detailed table
+ */
+function handleDetailedTableSortClick(event) {
+  const column = event.currentTarget.dataset.column;
+  if (!column) return;
+  
+  console.log('Handling detailed table sort click for column:', column);
+  
+  if (detailedTableSortState.column === column) {
+    detailedTableSortState.direction = detailedTableSortState.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    detailedTableSortState.column = column;
+    detailedTableSortState.direction = 'desc';
+  }
+  
+  // Re-render the detailed table
+  renderDetailedDataTable();
+}
+
+/**
+ * Get the current view based on which section is visible
+ * @returns {string} The current view name
+ */
+function getCurrentView() {
+  const sections = {
+    'dashboard': document.getElementById('dashboard-section'),
+    'detailed-table': document.getElementById('detailed-table-section'),
+    'charts': document.getElementById('charts-section'),
+    'analytics': document.getElementById('analytics-section'),
+    'score-system': document.getElementById('score-system-section'),
+    'playerDetails': document.getElementById('detail-section')
+  };
+  
+  for (const [view, element] of Object.entries(sections)) {
+    if (element && !element.classList.contains('hidden')) {
+      return view;
+    }
+  }
+  
+  return 'dashboard'; // Default to dashboard if no view is visible
 }
 
 // Initialize the application when the DOM is loaded

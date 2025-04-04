@@ -276,3 +276,34 @@ function renderFrequentSourcesChart(data) {
     i18n.getText('dashboard.chartFreqSourcesTitle')
   );
 }
+
+/**
+ * Render top players by chest count as a bar chart
+ * @param {string} containerId - The ID of the container element
+ * @param {Array} data - Player data
+ * @param {number} limit - Number of top players to show
+ */
+export function renderTopPlayersChart(containerId, data, limit = 10) {
+  if (!containerId || !data || !Array.isArray(data)) return;
+  
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  // Sort data by chest count in descending order
+  const sortedData = [...data].sort((a, b) => b.CHEST_COUNT - a.CHEST_COUNT).slice(0, limit);
+  
+  // Prepare data for chart
+  const players = sortedData.map(player => player.PLAYER);
+  const chestCounts = sortedData.map(player => player.CHEST_COUNT);
+  
+  // Create chart
+  chartRenderer.createBarChart(
+    containerId,
+    [{
+      name: i18n.getText('table.headerChests'),
+      data: chestCounts
+    }],
+    players,
+    i18n.getText('dashboard.topChestsTitle')
+  );
+}

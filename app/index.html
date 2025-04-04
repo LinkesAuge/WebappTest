@@ -201,18 +201,8 @@
                     <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                         <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="topChests"><i class="fas fa-expand fa-fw"></i></button>
                         <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-box-archive text-orange-600"></i> <span data-i18n-key="dashboard.topChestsTitle">Top10 by Chest Count</span></h3>
-                        <div class="overflow-x-auto pt-4">
-                            <table class="min-w-full text-sm">
-                                <thead class="sticky top-0 bg-slate-800/75 backdrop-blur-sm z-10">
-                                    <tr>
-                                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider" data-i18n-key="table.headerPlayer">Player</th>
-                                        <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-primary uppercase tracking-wider" data-i18n-key="table.headerChests">Chests</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="top-chests-table-body" class="divide-y divide-slate-700/50">
-                                    <tr><td colspan="2" class="text-center py-4 text-slate-500 text-xs" data-i18n-key="table.loading">Loading...</td></tr>
-                                </tbody>
-                            </table>
+                        <div id="top-chests-chart-container" class="min-h-[320px] pt-4 flex items-center justify-center">
+                            <span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span>
                         </div>
                     </div>
                     <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
@@ -245,7 +235,7 @@
                 <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="detailedTable.title">Full Data Table</h2>
                 <button id="back-to-dashboard-from-detailed-table" class="inline-flex items-center px-4 py-1.5 border border-amber-600 text-amber-600 text-xs font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150"><i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n-key="nav.dashboard">Dashboard</span></button>
             </div>
-            <div id="detailed-table-container" class="overflow-auto bg-card border border-border rounded-lg shadow-lg p-2 max-h-[80vh]">
+            <div id="detailed-table-container" class="overflow-x-scroll overflow-y-auto bg-card border border-border rounded-lg shadow-lg p-2 max-h-[80vh] sticky-column-container" style="position: relative !important;">
                 <div class="text-center py-12 text-slate-500" data-i18n-key="table.loadingDetailed">Loading detailed table...</div>
             </div>
         </section>
