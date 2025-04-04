@@ -289,12 +289,34 @@ function renderDashboard() {
     avgChests: 0
   };
   
-  stats.avgScore = stats.totalScore / stats.totalPlayers;
-  stats.avgChests = stats.totalChests / stats.totalPlayers;
+  stats.avgScore = stats.totalPlayers > 0 ? stats.totalScore / stats.totalPlayers : 0;
+  stats.avgChests = stats.totalPlayers > 0 ? stats.totalChests / stats.totalPlayers : 0;
   
-  // Render statistics
-  const statsContainer = document.getElementById('dashboard-stats-container');
-  dashboardRenderer.renderStats(statsContainer, stats);
+  // Update statistics directly
+  const playerStatsElement = document.getElementById('stat-total-players');
+  if (playerStatsElement) {
+    playerStatsElement.textContent = utils.formatNumber(stats.totalPlayers);
+  }
+  
+  const scoreStatsElement = document.getElementById('stat-total-score');
+  if (scoreStatsElement) {
+    scoreStatsElement.textContent = utils.formatNumber(stats.totalScore);
+  }
+  
+  const chestsStatsElement = document.getElementById('stat-total-chests');
+  if (chestsStatsElement) {
+    chestsStatsElement.textContent = utils.formatNumber(stats.totalChests);
+  }
+  
+  const avgScoreElement = document.getElementById('stat-avg-score');
+  if (avgScoreElement) {
+    avgScoreElement.textContent = utils.formatNumber(stats.avgScore, 0);
+  }
+  
+  const avgChestsElement = document.getElementById('stat-avg-chests');
+  if (avgChestsElement) {
+    avgChestsElement.textContent = utils.formatNumber(stats.avgChests, 0);
+  }
   
   // Render top players table
   dashboardRenderer.renderTopPlayersTable(

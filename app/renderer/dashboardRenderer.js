@@ -41,14 +41,14 @@ export function renderStats(container, stats) {
   if (stats.avgScore) {
     const avgScoreElement = document.getElementById('stat-avg-score');
     if (avgScoreElement) {
-      avgScoreElement.textContent = utils.formatNumber(stats.avgScore, 2);
+      avgScoreElement.textContent = utils.formatNumber(stats.avgScore, 0);
     }
   }
   
   if (stats.avgChests) {
     const avgChestsElement = document.getElementById('stat-avg-chests');
     if (avgChestsElement) {
-      avgChestsElement.textContent = utils.formatNumber(stats.avgChests, 2);
+      avgChestsElement.textContent = utils.formatNumber(stats.avgChests, 0);
     }
   }
 }

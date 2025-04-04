@@ -5,8 +5,8 @@
  * These include formatting, sorting, and generic helper functions.
  */
 
-// Consistent number formatting (using US locale for consistency, display is language-agnostic here)
-const NUMERIC_FORMATTER = new Intl.NumberFormat("en-US");
+// Consistent number formatting (using German locale for punctuation)
+const NUMERIC_FORMATTER = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
 
 // Core column definitions
 const CORE_COLUMNS = {
@@ -183,12 +183,24 @@ export function getCssVariableValue(variableName, fallbackColor = "#ffffff") {
 }
 
 /**
- * Formats a number with thousands separators
+ * Formats a number with thousands separators using German formatting (17.000 instead of 17,000)
  * @param {number} num - The number to format
+ * @param {number|boolean} decimals - Number of decimal places, or false to round to integer
  * @returns {string} The formatted number
  */
-export function formatNumber(num) {
-  return NUMERIC_FORMATTER.format(num);
+export function formatNumber(num, decimals = false) {
+  // Round to integer if decimals is false or 0
+  if (decimals === false || decimals === 0) {
+    return NUMERIC_FORMATTER.format(Math.round(num));
+  }
+  
+  // Create a formatter with exactly the requested decimal places
+  const formatter = new Intl.NumberFormat("de-DE", { 
+    minimumFractionDigits: decimals, 
+    maximumFractionDigits: decimals 
+  });
+  
+  return formatter.format(num);
 }
 
 /**

@@ -344,10 +344,19 @@ describe('getCssVariableValue', () => {
 });
 
 describe('formatNumber', () => {
-  test('formats number with thousands separators', () => {
-    expect(formatNumber(1000)).toBe('1,000');
-    expect(formatNumber(1234567)).toBe('1,234,567');
-    expect(formatNumber(1234.56)).toBe('1,234.56');
+  test('formats number with German thousands separators', () => {
+    expect(formatNumber(1000)).toBe('1.000');
+    expect(formatNumber(1234567)).toBe('1.234.567');
+  });
+  
+  test('rounds to integers by default', () => {
+    expect(formatNumber(1234.56)).toBe('1.235');
+    expect(formatNumber(1234.34)).toBe('1.234');
+  });
+  
+  test('formats with exact decimal places specified', () => {
+    expect(formatNumber(1234.567, 1)).toBe('1.234,6');
+    expect(formatNumber(1234.5, 2)).toBe('1.234,50');
   });
 });
 

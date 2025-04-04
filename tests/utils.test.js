@@ -150,12 +150,17 @@ describe('sortData', () => {
 });
 
 describe('formatNumber', () => {
-  test('formats number with thousands separator', () => {
-    expect(formatNumber(1000)).toBe('1,000');
+  test('formats number with thousands separator using German format', () => {
+    expect(formatNumber(1000)).toBe('1.000');
   });
 
-  test('formats decimal number', () => {
-    expect(formatNumber(1000.5)).toBe('1,000.5');
+  test('formats decimal number with exact decimal places', () => {
+    expect(formatNumber(1000.567, 1)).toBe('1.000,6');
+    expect(formatNumber(1000.567, 2)).toBe('1.000,57');
+  });
+
+  test('rounds to integer by default', () => {
+    expect(formatNumber(1000.5)).toBe('1.001');
   });
 
   test('handles zero', () => {
