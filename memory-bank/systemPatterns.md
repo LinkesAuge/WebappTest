@@ -258,3 +258,302 @@ function showView(viewName) {
 5. **Try/Catch Blocks**: Contain errors to prevent application crashes
 6. **Safety Checks in Chart Tooltips**: Comprehensive null/undefined checks to prevent errors
 7. **Data Access Safety**: Using optional chaining and nullish coalescing for safe property access 
+
+## Architecture Overview
+
+The application follows a modular design pattern with clear separation of concerns between different components. The architecture is client-side only, with all data processing and rendering happening in the browser. The application is structured as follows:
+
+1. **Core Modules**: Handle fundamental application functionality
+2. **Renderer Modules**: Specialized for different visualization needs
+3. **Data Processing**: CSV parsing and data transformation
+4. **UI Components**: Reusable interface components
+5. **Event Handling**: Centralized event management
+
+## Key Design Patterns
+
+### Module Organization
+
+The application uses ES modules to organize code into logical units:
+
+```
+app/
+├── app.js                // Core application logic and integration of modules
+├── utils.js              // Utility functions (sorting, formatting, date handling, etc.)
+├── dataLoader.js         // CSV data loading, parsing, and cleaning
+├── i18n.js               // Internationalization functions and language management
+├── domManager.js         // DOM element reference management and UI updates
+├── eventListeners.js     // Event attachment and handling for user interactions
+└── renderer/             // Contains view-specific rendering modules:
+    ├── dashboardRenderer.js      // Rendering for dashboard (stats, charts)
+    ├── tableRenderer.js          // Table rendering functions
+    ├── chartRenderer.js          // Chart creation and management (ApexCharts)
+    ├── playerDetailRenderer.js   // Player detail view rendering
+    └── analyticsRenderer.js      // Analytics visualizations and reports
+```
+
+### State Management
+
+The application uses a simple state management approach with several global variables in the main application module:
+
+1. **Data State**:
+   - `allPlayersData`: Array of all player data objects
+   - `displayData`: Array of filtered player data objects
+   - `allColumnHeaders`: Array of column headers from CSV
+   - `scoreRulesData`: Array of score rules data objects
+   - `currentWeek`: Current selected week number
+   - `availableWeeks`: Array of available week numbers
+
+2. **UI State**:
+   - `dashboardSortState`: Object tracking sort column and direction for dashboard
+   - `detailedTableSortState`: Object tracking sort column and direction for detailed table
+   - `scoreRulesSortState`: Object tracking sort column and direction for score rules table
+
+3. **State Exposure**:
+   - Critical data like `allPlayersData` is exposed to the window object as a fallback mechanism
+   - This provides emergency access for components that might lose reference to the data
+
+### Internationalization
+
+The application supports multiple languages (currently German and English):
+
+1. **Translation Dictionaries**:
+   - Language-specific text content is stored in translation objects in `i18n.js`
+   - Translations include support for parameterized text using `{0}`, `{1}`, etc.
+
+2. **Language Switching**:
+   - Language preference is stored in `localStorage`
+   - UI is dynamically updated when language is changed
+   - All translatable elements use data attributes or translation keys
+
+3. **Date Formatting**:
+   - Locale-specific date formats are implemented
+   - German format: DD.MM-DD.MM.YYYY (e.g., '31.03-06.04.2025')
+   - English format: MM/DD-MM/DD/YYYY (e.g., '03/31-04/06/2025')
+   - The `getWeekDateRange` function handles format conversion based on language
+
+4. **Timestamp Persistence**:
+   - "Last updated" timestamps are stored in localStorage
+   - During language switches, timestamps are preserved and reformatted
+   - Fallback mechanisms ensure timestamps are never lost during UI updates
+
+### Data Loading and Processing
+
+1. **CSV Parsing**:
+   - PapaParse library parses CSV files into JavaScript objects
+   - Cleaned data is stored in the application state
+
+2. **Data Transformation**:
+   - Raw CSV data is cleaned and transformed before use
+   - Numeric strings are converted to numbers
+   - Data validation ensures required fields exist
+
+3. **Week-Based Data Loading**:
+   - Data can be loaded from specific week files
+   - Week detection identifies available data files
+   - Date range formatter converts week numbers to human-readable dates
+
+### Chart Rendering
+
+1. **ApexCharts Integration**:
+   - Charts are created using the ApexCharts library
+   - Consistent theming across all charts
+   - Responsive sizing for different screen dimensions
+
+2. **Chart Registry**:
+   - Charts are tracked in a registry to manage lifecycle
+   - Proper cleanup on chart destruction to prevent memory leaks
+
+3. **Modal Chart Rendering**:
+   - Charts can be expanded to full-screen modal view
+   - Robust fallback mechanisms ensure data access for modal charts
+   - Player data reference is maintained for charts via multiple pathways:
+     - Primary: Direct reference to playerDataRef in domManager
+     - Secondary: Access via window.allPlayersData global reference
+     - Player data is never lost during UI transitions
+
+4. **Data Access Safety**:
+   - Charts implement comprehensive null checking
+   - Fallback content displayed when data is unavailable
+   - Clear error handling with user-friendly messages
+   - Logging for debugging rendering issues
+
+### DOM Management
+
+1. **Element References**:
+   - DOM elements are cached for performance in the `domManager.js` module
+   - References are organized by functional area
+
+2. **UI Updates**:
+   - Changes to UI are centralized in dedicated update functions
+   - Defensive programming prevents errors with missing elements
+
+### Event Handling
+
+1. **Centralized Event Listeners**:
+   - All event setup is handled in the `eventListeners.js` module
+   - Consistent pattern for attaching listeners
+
+2. **Event Delegation**:
+   - For dynamically created elements like table rows
+
+## Component Design
+
+### Tables
+
+1. **Table Rendering**:
+   - Tables are created dynamically based on data
+   - Support for sorting, filtering, and pagination
+   - Responsive design with horizontal scrolling for many columns
+
+2. **Sorting Mechanism**:
+   - Click handlers on table headers toggle sort direction
+   - Visual indicators show current sort column and direction
+   - Sort functions handle different data types appropriately
+
+### Charts
+
+1. **Dashboard Charts**:
+   - Compact visualizations for the dashboard view
+   - Expandable to full-screen modal view
+   - Consistent color scheme and styling
+
+2. **Chart Types**:
+   - Bar charts for rankings and distributions
+   - Donut charts for proportional data
+   - Scatter plots for correlation analysis
+   - Radar charts for multi-dimensional data
+
+3. **Tooltips**:
+   - Custom tooltip formatting for each chart type
+   - Robust null/undefined checks to prevent errors
+   - Fallback formats for missing data
+
+### Navigation
+
+1. **View Management**:
+   - Single-page application with different views
+   - Only one view is visible at a time
+   - Smooth transitions between views
+
+2. **Breadcrumb Navigation**:
+   - Shows current location in the application
+   - Provides easy way back to dashboard
+
+### Week Selection
+
+1. **Calendar Widget**:
+   - Uses Flatpickr library for date selection
+   - Highlights only weeks with available data
+   - Displays week number and date range
+
+2. **Data Loading**:
+   - Loads data for selected week on demand
+   - Updates all views to reflect selected week's data
+
+## Error Handling
+
+1. **Defensive Programming**:
+   - Comprehensive null/undefined checks
+   - Fallback values for missing data
+   - Try/catch blocks around critical operations
+
+2. **User Feedback**:
+   - Status messages for loading, success, and errors
+   - Clear error states in the UI
+   - Fallback content when data is unavailable
+
+3. **Console Logging**:
+   - Detailed logging for debugging
+   - Error reporting for critical failures
+
+## Code Organization Principles
+
+1. **Clear Responsibility**:
+   - Each module has a distinct purpose
+   - Functions are grouped by related functionality
+
+2. **Interface Design**:
+   - Modules expose a clear public interface
+   - Implementation details are hidden when possible
+
+3. **State Management**:
+   - State is centralized in the app module
+   - Components access state through controlled interfaces
+   - Fallback mechanisms ensure critical data is always accessible
+
+4. **Error Recovery**:
+   - Components can recover from errors
+   - UI never breaks completely if one component fails
+   - Multiple data access pathways provide redundancy
+
+## Internationalization Approach
+
+The application implements a robust internationalization system to support multiple languages. Key aspects include:
+
+1. **Central Translation Registry**:
+   - All text content is stored in `i18n.js`
+   - Translation keys follow a hierarchical pattern (e.g., `dashboard.totalPlayersLabel`)
+   - Parameters in translation strings use `{0}`, `{1}` placeholders
+
+2. **Dynamic UI Updates**:
+   - All UI elements update when language changes without page reload
+   - Changes affect text content, formatting, and date displays
+
+3. **Locale-Aware Formatting**:
+   - Numbers formatted according to locale (e.g., using commas or periods for thousands)
+   - Dates follow locale-specific patterns
+
+4. **State Preservation During Language Switches**:
+   - Application state is maintained when switching languages
+   - Active view, selected data, and UI state persist across language changes
+   - Timestamps and date ranges are reformatted to match the new language
+
+## Component Interaction Patterns
+
+1. **Module References**:
+   - Modules explicitly import dependencies
+   - Circular dependencies are avoided
+
+2. **Event-Based Communication**:
+   - Components communicate through events when appropriate
+
+3. **Shared State**:
+   - Core application state serves as source of truth
+
+## Responsive Design Approach
+
+1. **Mobile-First Considerations**:
+   - Design works on small screens and scales up
+   - Different layouts for mobile and desktop
+
+2. **Adaptive Components**:
+   - Charts resize based on container dimensions
+   - Tables implement horizontal scrolling on small screens
+
+## Performance Patterns
+
+1. **Efficient DOM Operations**:
+   - Element references are cached
+   - Batch DOM updates where possible
+
+2. **Data Transformation**:
+   - Data is processed once after loading
+   - Subsequent operations use the transformed data
+
+3. **Chart Optimization**:
+   - Charts are created only when needed
+   - Destroyed when not visible to free resources
+
+## Testing Approach
+
+1. **Unit Testing**:
+   - Individual functions and modules are tested in isolation
+   - Jest test framework with JSDOM for DOM simulation
+
+2. **Integration Testing**:
+   - Tests interactions between modules
+   - Verifies correct behavior of combined components
+
+3. **Mock Objects**:
+   - External dependencies are mocked for testing
+   - Browser APIs (localStorage, fetch) have test equivalents 

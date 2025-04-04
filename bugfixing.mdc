@@ -1,0 +1,182 @@
+# Bug Fixing Log - Chest Analyzer
+
+## Fixed Issues
+
+### Internationalization (i18n) Issues
+
+#### ✅ Last Updated Timestamp Disappearing on Language Switch
+- **Description**: The "last updated" timestamp would disappear when switching languages, showing "Last update not available" instead
+- **Root Cause**: The timestamp was being stored in localStorage with language-specific formatting, causing parsing issues during language switches
+- **Solution**: 
+  - Enhanced the `updateLanguageUI` function to properly handle timestamp persistence
+  - Added fallback mechanisms to retrieve timestamp from multiple sources
+  - Added proper parsing logic for both German and English date formats
+- **Files Modified**:
+  - `app/i18n.js`: Updated language switching logic to handle timestamps
+  - `app/dataLoader.js`: Improved timestamp storage mechanism
+
+#### ✅ Date Format Inconsistency
+- **Description**: Date formats were inconsistent between German and English displays
+- **Root Cause**: Hardcoded date formats in various parts of the application
+- **Solution**:
+  - Standardized date formatting through the i18n system
+  - Updated English translation for `week.format.dateRange`
+  - Enhanced comments in `getWeekDateRange` function
+- **Files Modified**:
+  - `app/i18n.js`: Updated translations
+  - `app/utils.js`: Improved date handling functions
+
+### Chart Rendering Issues
+
+#### ✅ Empty Modal When Expanding Charts
+- **Description**: When clicking to expand a chart, an empty modal would appear with "no data available"
+- **Root Cause**: The modal rendering functions couldn't access player data because `playerDataRef` was not being set after data loading
+- **Solution**:
+  - Added `domManager.setPlayerData(allPlayersData)` call in the `loadAndRenderData` function
+  - Added debug logging to trace data availability
+  - Implemented a fallback to window object for accessing player data
+- **Files Modified**:
+  - `app/app.js`: Added proper data reference setting
+  - `app/eventListeners.js`: Enhanced error handling
+  - `app/domManager.js`: Improved modal rendering functions
+
+#### ✅ Chart Container Reference Issues
+- **Description**: Charts sometimes failed to render properly due to container reference issues
+- **Root Cause**: Charts were being initialized with container IDs instead of direct element references
+- **Solution**:
+  - Updated chart creation functions to accept actual HTMLElement containers
+  - Modified rendering functions to pass container elements directly
+- **Files Modified**:
+  - `app/renderer/chartRenderer.js`: Updated chart creation functions
+  - `app/domManager.js`: Modified chart rendering functions
+
+### Data Processing Issues
+
+#### ✅ Numeric Value Handling
+- **Description**: Some numeric values were being treated as strings during calculations
+- **Root Cause**: Missing type conversion in data processing
+- **Solution**:
+  - Added proper conversion to numeric types during data processing
+  - Enhanced validation for core metrics like TOTAL_SCORE and CHEST_COUNT
+- **Files Modified**:
+  - `app/dataLoader.js`: Improved data processing functions
+
+#### ✅ Missing Columns During Sorting
+- **Description**: Sorting would fail with "column missing" errors in some cases
+- **Root Cause**: Inconsistent column definitions between data processing and sorting functions
+- **Solution**:
+  - Standardized column references across the application
+  - Added safety checks before accessing column data
+- **Files Modified**:
+  - `app/domManager.js`: Enhanced sorting functions
+  - `app/app.js`: Improved column handling
+
+### UI Issues
+
+#### ✅ Sort Icon Visibility
+- **Description**: Sort icons were inconsistently visible across tables
+- **Root Cause**: CSS specificity issues and initialization timing
+- **Solution**:
+  - Improved sort icon initialization
+  - Enhanced CSS selectors for consistent visibility
+  - Added proper opacity states for active/inactive indicators
+- **Files Modified**:
+  - `app/domManager.js`: Updated sort icon handling
+  - `app/styles.css`: Enhanced CSS selectors
+
+#### ✅ Week Selection Updates
+- **Description**: UI elements weren't consistently updating when switching weeks
+- **Root Cause**: Incomplete view refresh during week changes
+- **Solution**:
+  - Enhanced the `refreshCurrentView` function to handle all view types
+  - Improved state management during week switches
+  - Added error handling for unavailable data
+- **Files Modified**:
+  - `app/app.js`: Updated view refresh logic
+  - `app/domManager.js`: Improved UI update functions
+
+## Current Issues
+
+### Performance Issues
+
+#### ⚠️ Large Dataset Performance
+- **Description**: Performance degrades with very large datasets (1000+ players)
+- **Status**: Under investigation
+- **Potential Solutions**:
+  - Implement pagination for large tables
+  - Optimize data processing algorithms
+  - Consider virtual scrolling for long lists
+  - Precompute frequently used metrics
+
+#### ⚠️ Chart Rendering Delays
+- **Description**: Charts can take several seconds to render on lower-end devices
+- **Status**: Under investigation
+- **Potential Solutions**:
+  - Lazy load chart libraries
+  - Simplify chart options for better performance
+  - Implement progressive rendering
+  - Add loading indicators during chart creation
+
+### UI Issues
+
+#### ⚠️ Mobile View Styling Inconsistencies
+- **Description**: Some UI elements don't display consistently on all mobile devices
+- **Status**: Identified, not fixed
+- **Potential Solutions**:
+  - Audit all responsive breakpoints
+  - Standardize responsive behavior patterns
+  - Implement device-specific overrides where necessary
+
+### Edge Cases
+
+#### ⚠️ Date Formatting in Specific Locales
+- **Description**: Date parsing can fail with certain locale combinations
+- **Status**: Partially addressed
+- **Potential Solutions**:
+  - Implement more robust date parsing with fallbacks
+  - Use ISO format for internal storage of all dates
+  - Add explicit format conversion for all user-facing dates
+
+## Debugging Techniques
+
+1. **Console Logging Strategy**
+   - Add specific prefixes to categorize logs: `[DATA]`, `[UI]`, `[CHART]`
+   - Use `console.time()` and `console.timeEnd()` for performance issues
+   - Log object state before and after critical operations
+
+2. **Data Inspection**
+   - Expose critical data to window object for console inspection
+   - Add data validation checks with clear error messages
+   - Implement data structure verification at key points
+
+3. **DOM Inspection**
+   - Check element references before manipulation
+   - Verify style application with element.classList inspection
+   - Monitor event listener attachment and removal
+
+4. **Chart Debugging**
+   - Log chart options before initialization
+   - Verify container element existence and dimensions
+   - Check data structure format against chart requirements
+
+## Best Practices for Future Development
+
+1. **Data Access**
+   - Always set `playerDataRef` after loading data
+   - Provide multiple access paths to critical data
+   - Implement proper validation before using data
+
+2. **UI Updates**
+   - Call `refreshCurrentView` after any significant data change
+   - Update all language-dependent UI elements during language switches
+   - Maintain consistent state between localStorage and UI
+
+3. **Chart Rendering**
+   - Always pass container elements directly, not just IDs
+   - Check data availability before rendering
+   - Implement proper cleanup when replacing charts
+
+4. **Error Handling**
+   - Add graceful fallbacks for missing or invalid data
+   - Use defensive programming with optional chaining
+   - Provide user-friendly error messages 
