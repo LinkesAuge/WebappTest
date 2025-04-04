@@ -7,6 +7,19 @@
  */
 
 import * as i18n from './i18n.js';
+import * as chartRenderer from './renderer/chartRenderer.js';
+import * as utils from './utils.js';
+
+// Reference to player data
+let playerDataRef = [];
+
+/**
+ * Set player data reference
+ * @param {Array} data - The player data array
+ */
+export function setPlayerData(data) {
+  playerDataRef = data;
+}
 
 // DOM element references - will be populated in assignElementReferences
 let elements = {
@@ -361,8 +374,9 @@ export function toggleMobileMenu() {
 /**
  * Open chart modal
  * @param {string} chartType - The type of chart to show in modal
+ * @param {Event} event - The click event (optional)
  */
-export function openChartModal(chartType) {
+export function openChartModal(chartType, event) {
   elements.chartModal.classList.remove('hidden');
   
   // Set modal title
@@ -392,6 +406,12 @@ export function openChartModal(chartType) {
   
   // Clear previous chart
   modalChartContainer.innerHTML = '';
+
+  // Clear any existing chart in the registry
+  if (chartRenderer.chartRegistry.modalChart) {
+    chartRenderer.chartRegistry.modalChart.destroy();
+    delete chartRenderer.chartRegistry.modalChart;
+  }
   
   // Render appropriate chart
   switch (chartType) {
@@ -399,16 +419,16 @@ export function openChartModal(chartType) {
       renderTopChestsInModal(modalChartContainer);
       break;
     case 'topSources':
-      // TODO: Implement rendering for other chart types
+      renderTopSourcesInModal(modalChartContainer);
       break;
     case 'scoreDistribution':
-      // TODO: Implement rendering for other chart types
+      renderScoreDistributionInModal(modalChartContainer);
       break;
     case 'scoreVsChests':
-      // TODO: Implement rendering for other chart types
+      renderScoreVsChestsInModal(modalChartContainer);
       break;
     case 'frequentSources':
-      // TODO: Implement rendering for other chart types
+      renderFrequentSourcesInModal(modalChartContainer);
       break;
   }
 }
@@ -418,40 +438,271 @@ export function openChartModal(chartType) {
  * @param {HTMLElement} container - The container element to render the table in
  */
 function renderTopChestsInModal(container) {
-  if (!window.allPlayersData || !Array.isArray(window.allPlayersData)) {
-    container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
-    return;
-  }
-  
-  // Sort data by chest count
-  const sortedData = [...window.allPlayersData]
-    .sort((a, b) => b.CHEST_COUNT - a.CHEST_COUNT)
-    .slice(0, 20); // Show more players in the modal view
-  
-  // Create table HTML
-  const tableHTML = `
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead class="sticky top-0 bg-slate-800/75 backdrop-blur-sm z-10">
-          <tr>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerPlayer')}</th>
-            <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerChests')}</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-700/50">
-          ${sortedData.map(player => `
-            <tr class="hover:bg-slate-700/30">
-              <td class="px-3 py-2 whitespace-nowrap text-left">${player.PLAYER}</td>
-              <td class="px-3 py-2 whitespace-nowrap text-right">${window.utils ? window.utils.formatNumber(player.CHEST_COUNT) : player.CHEST_COUNT}</td>
+  try {
+    if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
+      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+      return;
+    }
+    
+    // Sort data by chest count
+    const sortedData = [...playerDataRef]
+      .sort((a, b) => b.CHEST_COUNT - a.CHEST_COUNT)
+      .slice(0, 10); // Show exactly top 10 players
+    
+    // Create table HTML
+    const tableHTML = `
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="sticky top-0 bg-slate-800/75 backdrop-blur-sm z-10">
+            <tr>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerPlayer')}</th>
+              <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerChests')}</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+          </thead>
+          <tbody class="divide-y divide-slate-700/50">
+            ${sortedData.map(player => `
+              <tr class="hover:bg-slate-700/30">
+                <td class="px-3 py-2 whitespace-nowrap text-left">${player.PLAYER}</td>
+                <td class="px-3 py-2 whitespace-nowrap text-right">${utils.formatNumber(player.CHEST_COUNT)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    // Set table HTML
+    container.innerHTML = tableHTML;
+  } catch (error) {
+    console.error('Error rendering top chests table in modal:', error);
+    container.innerHTML = '<div class="text-center text-red-500">Error rendering table</div>';
+  }
+}
+
+/**
+ * Render the Top Sources chart in the modal
+ * @param {HTMLElement} container - The container element to render the chart in
+ */
+export function renderTopSourcesInModal(container = elements.modalChartContainer) {
+  try {
+    if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
+      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+      return;
+    }
+
+    const { names, values } = getSourcesDataForCharts(playerDataRef);
+
+    // Show exactly top 10 sources, consistent with dashboard
+    const topNames = names.slice(0, 10);
+    const topValues = values.slice(0, 10);
+
+    // Render the chart
+    const chart = chartRenderer.createDonutChart(
+      'modal-chart-container',
+      topValues,
+      topNames,
+      i18n.getText('dashboard.chartTopSourcesTitle')
+    );
+
+    // Store the chart with a consistent key
+    chartRenderer.chartRegistry.modalChart = chart;
+  } catch (error) {
+    console.error('Error rendering top sources chart in modal:', error);
+    container.innerHTML = '<div class="text-center text-red-500">Error rendering chart</div>';
+  }
+}
+
+/**
+ * Render the Score Distribution chart in the modal
+ * @param {HTMLElement} container - The container element to render the chart in
+ */
+export function renderScoreDistributionInModal(container = elements.modalChartContainer) {
+  try {
+    if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
+      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+      return;
+    }
+
+    const data = playerDataRef;
+
+    // Define score brackets
+    const bracketSize = 500;
+    const min = 0; // We always want to start at 0 for score
+    // Find the max score (ceiling to the next bracketSize multiple)
+    const maxScore = Math.max(...data.map(player => Number(player.TOTAL_SCORE) || 0));
+    const max = Math.ceil(maxScore / bracketSize) * bracketSize;
+
+    // Create empty brackets (start at 0 to max, step by bracketSize)
+    const brackets = {};
+    for (let i = min; i < max; i += bracketSize) {
+      const bracketLabel = `${utils.formatNumber(i)}-${utils.formatNumber(i + bracketSize - 1)}`;
+      brackets[bracketLabel] = 0;
+    }
+
+    // Count players in each bracket
+    data.forEach(player => {
+      const score = Number(player.TOTAL_SCORE) || 0;
+      const bracketIndex = Math.floor(score / bracketSize);
+      const bracketStart = bracketIndex * bracketSize;
+      const bracketLabel = `${utils.formatNumber(bracketStart)}-${utils.formatNumber(bracketStart + bracketSize - 1)}`;
+      
+      if (brackets[bracketLabel] !== undefined) {
+        brackets[bracketLabel]++;
+      }
+    });
+
+    // Prepare chart data
+    const categories = Object.keys(brackets);
+    const seriesData = Object.values(brackets);
+
+    // Create chart
+    const chart = chartRenderer.createBarChart(
+      'modal-chart-container',
+      [{
+        name: i18n.getText('table.headerPlayers'),
+        data: seriesData
+      }],
+      categories,
+      i18n.getText('dashboard.chartScoreDistTitle')
+    );
+
+    // Store the chart with a consistent key
+    chartRenderer.chartRegistry.modalChart = chart;
+  } catch (error) {
+    console.error('Error rendering score distribution chart in modal:', error);
+    container.innerHTML = '<div class="text-center text-red-500">Error rendering chart</div>';
+  }
+}
+
+/**
+ * Render the Score vs Chests chart in the modal
+ * @param {HTMLElement} container - The container element to render the chart in
+ */
+export function renderScoreVsChestsInModal(container = elements.modalChartContainer) {
+  try {
+    if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
+      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+      return;
+    }
+
+    const data = playerDataRef;
+
+    // Prepare data for scatter plot
+    const scatterData = data.map(player => [
+      Number(player.CHEST_COUNT) || 0,
+      Number(player.TOTAL_SCORE) || 0,
+      player.PLAYER
+    ]);
+
+    // Create chart
+    const chart = chartRenderer.createScatterChart(
+      'modal-chart-container',
+      scatterData,
+      i18n.getText('dashboard.chartScoreVsChestsTitle'),
+      i18n.getText('table.headerChests'),
+      i18n.getText('dashboard.totalScore')
+    );
+
+    // Store the chart with a consistent key
+    chartRenderer.chartRegistry.modalChart = chart;
+  } catch (error) {
+    console.error('Error rendering score vs chests chart in modal:', error);
+    container.innerHTML = '<div class="text-center text-red-500">Error rendering chart</div>';
+  }
+}
+
+/**
+ * Render the Frequent Sources chart in the modal
+ * @param {HTMLElement} container - The container element to render the chart in
+ */
+export function renderFrequentSourcesInModal(container = elements.modalChartContainer) {
+  try {
+    if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
+      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+      return;
+    }
+    
+    const data = playerDataRef;
+    
+    // Get source columns (exclude core columns)
+    const coreColumns = ['PLAYER', 'TOTAL_SCORE', 'CHEST_COUNT', 'RANK'];
+    const sourceColumns = Object.keys(data[0])
+      .filter(key => !coreColumns.includes(key) && key !== '' && key !== undefined);
+    
+    // Count how many players have a non-zero value for each source
+    const sourceFrequency = {};
+    
+    sourceColumns.forEach(column => {
+      // Use the original column name for the source
+      const sourceName = column;
+      sourceFrequency[sourceName] = data.filter(player => player[column] > 0).length;
+    });
+    
+    // Sort by frequency
+    const sortedSources = Object.entries(sourceFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .reduce((obj, [key, value]) => {
+        obj[key] = value;
+        return obj;
+      }, {});
+    
+    // Show exactly top 10 sources, consistent with dashboard
+    const topKeys = Object.keys(sortedSources).slice(0, 10);
+    const topValues = Object.values(sortedSources).slice(0, 10);
+    
+    // Create chart
+    const chart = chartRenderer.createBarChart(
+      'modal-chart-container',
+      [{
+        name: i18n.getText('table.headerPlayers'),
+        data: topValues
+      }],
+      topKeys,
+      i18n.getText('dashboard.chartFreqSourcesTitle')
+    );
+    
+    // Store the chart with a consistent key
+    chartRenderer.chartRegistry.modalChart = chart;
+  } catch (error) {
+    console.error('Error rendering frequent sources chart in modal:', error);
+    container.innerHTML = '<div class="text-center text-red-500">Error rendering chart</div>';
+  }
+}
+
+/**
+ * Helper function to get sources data from player data for charts
+ * @param {Array} data - Player data
+ * @returns {Object} Object with sources data names and values
+ */
+function getSourcesDataForCharts(data) {
+  // Detect column headers that could be source columns
+  // They should not be core columns (PLAYER, TOTAL_SCORE, CHEST_COUNT, RANK, etc.)
+  const coreColumns = ['PLAYER', 'TOTAL_SCORE', 'CHEST_COUNT', 'RANK'];
+  const sourceColumns = Object.keys(data[0])
+    .filter(key => !coreColumns.includes(key) && key !== '' && key !== undefined);
   
-  // Set table HTML
-  container.innerHTML = tableHTML;
+  const sourceTotals = {};
+  
+  sourceColumns.forEach(column => {
+    // Use the original column name for the source
+    const sourceName = column;
+    sourceTotals[sourceName] = data.reduce((sum, player) => {
+      return sum + (Number(player[column]) || 0);
+    }, 0);
+  });
+  
+  // Sort sources by total score (descending)
+  const sortedSources = Object.entries(sourceTotals)
+    .sort((a, b) => b[1] - a[1])
+    .reduce((obj, [key, value]) => {
+      obj[key] = value;
+      return obj;
+    }, {});
+  
+  return {
+    names: Object.keys(sortedSources),
+    values: Object.values(sortedSources)
+  };
 }
 
 /**
@@ -459,6 +710,12 @@ function renderTopChestsInModal(container) {
  */
 export function closeChartModal() {
   elements.chartModal.classList.add('hidden');
+  
+  // Clean up the chart to prevent memory leaks and conflicts
+  if (chartRenderer.chartRegistry.modalChart) {
+    chartRenderer.chartRegistry.modalChart.destroy();
+    delete chartRenderer.chartRegistry.modalChart;
+  }
 }
 
 /**

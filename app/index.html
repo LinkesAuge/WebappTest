@@ -365,19 +365,14 @@
         </section>
 
         <!-- Chart Modal -->
-        <div id="chart-modal" class="modal hidden fixed inset-0 z-50" aria-labelledby="modal-chart-title" role="dialog" aria-modal="true">
-            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ease-out" aria-hidden="true"></div>
-            <div class="fixed inset-0 overflow-y-auto">
-                <div class="flex min-h-full items-center justify-center p-4 text-center">
-                    <div class="relative w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl transform overflow-hidden rounded-lg bg-card text-left align-middle shadow-xl transition-all border border-border">
-                        <div class="flex items-center justify-between p-4 border-b border-slate-700">
-                            <h3 id="modal-chart-title" class="text-lg font-medium leading-6 text-primary">Chart Title</h3>
-                            <button id="modal-close-button" type="button" class="p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-ring"><span class="sr-only" data-i18n-key="button.close">Close</span><i class="fas fa-times fa-fw"></i></button>
-                        </div>
-                        <div class="p-6">
-                            <div id="modal-chart-container" class="min-h-[60vh]"></div>
-                        </div>
-                    </div>
+        <div id="chart-modal" class="fixed inset-0 bg-black/75 hidden flex items-center justify-center z-50">
+            <div class="bg-card border border-border rounded-lg shadow-2xl p-4 sm:p-6 max-w-full md:max-w-4xl w-[95%] md:w-4/5 max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-chart-title" class="text-base sm:text-lg font-semibold text-amber-300">[Chart Title]</h3>
+                    <button id="modal-close-button" class="p-2 text-slate-400 hover:text-primary"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="modal-chart-container" class="flex-grow overflow-hidden flex items-center justify-center min-h-[300px] md:min-h-[400px]">
+                    <span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span>
                 </div>
             </div>
         </div>

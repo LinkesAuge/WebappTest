@@ -55,6 +55,8 @@ const TEXT_CONTENT = {
       scopeLabel: "Datenumfang:",
       scopeOverall: "Gesamt",
       scopeClan: "Clan (Aggregiert)",
+      lowScore: "Niedrig",
+      highScore: "Hoch",
     },
     analytics: {
       title: "Analytik",
@@ -191,6 +193,8 @@ const TEXT_CONTENT = {
       scopeLabel: "Data Scope:",
       scopeOverall: "Overall",
       scopeClan: "Clan (Aggregated)",
+      lowScore: "Low",
+      highScore: "High",
     },
     analytics: {
       title: "Analytics",

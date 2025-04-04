@@ -185,6 +185,10 @@ function handleFilter(filterText) {
       player[utils.CORE_COLUMNS.PLAYER].toLowerCase().includes(searchTerm)
     );
   }
+  
+  // Note: We deliberately don't update domManager's playerDataRef here
+  // as the charts should always show the complete dataset regardless of filtering
+  
   renderPlayerTable(displayData);
 }
 
@@ -242,6 +246,9 @@ export async function loadAndRenderData(isFirstInit = false) {
       dashboardSortState,
       saveDataToLocalStorage
     );
+
+    // Share player data with domManager for modal charts
+    domManager.setPlayerData(allPlayersData);
 
     // Update UI state
     domManager.updateHeaderButtonsVisibility(true);
@@ -568,6 +575,9 @@ function resetStateAndUI() {
   displayData.length = 0;
   allColumnHeaders.length = 0;
   scoreRulesData.length = 0;
+  
+  // Reset player data reference in domManager
+  domManager.setPlayerData([]);
   
   // Reset sort states
   dashboardSortState.column = utils.CORE_COLUMNS.TOTAL_SCORE;

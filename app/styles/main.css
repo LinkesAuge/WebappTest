@@ -69,6 +69,124 @@
   /* Chart toolbar styling - Ensure it's above sticky headers but below modal */
   .apexcharts-toolbar { @apply z-20; }
   
+  /* Custom tooltips for ApexCharts toolbar buttons */
+  .apexcharts-toolbar-custom-tooltip {
+    position: absolute;
+    background: #0f172a;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 12;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
+  }
+  
+  /* Hide default tooltips on ApexCharts toolbar */
+  .apexcharts-toolbar [title]::before,
+  .apexcharts-toolbar [title]::after {
+    display: none !important;
+  }
+  
+  /* Apply custom styling to ApexCharts menu dropdown */
+  .apexcharts-menu {
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    padding: 4px 0 !important;
+    min-width: 120px !important;
+    z-index: 25 !important;
+  }
+  
+  .apexcharts-menu-item {
+    color: #e2e8f0 !important;
+    background: transparent !important;
+    transition: background 0.15s ease !important;
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+    font-family: 'Inter', sans-serif !important;
+  }
+  
+  .apexcharts-menu-item:hover {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+  }
+  
+  /* Additional fixes for menu elements */
+  .apexcharts-menu-icon, 
+  .apexcharts-reset-icon,
+  .apexcharts-zoom-icon,
+  .apexcharts-zoomin-icon,
+  .apexcharts-zoomout-icon,
+  .apexcharts-pan-icon {
+    color: #94a3b8 !important;
+  }
+  
+  /* Specifically target the hamburger menu button */
+  .apexcharts-toolbar .apexcharts-menu-icon {
+    color: #94a3b8 !important;
+    border-radius: 3px !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+  }
+  
+  .apexcharts-toolbar .apexcharts-menu-icon:hover {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+  }
+  
+  .apexcharts-menu-icon:hover, 
+  .apexcharts-reset-icon:hover,
+  .apexcharts-zoom-icon:hover,
+  .apexcharts-zoomin-icon:hover,
+  .apexcharts-zoomout-icon:hover,
+  .apexcharts-pan-icon:hover {
+    color: #f8fafc !important;
+  }
+  
+  /* Style any dividers in the menu */
+  .apexcharts-menu hr {
+    border-color: #334155 !important;
+    margin: 4px 0 !important;
+  }
+  
+  /* Fix any SVG elements inside the menu */
+  .apexcharts-menu svg,
+  .apexcharts-menu path {
+    stroke: #94a3b8 !important;
+  }
+  
+  /* Fix submenu styles if they exist */
+  .apexcharts-submenu {
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  }
+  
+  /* Fix any tooltips within the menu */
+  .apexcharts-tooltip {
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    color: #e2e8f0 !important;
+  }
+  
+  /* Fix any theme-specific overrides */
+  .apexcharts-theme-light .apexcharts-menu,
+  .apexcharts-theme-light .apexcharts-menu-item {
+    background: #0f172a !important;
+    color: #e2e8f0 !important;
+  }
+  
   /* Modal needs highest z-index */
   #chart-modal { @apply z-50; }
 
@@ -249,4 +367,74 @@ thead.sticky-top {
 #detailed-table-container tbody tr:hover td,
 #score-rules-table-container tbody tr:hover td {
   background-color: rgba(51, 65, 85, 0.5) !important; /* slate-700 with 50% opacity */
+}
+
+/* Mobile Responsive Tables */
+@media (max-width: 640px) {
+  /* Optimize table cell padding for small screens */
+  table th, 
+  table td {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  
+  /* Smaller fonts for tables on mobile */
+  table {
+    font-size: 12px !important;
+  }
+  
+  /* Header text smaller on mobile */
+  table th {
+    font-size: 10px !important;
+  }
+  
+  /* Improve scroll experience on tables */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  
+  /* Adjust min-width on tables to prevent tiny columns */
+  table {
+    min-width: max-content;
+  }
+  
+  /* Make table containers take full width but allow horizontal scroll */
+  #ranking-table-container,
+  #detailed-table-container,
+  #score-rules-table-container {
+    max-width: 100vw;
+    margin-left: -8px;
+    margin-right: -8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    width: calc(100% + 16px);
+  }
+}
+
+/* Chart Container Optimization for Mobile */
+@media (max-width: 640px) {
+  /* Reduce padding for chart containers */
+  .bg-card.rounded-lg.shadow-lg.p-4.md\:p-6 {
+    padding: 12px !important;
+  }
+  
+  /* Ensure min-height is appropriate for smaller screens */
+  [id$="-chart-container"] {
+    min-height: 260px !important;
+  }
+  
+  /* Fix margin/padding on containers */
+  .space-y-6 > div,
+  .space-y-8 > div {
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  /* Fix card padding */
+  .p-3.sm\:p-4 {
+    padding: 12px !important;
+  }
 } 

@@ -216,9 +216,9 @@ function renderScoreVsChestsChart(data) {
   const container = document.getElementById('score-vs-chests-chart-container');
   if (!container) return;
   
-  // Create scatter data
+  // Create scatter data from all players
   const scatterData = data.map(player => {
-    return [player.CHEST_COUNT, player.TOTAL_SCORE];
+    return [player.CHEST_COUNT, player.TOTAL_SCORE, player.PLAYER];
   });
   
   // Create chart

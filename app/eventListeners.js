@@ -8,6 +8,11 @@ import * as app from './app.js';
 import * as utils from './utils.js';
 import * as i18n from './i18n.js';
 import * as domManager from './domManager.js';
+import * as dataLoader from './dataLoader.js';
+import { renderTopSourcesInModal, renderScoreDistributionInModal, renderScoreVsChestsInModal, renderFrequentSourcesInModal } from './domManager.js';
+
+// Imported DOM references
+const { elements, collections } = domManager;
 
 /**
  * Setup all event listeners
@@ -116,15 +121,53 @@ function setupLanguageSwitchers() {
 function setupChartExpansionListeners() {
   const expandButtons = document.querySelectorAll('[data-chart-type]');
   expandButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const chartType = button.getAttribute('data-chart-type');
-      domManager.openChartModal(chartType);
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const chartType = button.dataset.chartType;
+      if (!chartType) return;
+      
+      // Update modal title based on chart type
+      if (elements.modalChartTitle) {
+        const titleKey = chartType === 'topSources' 
+          ? 'dashboard.chartTopSourcesTitle' 
+          : chartType === 'scoreDistribution' 
+            ? 'dashboard.chartScoreDistTitle' 
+            : chartType === 'scoreVsChests' 
+              ? 'dashboard.chartScoreVsChestsTitle' 
+              : 'dashboard.chartFrequentSourcesTitle';
+        elements.modalChartTitle.textContent = i18n.getText(titleKey);
+      }
+      
+      // Show modal
+      if (elements.chartModal) {
+        elements.chartModal.classList.remove('hidden');
+        
+        // Render the appropriate chart in the modal
+        switch (chartType) {
+          case 'topSources':
+            renderTopSourcesInModal();
+            break;
+          case 'scoreDistribution':
+            renderScoreDistributionInModal();
+            break;
+          case 'scoreVsChests':
+            renderScoreVsChestsInModal();
+            break;
+          case 'frequentSources':
+            renderFrequentSourcesInModal();
+            break;
+        }
+      }
     });
   });
   
   const modalCloseButton = document.getElementById('modal-close-button');
   if (modalCloseButton) {
-    modalCloseButton.addEventListener('click', domManager.closeChartModal);
+    modalCloseButton.addEventListener('click', () => {
+      if (elements.chartModal) {
+        elements.chartModal.classList.add('hidden');
+      }
+    });
   }
   
   // Close modal when clicking outside
@@ -132,10 +175,17 @@ function setupChartExpansionListeners() {
   if (chartModal) {
     chartModal.addEventListener('click', (e) => {
       if (e.target === chartModal) {
-        domManager.closeChartModal();
+        chartModal.classList.add('hidden');
       }
     });
   }
+  
+  // Close modal with ESC key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && elements.chartModal && !elements.chartModal.classList.contains('hidden')) {
+      elements.chartModal.classList.add('hidden');
+    }
+  });
 }
 
 /**
