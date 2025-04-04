@@ -7,6 +7,7 @@
 import * as utils from '../utils.js';
 import * as chartRenderer from './chartRenderer.js';
 import * as tableRenderer from './tableRenderer.js';
+import * as i18n from '../i18n.js';
 
 /**
  * Render dashboard statistics
@@ -115,13 +116,19 @@ export function renderDashboardCharts(data) {
  * @returns {Object} Object with sources data
  */
 function getSourcesData(data) {
+  // Detect column headers that could be source columns
+  // They should not be core columns (PLAYER, TOTAL_SCORE, CHEST_COUNT, RANK, etc.)
+  const coreColumns = ['PLAYER', 'TOTAL_SCORE', 'CHEST_COUNT', 'RANK'];
   const sourceColumns = Object.keys(data[0])
-    .filter(key => key.startsWith('FROM_'));
+    .filter(key => !coreColumns.includes(key) && key !== '' && key !== undefined);
+  
+  console.log('Source columns detected:', sourceColumns);
   
   const sourceTotals = {};
   
   sourceColumns.forEach(column => {
-    const sourceName = column.replace('FROM_', '');
+    // Use the original column name for the source
+    const sourceName = column;
     sourceTotals[sourceName] = data.reduce((sum, player) => {
       return sum + (Number(player[column]) || 0);
     }, 0);
@@ -151,12 +158,16 @@ function renderTopSourcesChart(data) {
   
   const sourcesData = getSourcesData(data);
   
+  // Limit to top 10 sources
+  const top10Names = sourcesData.names.slice(0, 10);
+  const top10Values = sourcesData.values.slice(0, 10);
+  
   // Create chart
   chartRenderer.createDonutChart(
     'top-sources-chart-container',
-    sourcesData.values,
-    sourcesData.names,
-    'Top Sources by Score'
+    top10Values,
+    top10Names,
+    i18n.getText('dashboard.chartTopSourcesTitle')
   );
 }
 
@@ -193,7 +204,7 @@ function renderScoreDistributionChart(data) {
   // Create chart data
   const categories = buckets.map(bucket => bucket.range);
   const series = [{
-    name: 'Players',
+    name: i18n.getText('table.headerPlayers'),
     data: buckets.map(bucket => bucket.count)
   }];
   
@@ -202,7 +213,7 @@ function renderScoreDistributionChart(data) {
     'score-distribution-chart-container',
     series,
     categories,
-    'Score Distribution'
+    i18n.getText('dashboard.chartScoreDistTitle')
   );
 }
 
@@ -223,9 +234,9 @@ function renderScoreVsChestsChart(data) {
   chartRenderer.createScatterChart(
     'score-vs-chests-chart-container',
     scatterData,
-    'Score vs. Chests',
-    'Chest Count',
-    'Total Score'
+    i18n.getText('dashboard.chartScoreVsChestsTitle'),
+    i18n.getText('table.headerChests'),
+    i18n.getText('table.headerTotalScore')
   );
 }
 
@@ -237,15 +248,17 @@ function renderFrequentSourcesChart(data) {
   const container = document.getElementById('frequent-sources-chart-container');
   if (!container) return;
   
-  // Get source columns
+  // Get source columns (exclude core columns)
+  const coreColumns = ['PLAYER', 'TOTAL_SCORE', 'CHEST_COUNT', 'RANK'];
   const sourceColumns = Object.keys(data[0])
-    .filter(key => key.startsWith('FROM_'));
+    .filter(key => !coreColumns.includes(key) && key !== '' && key !== undefined);
   
   // Count how many players have a non-zero value for each source
   const sourceFrequency = {};
   
   sourceColumns.forEach(column => {
-    const sourceName = column.replace('FROM_', '');
+    // Use the original column name for the source
+    const sourceName = column;
     sourceFrequency[sourceName] = data.filter(player => player[column] > 0).length;
   });
   
@@ -257,14 +270,18 @@ function renderFrequentSourcesChart(data) {
       return obj;
     }, {});
   
+  // Limit to top 10 sources
+  const top10Keys = Object.keys(sortedSources).slice(0, 10);
+  const top10Values = Object.values(sortedSources).slice(0, 10);
+  
   // Create chart
   chartRenderer.createBarChart(
     'frequent-sources-chart-container',
     [{
-      name: 'Players',
-      data: Object.values(sortedSources)
+      name: i18n.getText('table.headerPlayers'),
+      data: top10Values
     }],
-    Object.keys(sortedSources),
-    'Most Frequent Sources'
+    top10Keys,
+    i18n.getText('dashboard.chartFreqSourcesTitle')
   );
 }

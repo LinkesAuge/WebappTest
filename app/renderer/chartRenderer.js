@@ -4,6 +4,8 @@
  * Responsible for rendering charts in the application
  */
 
+import * as i18n from '../i18n.js';
+
 /**
  * Chart Registry to keep track of all charts
  */
@@ -137,7 +139,7 @@ export function createDonutChart(containerId, series, labels, title) {
     chart: {
       ...getBaseChartOptions().chart,
       type: 'donut',
-      height: 350
+      height: 400
     },
     plotOptions: {
       pie: {
@@ -162,7 +164,7 @@ export function createDonutChart(containerId, series, labels, title) {
         breakpoint: 480,
         options: {
           chart: {
-            height: 280
+            height: 320
           },
           legend: {
             position: 'bottom'
@@ -178,6 +180,15 @@ export function createDonutChart(containerId, series, labels, title) {
         fontWeight: 600,
         fontFamily: 'Inter, sans-serif',
         color: '#f59e0b'
+      }
+    },
+    subtitle: {
+      text: '',
+      show: false,
+      floating: true,
+      offsetY: 0,
+      style: {
+        fontSize: '0px'
       }
     }
   };
@@ -219,7 +230,7 @@ export function createBarChart(containerId, series, categories, title) {
     chart: {
       ...getBaseChartOptions().chart,
       type: 'bar',
-      height: 350,
+      height: 400,
       stacked: series.length > 1
     },
     plotOptions: {
@@ -244,6 +255,15 @@ export function createBarChart(containerId, series, categories, title) {
         fontWeight: 600,
         fontFamily: 'Inter, sans-serif',
         color: '#f59e0b'
+      }
+    },
+    subtitle: {
+      text: '',
+      show: false,
+      floating: true,
+      offsetY: 0,
+      style: {
+        fontSize: '0px'
       }
     }
   };
@@ -283,13 +303,13 @@ export function createScatterChart(containerId, data, title, xAxisTitle, yAxisTi
   const options = {
     ...getBaseChartOptions(),
     series: [{
-      name: 'Players',
+      name: i18n.getText('table.headerPlayers'),
       data: data
     }],
     chart: {
       ...getBaseChartOptions().chart,
       type: 'scatter',
-      height: 350,
+      height: 400,
       zoom: {
         enabled: true,
         type: 'xy'
@@ -325,6 +345,15 @@ export function createScatterChart(containerId, data, title, xAxisTitle, yAxisTi
         fontWeight: 600,
         fontFamily: 'Inter, sans-serif',
         color: '#f59e0b'
+      }
+    },
+    subtitle: {
+      text: '',
+      show: false,
+      floating: true,
+      offsetY: 0,
+      style: {
+        fontSize: '0px'
       }
     }
   };
