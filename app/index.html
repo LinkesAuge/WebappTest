@@ -274,44 +274,71 @@
                 <button id="back-to-dashboard-from-analytics" class="inline-flex items-center px-4 py-1.5 border border-amber-600 text-amber-600 text-xs font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150"><i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n-key="nav.dashboard">Dashboard</span></button>
             </div>
             <div class="space-y-6 bg-card border border-border rounded-lg shadow-lg p-4 md:p-6">
-                <h3 class="text-lg font-semibold text-amber-300" data-i18n-key="analytics.categoryTitle">Category Analysis</h3>
-                <div>
-                    <label for="category-select" class="block text-sm font-medium text-slate-300 mb-1" data-i18n-key="analytics.selectCategoryLabel">Analyze Category:</label>
-                    <select id="category-select" class="w-full sm:max-w-md px-3 py-2 bg-slate-700 border border-input rounded-md text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent">
-                        <option value="" data-i18n-key="analytics.selectCategoryDefault">-- Select Category --</option>
-                    </select>
-                </div>
-                <div id="category-analysis-content" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 hidden">
-                    <div class="p-0">
-                        <h4 class="text-base font-semibold text-amber-300 mb-3"><span data-i18n-key="analytics.topPlayers">Top Players</span>: <span id="category-name-table">[Category Name]</span></h4>
-                        <div class="overflow-x-auto max-h-96 border border-slate-700 rounded-md">
-                            <table class="min-w-full divide-y divide-slate-700 text-sm">
-                                <thead class="bg-slate-800/75 backdrop-blur-sm sticky top-0 z-10">
-                                    <tr>
-                                        <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider" data-i18n-key="table.headerPlayer">Player</th>
-                                        <th scope="col" class="px-4 py-2 text-right text-xs font-medium text-primary uppercase tracking-wider" data-i18n-key="table.headerScore">Score</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="category-ranking-body" class="divide-y divide-slate-700/50">
-                                    <tr><td colspan="2" class="text-center py-4 text-slate-500" data-i18n-key="analytics.selectCategoryPrompt">Select a category.</td></tr>
-                                </tbody>
-                            </table>
+                <h3 class="text-lg font-semibold text-amber-300" data-i18n-key="analytics.clanTitle">Clan Analysis</h3>
+                
+                <!-- Clan Summary Stats -->
+                <div id="clan-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                    <div class="bg-card border border-border rounded-lg p-3 sm:p-4 shadow-lg flex items-center gap-3 sm:gap-4">
+                        <i class="fa-solid fa-users fa-lg sm:fa-2x text-sky-500"></i>
+                        <div>
+                            <div class="text-xs uppercase text-slate-400 tracking-wider" data-i18n-key="analytics.totalPlayers">Total Players</div>
+                            <div id="clan-total-players" class="text-lg sm:text-xl md:text-2xl font-bold text-primary mt-1">0</div>
                         </div>
                     </div>
-                    <div class="p-0">
-                        <h4 class="text-base font-semibold text-amber-300 mb-3"><span data-i18n-key="analytics.distribution">Distribution</span>: <span id="category-name-chart">[Category Name]</span></h4>
-                        <div id="category-chart-container" class="min-h-[400px] border border-slate-700 rounded-md p-2"></div>
+                    <div class="bg-card border border-border rounded-lg p-3 sm:p-4 shadow-lg flex items-center gap-3 sm:gap-4">
+                        <i class="fa-solid fa-star fa-lg sm:fa-2x text-amber-500"></i>
+                        <div>
+                            <div class="text-xs uppercase text-slate-400 tracking-wider" data-i18n-key="analytics.totalScore">Total Score</div>
+                            <div id="clan-total-score" class="text-lg sm:text-xl md:text-2xl font-bold text-primary mt-1">0</div>
+                        </div>
+                    </div>
+                    <div class="bg-card border border-border rounded-lg p-3 sm:p-4 shadow-lg flex items-center gap-3 sm:gap-4">
+                        <i class="fa-solid fa-star-half-stroke fa-lg sm:fa-2x text-amber-600"></i>
+                        <div>
+                            <div class="text-xs uppercase text-slate-400 tracking-wider" data-i18n-key="analytics.averageScore">Average Score</div>
+                            <div id="clan-average-score" class="text-lg sm:text-xl md:text-2xl font-bold text-primary mt-1">0</div>
+                        </div>
+                    </div>
+                    <div class="bg-card border border-border rounded-lg p-3 sm:p-4 shadow-lg flex items-center gap-3 sm:gap-4">
+                        <i class="fa-solid fa-treasure-chest fa-lg sm:fa-2x text-orange-500"></i>
+                        <div>
+                            <div class="text-xs uppercase text-slate-400 tracking-wider" data-i18n-key="analytics.totalChests">Total Chests</div>
+                            <div id="clan-total-chests" class="text-lg sm:text-xl md:text-2xl font-bold text-primary mt-1">0</div>
+                        </div>
                     </div>
                 </div>
-                <p id="category-prompt" class="text-slate-400 text-center py-10" data-i18n-key="analytics.selectCategoryPrompt">Select a category from the dropdown above to analyze.</p>
+                
+                <!-- Clan Analysis Visualizations -->
+                <div id="clan-analysis-content" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mt-6">
+                    <div class="p-0">
+                        <h4 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="analytics.clanComposition">Clan Composition</h4>
+                        <div id="clan-composition-container" class="min-h-[400px] border border-slate-700 rounded-md p-2"></div>
+                    </div>
+                    <div class="p-0">
+                        <h4 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="analytics.contributionDistribution">Contribution Distribution</h4>
+                        <div id="contribution-curve-container" class="min-h-[400px] border border-slate-700 rounded-md p-2"></div>
+                    </div>
+                </div>
             </div>
+            
             <div class="mt-8 border-t border-slate-700/50 pt-8 space-y-4 bg-card border border-border rounded-lg shadow-lg p-4 md:p-6">
-                <h3 class="text-lg font-semibold text-amber-300" data-i18n-key="analytics.playerTitle">Player Analysis</h3>
-                <p class="text-slate-400 text-sm mt-2" data-i18n-key="analytics.playerPlaceholder">Further player comparisons or detailed analytics coming soon...</p>
-            </div>
-            <div class="mt-8 border-t border-slate-700/50 pt-8 space-y-4 bg-card border border-border rounded-lg shadow-lg p-4 md:p-6">
-                <h3 class="text-lg font-semibold text-amber-300" data-i18n-key="analytics.clanTitle">Clan Analysis</h3>
-                <p class="text-slate-400 text-sm mt-2" data-i18n-key="analytics.clanPlaceholder">Aggregated clan statistics and analytics coming soon...</p>
+                <h3 class="text-lg font-semibold text-amber-300" data-i18n-key="analytics.categoryTitle">Category Analysis</h3>
+                
+                <!-- Source Analysis Content -->
+                <div id="source-analysis-content" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                    <div class="p-0">
+                        <h4 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="analytics.sourceImportance">Source Importance</h4>
+                        <div id="source-importance-container" class="min-h-[400px] border border-slate-700 rounded-md p-2"></div>
+                    </div>
+                    <div class="p-0">
+                        <h4 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="analytics.allSourcesByScore">All Sources by Score</h4>
+                        <div id="all-sources-container" class="min-h-[400px] border border-slate-700 rounded-md p-2"></div>
+                    </div>
+                    <div class="md:col-span-2 p-0">
+                        <h4 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="analytics.top10SourcesWithPlayers">All Sources with Player Contributions</h4>
+                        <div id="top-sources-players-container" class="min-h-[500px] border border-slate-700 rounded-md p-2"></div>
+                    </div>
+                </div>
             </div>
         </section>
 

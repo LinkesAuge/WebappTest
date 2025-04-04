@@ -321,6 +321,11 @@ function cleanData(results) {
   // Process each row
   results.data.forEach((row, index) => {
     if (index === 0) return; // Skip header row
+    
+    // Check if row is empty or contains only empty strings
+    if (!row || row.every(cell => cell === "" || cell === null || cell === undefined)) {
+      return; // Skip empty rows silently
+    }
 
     // Create clean player object
     const cleanPlayer = {};

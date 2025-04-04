@@ -18,6 +18,7 @@ import * as tableRenderer from './renderer/tableRenderer.js';
 import * as chartRenderer from './renderer/chartRenderer.js';
 import * as dashboardRenderer from './renderer/dashboardRenderer.js';
 import * as playerDetailRenderer from './renderer/playerDetailRenderer.js';
+import * as analyticsRenderer from './renderer/analyticsRenderer.js';
 
 // State variables
 let allPlayersData = [];
@@ -173,7 +174,10 @@ function handleViewNavigation(viewName) {
     case 'analytics':
       // Analytics initialization
       if (allPlayersData.length > 0) {
-        createCategoryAnalysisView(allPlayersData, allColumnHeaders);
+        // First create Clan Analysis 
+        createClanAnalysisView(allPlayersData);
+        // Then create Category Analysis
+        createCategoryAnalysisView(allPlayersData);
       }
       break;
       
@@ -657,36 +661,56 @@ function initializeChartsSection() {
 }
 
 /**
- * Create category analysis view
+ * Create Category Analysis View
+ * Displays source analysis charts
  */
-function createCategoryAnalysisView(data, headers) {
-  console.log('Creating category analysis view...');
+function createCategoryAnalysisView(data) {
+  console.log('Creating category analysis view');
   
-  // Get source columns (columns that start with FROM_)
-  const sourceColumns = headers.filter(header => header.startsWith('FROM_'));
+  // Render source importance as treemap
+  analyticsRenderer.renderSourceImportance('source-importance-container', data);
   
-  // Update category select options
-  const categorySelect = document.getElementById('category-select');
-  if (!categorySelect) return;
+  // Render all sources by score
+  analyticsRenderer.renderAllSourcesByScore('all-sources-container', data);
   
-  // Clear existing options
-  categorySelect.innerHTML = `<option value="" data-i18n-key="analytics.selectCategoryDefault">-- Select Category --</option>`;
+  // Render top sources with player contributions
+  analyticsRenderer.renderTop10SourcesWithPlayers('top-sources-players-container', data);
+}
+
+/**
+ * Create Clan Analysis View
+ * Displays clan-related analytics charts
+ */
+function createClanAnalysisView(data) {
+  console.log('Creating clan analysis view');
   
-  // Add source columns as options
-  sourceColumns.forEach(column => {
-    const sourceName = column.replace('FROM_', '');
-    categorySelect.innerHTML += `<option value="${column}">${sourceName}</option>`;
-  });
+  // Calculate clan metrics for use in multiple charts
+  const clanMetrics = analyticsRenderer.calculateClanMetrics(data);
   
-  // Add change handler
-  categorySelect.addEventListener('change', () => {
-    const selectedCategory = categorySelect.value;
-    if (selectedCategory) {
-      showCategoryAnalysis(selectedCategory, data);
-    } else {
-      hideCategoryAnalysis();
-    }
-  });
+  // Update clan summary statistics
+  document.getElementById('clan-total-players').textContent = utils.formatNumber(clanMetrics.totalPlayers);
+  document.getElementById('clan-total-score').textContent = utils.formatNumber(clanMetrics.totalScore);
+  document.getElementById('clan-average-score').textContent = utils.formatNumber(clanMetrics.averageScore);
+  document.getElementById('clan-total-chests').textContent = utils.formatNumber(clanMetrics.totalChests);
+  
+  // Render clan composition chart
+  analyticsRenderer.renderClanComposition('clan-composition-container', data);
+  
+  // Render contribution curve chart
+  analyticsRenderer.renderContributionCurve('contribution-curve-container', data);
+}
+
+/**
+ * Enhanced category analysis with advanced visualizations
+ */
+function enhancedCategoryAnalysis(category, data) {
+  console.log('Showing enhanced category analysis:', category);
+  
+  // First show the basic category analysis (existing functionality)
+  showCategoryAnalysis(category, data);
+  
+  // Then show the advanced analyses
+  analyticsRenderer.renderCategoryAnalysis(category, data);
 }
 
 /**
@@ -700,7 +724,7 @@ function showCategoryAnalysis(category, data) {
     .sort((a, b) => b[category] - a[category]);
   
   // Update category names
-  const categoryName = category.replace('FROM_', '');
+  const categoryName = category.startsWith('FROM_') ? category.replace('FROM_', '') : category;
   document.getElementById('category-name-table').textContent = categoryName;
   document.getElementById('category-name-chart').textContent = categoryName;
   
@@ -718,11 +742,21 @@ function showCategoryAnalysis(category, data) {
   // Create distribution chart
   const chartContainer = document.getElementById('category-chart-container');
   if (chartContainer) {
-    // Calculate distribution data
-    const maxScore = Math.max(...data.map(p => p[category]));
-    const minScore = Math.min(...data.map(p => p[category]));
+    // Calculate distribution data - safely handle Math.max/min to avoid spread operator issues
+    let maxScore = 0;
+    let minScore = Number.MAX_SAFE_INTEGER;
+    
+    for (let i = 0; i < data.length; i++) {
+      const score = data[i][category] || 0;
+      if (score > maxScore) maxScore = score;
+      if (score < minScore) minScore = score;
+    }
+    
+    // If all scores are 0, adjust minScore
+    if (minScore === Number.MAX_SAFE_INTEGER) minScore = 0;
+    
     const range = maxScore - minScore;
-    const bucketSize = Math.ceil(range / 10); // 10 buckets
+    const bucketSize = range > 0 ? Math.ceil(range / 10) : 1; // 10 buckets, handle case where all values are the same
     
     const buckets = Array(10).fill(0).map((_, i) => {
       const start = minScore + i * bucketSize;
@@ -735,16 +769,23 @@ function showCategoryAnalysis(category, data) {
     
     // Count players in each bucket
     data.forEach(player => {
-      const score = player[category];
-      const bucketIndex = Math.min(Math.floor((score - minScore) / bucketSize), buckets.length - 1);
-      buckets[bucketIndex].count++;
+      const score = player[category] || 0;
+      if (range > 0) {
+        const bucketIndex = Math.min(Math.floor((score - minScore) / bucketSize), buckets.length - 1);
+        if (bucketIndex >= 0 && bucketIndex < buckets.length) {
+          buckets[bucketIndex].count++;
+        }
+      } else {
+        // All values are the same, put them in the first bucket
+        buckets[0].count++;
+      }
     });
     
     // Create chart
     chartRenderer.createBarChart(
       'category-chart-container',
       [{
-        name: utils.getText('table.headerPlayers'),
+        name: i18n.getText('table.headerPlayers'),
         data: buckets.map(b => b.count)
       }],
       buckets.map(b => b.range),
@@ -758,10 +799,11 @@ function showCategoryAnalysis(category, data) {
 }
 
 /**
- * Hide category analysis
+ * Hide category analysis - update to hide advanced analysis too
  */
 function hideCategoryAnalysis() {
   document.getElementById('category-analysis-content').classList.add('hidden');
+  document.getElementById('category-advanced-analysis').classList.add('hidden');
   document.getElementById('category-prompt').classList.remove('hidden');
 }
 
