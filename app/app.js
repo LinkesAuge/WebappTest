@@ -322,7 +322,7 @@ function renderDashboard() {
   dashboardRenderer.renderTopPlayersTable(
     document.getElementById('top-chests-table-body'),
     allPlayersData,
-    5
+    10
   );
   
   // Render main ranking table

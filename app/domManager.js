@@ -6,6 +6,8 @@
  * to avoid repeated querySelector calls.
  */
 
+import * as i18n from './i18n.js';
+
 // DOM element references - will be populated in assignElementReferences
 let elements = {
   // Status elements
@@ -366,22 +368,90 @@ export function openChartModal(chartType) {
   // Set modal title
   let title = '';
   switch (chartType) {
+    case 'topChests':
+      title = i18n.getText('dashboard.topChestsTitle');
+      break;
     case 'topSources':
-      title = 'Top Sources by Score';
+      title = i18n.getText('dashboard.chartTopSourcesTitle');
       break;
     case 'scoreDistribution':
-      title = 'Score Distribution';
+      title = i18n.getText('dashboard.chartScoreDistTitle');
       break;
     case 'scoreVsChests':
-      title = 'Score vs. Chests';
+      title = i18n.getText('dashboard.chartScoreVsChestsTitle');
       break;
     case 'frequentSources':
-      title = 'Most Frequent Sources';
+      title = i18n.getText('dashboard.chartFreqSourcesTitle');
       break;
   }
   elements.modalChartTitle.textContent = title;
   
-  // TODO: Implement chart resizing in modal
+  // Render chart in modal
+  const modalChartContainer = document.getElementById('modal-chart-container');
+  if (!modalChartContainer) return;
+  
+  // Clear previous chart
+  modalChartContainer.innerHTML = '';
+  
+  // Render appropriate chart
+  switch (chartType) {
+    case 'topChests':
+      renderTopChestsInModal(modalChartContainer);
+      break;
+    case 'topSources':
+      // TODO: Implement rendering for other chart types
+      break;
+    case 'scoreDistribution':
+      // TODO: Implement rendering for other chart types
+      break;
+    case 'scoreVsChests':
+      // TODO: Implement rendering for other chart types
+      break;
+    case 'frequentSources':
+      // TODO: Implement rendering for other chart types
+      break;
+  }
+}
+
+/**
+ * Render the Top10 by Chest Count table in the modal
+ * @param {HTMLElement} container - The container element to render the table in
+ */
+function renderTopChestsInModal(container) {
+  if (!window.allPlayersData || !Array.isArray(window.allPlayersData)) {
+    container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+    return;
+  }
+  
+  // Sort data by chest count
+  const sortedData = [...window.allPlayersData]
+    .sort((a, b) => b.CHEST_COUNT - a.CHEST_COUNT)
+    .slice(0, 20); // Show more players in the modal view
+  
+  // Create table HTML
+  const tableHTML = `
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="sticky top-0 bg-slate-800/75 backdrop-blur-sm z-10">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerPlayer')}</th>
+            <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-primary uppercase tracking-wider">${i18n.getText('table.headerChests')}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-700/50">
+          ${sortedData.map(player => `
+            <tr class="hover:bg-slate-700/30">
+              <td class="px-3 py-2 whitespace-nowrap text-left">${player.PLAYER}</td>
+              <td class="px-3 py-2 whitespace-nowrap text-right">${window.utils ? window.utils.formatNumber(player.CHEST_COUNT) : player.CHEST_COUNT}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  // Set table HTML
+  container.innerHTML = tableHTML;
 }
 
 /**

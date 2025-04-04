@@ -199,28 +199,9 @@
                 <!-- Right Column: Charts & Widgets -->
                 <div class="lg:col-span-1 space-y-6">
                     <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
-                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="topSources"><i class="fas fa-expand fa-fw"></i></button>
-                        <h3 class="text-base font-semibold text-amber-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-sack-dollar text-amber-400"></i> <span data-i18n-key="dashboard.chartTopSourcesTitle">Top10 Sources by Score</span></h3>
-                        <div id="top-sources-chart-container" class="min-h-[320px] flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
-                    </div>
-                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
-                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreDistribution"><i class="fas fa-expand fa-fw"></i></button>
-                        <h3 class="text-base font-semibold text-amber-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-chart-bar text-sky-400"></i> <span data-i18n-key="dashboard.chartScoreDistTitle">Score Distribution</span></h3>
-                        <div id="score-distribution-chart-container" class="min-h-[320px] flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
-                    </div>
-                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
-                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreVsChests"><i class="fas fa-expand fa-fw"></i></button>
-                        <h3 class="text-base font-semibold text-amber-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-arrows-up-down-left-right text-emerald-400"></i> <span data-i18n-key="dashboard.chartScoreVsChestsTitle">Score vs. Chests</span></h3>
-                        <div id="score-vs-chests-chart-container" class="min-h-[320px] flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
-                    </div>
-                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
-                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="frequentSources"><i class="fas fa-expand fa-fw"></i></button>
-                        <h3 class="text-base font-semibold text-amber-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-orange-400"></i> <span data-i18n-key="dashboard.chartFreqSourcesTitle">Top10 Most Frequent Sources</span></h3>
-                        <div id="frequent-sources-chart-container" class="min-h-[320px] flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
-                    </div>
-                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6">
-                        <h3 class="text-base font-semibold text-amber-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-box-archive text-orange-600"></i> <span data-i18n-key="dashboard.topChestsTitle">Top 5 by Chest Count</span></h3>
-                        <div class="overflow-x-auto max-h-48">
+                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="topChests"><i class="fas fa-expand fa-fw"></i></button>
+                        <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-box-archive text-orange-600"></i> <span data-i18n-key="dashboard.topChestsTitle">Top10 by Chest Count</span></h3>
+                        <div class="overflow-x-auto pt-4">
                             <table class="min-w-full text-sm">
                                 <thead class="sticky top-0 bg-slate-800/75 backdrop-blur-sm z-10">
                                     <tr>
@@ -233,6 +214,26 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
+                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="topSources"><i class="fas fa-expand fa-fw"></i></button>
+                        <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-sack-dollar text-amber-400"></i> <span data-i18n-key="dashboard.chartTopSourcesTitle">Top10 Sources by Score</span></h3>
+                        <div id="top-sources-chart-container" class="min-h-[320px] pt-4 flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
+                    </div>
+                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
+                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreDistribution"><i class="fas fa-expand fa-fw"></i></button>
+                        <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-bar text-sky-400"></i> <span data-i18n-key="dashboard.chartScoreDistTitle">Score Distribution</span></h3>
+                        <div id="score-distribution-chart-container" class="min-h-[320px] pt-4 flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
+                    </div>
+                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
+                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreVsChests"><i class="fas fa-expand fa-fw"></i></button>
+                        <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-arrows-up-down-left-right text-emerald-400"></i> <span data-i18n-key="dashboard.chartScoreVsChestsTitle">Score vs. Chests</span></h3>
+                        <div id="score-vs-chests-chart-container" class="min-h-[320px] pt-4 flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
+                    </div>
+                    <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
+                        <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="frequentSources"><i class="fas fa-expand fa-fw"></i></button>
+                        <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-orange-400"></i> <span data-i18n-key="dashboard.chartFreqSourcesTitle">Top10 Most Frequent Sources</span></h3>
+                        <div id="frequent-sources-chart-container" class="min-h-[320px] pt-4 flex items-center justify-center"><span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span></div>
                     </div>
                 </div>
             </div>
@@ -255,23 +256,23 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                     <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="topSources"><i class="fas fa-expand fa-fw"></i></button>
-                    <h3 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="dashboard.chartTopSourcesTitle">Top10 Sources by Score</h3>
-                    <div id="charts-top-sources-container" class="min-h-[350px]"></div>
+                    <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-sack-dollar text-amber-400"></i> <span data-i18n-key="dashboard.chartTopSourcesTitle">Top10 Sources by Score</span></h3>
+                    <div id="charts-top-sources-container" class="min-h-[350px] pt-4"></div>
                 </div>
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                      <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreDistribution"><i class="fas fa-expand fa-fw"></i></button>
-                    <h3 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="dashboard.chartScoreDistTitle">Score Distribution</h3>
-                    <div id="charts-distribution-container" class="min-h-[350px]"></div>
+                    <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-bar text-sky-400"></i> <span data-i18n-key="dashboard.chartScoreDistTitle">Score Distribution</span></h3>
+                    <div id="charts-distribution-container" class="min-h-[350px] pt-4"></div>
                 </div>
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                      <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreVsChests"><i class="fas fa-expand fa-fw"></i></button>
-                    <h3 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="dashboard.chartScoreVsChestsTitle">Score vs. Chests</h3>
-                    <div id="charts-score-vs-chests-container" class="min-h-[350px]"></div>
+                    <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-arrows-up-down-left-right text-emerald-400"></i> <span data-i18n-key="dashboard.chartScoreVsChestsTitle">Score vs. Chests</span></h3>
+                    <div id="charts-score-vs-chests-container" class="min-h-[350px] pt-4"></div>
                 </div>
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                      <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="frequentSources"><i class="fas fa-expand fa-fw"></i></button>
-                    <h3 class="text-base font-semibold text-amber-300 mb-3" data-i18n-key="dashboard.chartFreqSourcesTitle">Top10 Most Frequent Sources</h3>
-                    <div id="charts-frequent-sources-container" class="min-h-[350px]"></div>
+                    <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-orange-400"></i> <span data-i18n-key="dashboard.chartFreqSourcesTitle">Top10 Most Frequent Sources</span></h3>
+                    <div id="charts-frequent-sources-container" class="min-h-[350px] pt-4"></div>
                 </div>
             </div>
         </section>

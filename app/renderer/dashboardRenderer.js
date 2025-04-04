@@ -60,34 +60,25 @@ export function renderStats(container, stats) {
  * @param {Array} data - Player data
  * @param {number} limit - Number of top players to show
  */
-export function renderTopPlayersTable(container, data, limit = 5) {
+export function renderTopPlayersTable(container, data, limit = 10) {
   if (!container || !data || !Array.isArray(data)) return;
   
   // Sort data by chest count in descending order
   const sortedData = [...data].sort((a, b) => b.CHEST_COUNT - a.CHEST_COUNT).slice(0, limit);
   
-  // Create table HTML
-  const tableHTML = `
-    <table class="min-w-full text-sm">
-      <thead class="sticky top-0 bg-slate-800/75 backdrop-blur-sm z-10">
-        <tr>
-          <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider">Player</th>
-          <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-primary uppercase tracking-wider">Chests</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-700/50">
-        ${sortedData.map(player => `
-          <tr>
-            <td class="px-3 py-2 whitespace-nowrap text-left">${player.PLAYER}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-right">${utils.formatNumber(player.CHEST_COUNT)}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+  // Find the tbody element to update
+  const tbody = container.querySelector('tbody') || container;
   
-  // Set container HTML
-  container.innerHTML = tableHTML;
+  // Create table rows HTML
+  const rowsHTML = sortedData.map(player => `
+    <tr class="hover:bg-slate-700/30">
+      <td class="px-3 py-2 whitespace-nowrap text-left">${player.PLAYER}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-right">${utils.formatNumber(player.CHEST_COUNT)}</td>
+    </tr>
+  `).join('');
+  
+  // Set tbody HTML
+  tbody.innerHTML = rowsHTML;
 }
 
 /**

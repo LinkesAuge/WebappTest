@@ -47,6 +47,12 @@ export function getBaseChartOptions(theme = 'dark') {
           enabled: true,
           speed: 350
         }
+      },
+      padding: {
+        top: 20,
+        right: 10,
+        bottom: 10,
+        left: 10
       }
     },
     tooltip: {
@@ -80,7 +86,13 @@ export function getBaseChartOptions(theme = 'dark') {
     },
     grid: {
       borderColor: isDark ? '#334155' : '#e2e8f0',
-      strokeDashArray: 2
+      strokeDashArray: 2,
+      padding: {
+        top: 20,
+        right: 10,
+        bottom: 10,
+        left: 10
+      }
     },
     xaxis: {
       labels: {
@@ -118,7 +130,7 @@ export function getBaseChartOptions(theme = 'dark') {
  * @param {string} containerId - ID of the container element
  * @param {Array} series - Data series
  * @param {Array} labels - Chart labels
- * @param {string} title - Chart title
+ * @param {string} title - Chart title (not used internally, but kept for API consistency)
  * @returns {Object} ApexCharts instance
  */
 export function createDonutChart(containerId, series, labels, title) {
@@ -139,24 +151,44 @@ export function createDonutChart(containerId, series, labels, title) {
     chart: {
       ...getBaseChartOptions().chart,
       type: 'donut',
-      height: 400
+      height: 400,
+      padding: {
+        top: 30,
+        right: 10,
+        bottom: 10,
+        left: 10
+      }
     },
     plotOptions: {
       pie: {
         donut: {
           size: '50%',
           labels: {
-            show: true,
+            show: false,
             total: {
-              show: true,
+              show: false,
               showAlways: false,
               label: 'Total',
               fontSize: '14px',
               fontFamily: 'Inter, sans-serif',
               color: '#cbd5e1'
+            },
+            name: {
+              show: false
+            },
+            value: {
+              show: false
             }
           }
         }
+      }
+    },
+    legend: {
+      position: 'bottom',
+      fontSize: '13px',
+      fontFamily: 'Inter, sans-serif',
+      itemMargin: {
+        horizontal: 10
       }
     },
     responsive: [
@@ -173,23 +205,12 @@ export function createDonutChart(containerId, series, labels, title) {
       }
     ],
     title: {
-      text: title,
-      align: 'center',
-      style: {
-        fontSize: '16px',
-        fontWeight: 600,
-        fontFamily: 'Inter, sans-serif',
-        color: '#f59e0b'
-      }
+      text: '',
+      show: false
     },
     subtitle: {
       text: '',
-      show: false,
-      floating: true,
-      offsetY: 0,
-      style: {
-        fontSize: '0px'
-      }
+      show: false
     }
   };
   
@@ -210,7 +231,7 @@ export function createDonutChart(containerId, series, labels, title) {
  * @param {string} containerId - ID of the container element
  * @param {Array} series - Data series
  * @param {Array} categories - X-axis categories
- * @param {string} title - Chart title
+ * @param {string} title - Chart title (not used internally, but kept for API consistency)
  * @returns {Object} ApexCharts instance
  */
 export function createBarChart(containerId, series, categories, title) {
@@ -231,7 +252,13 @@ export function createBarChart(containerId, series, categories, title) {
       ...getBaseChartOptions().chart,
       type: 'bar',
       height: 400,
-      stacked: series.length > 1
+      stacked: series.length > 1,
+      padding: {
+        top: 30,
+        right: 10,
+        bottom: 10,
+        left: 10
+      }
     },
     plotOptions: {
       bar: {
@@ -248,23 +275,12 @@ export function createBarChart(containerId, series, categories, title) {
       categories: categories
     },
     title: {
-      text: title,
-      align: 'center',
-      style: {
-        fontSize: '16px',
-        fontWeight: 600,
-        fontFamily: 'Inter, sans-serif',
-        color: '#f59e0b'
-      }
+      text: '',
+      show: false
     },
     subtitle: {
       text: '',
-      show: false,
-      floating: true,
-      offsetY: 0,
-      style: {
-        fontSize: '0px'
-      }
+      show: false
     }
   };
   
@@ -284,7 +300,7 @@ export function createBarChart(containerId, series, categories, title) {
  * Create scatter chart
  * @param {string} containerId - ID of the container element
  * @param {Array} data - Data points as [x, y] pairs
- * @param {string} title - Chart title
+ * @param {string} title - Chart title (not used internally, but kept for API consistency)
  * @param {string} xAxisTitle - X-axis title
  * @param {string} yAxisTitle - Y-axis title
  * @returns {Object} ApexCharts instance
@@ -313,6 +329,12 @@ export function createScatterChart(containerId, data, title, xAxisTitle, yAxisTi
       zoom: {
         enabled: true,
         type: 'xy'
+      },
+      padding: {
+        top: 30,
+        right: 10,
+        bottom: 10,
+        left: 10
       }
     },
     xaxis: {
@@ -338,23 +360,12 @@ export function createScatterChart(containerId, data, title, xAxisTitle, yAxisTi
       tickAmount: 7
     },
     title: {
-      text: title,
-      align: 'center',
-      style: {
-        fontSize: '16px',
-        fontWeight: 600,
-        fontFamily: 'Inter, sans-serif',
-        color: '#f59e0b'
-      }
+      text: '',
+      show: false
     },
     subtitle: {
       text: '',
-      show: false,
-      floating: true,
-      offsetY: 0,
-      style: {
-        fontSize: '0px'
-      }
+      show: false
     }
   };
   
