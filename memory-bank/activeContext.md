@@ -2,9 +2,9 @@
 
 ## Current Focus
 
-We are actively working on modernizing the application's architecture by implementing a modular approach and establishing a solid testing infrastructure. We have recently fixed critical initialization and data loading issues that were preventing the application from functioning correctly.
+We are actively working on modernizing the application's architecture by implementing a modular approach and establishing a solid testing infrastructure. We have recently fixed critical initialization and data loading issues that were preventing the application from functioning correctly, and we've made significant improvements to the Analytics page layout and functionality.
 
-### Current Stage: Modularization & Testing + Bug Fixing
+### Current Stage: Modularization & Testing + Bug Fixing + UI Improvements
 
 The application has been refactored from its original monolithic script.js file into a modular structure with clear separation of concerns:
 
@@ -23,6 +23,12 @@ The application has been refactored from its original monolithic script.js file 
    - Test failures are currently being addressed
 
 3. **Recently Fixed Issues**
+   - Fixed errors related to removed function references (`renderSourceStrengthHeatmap` and `renderPlayerValueAdded`) in `createClanAnalysisView`
+   - Reordered the Analytics page sections to show Clan Analysis first followed by Category Analysis
+   - Changed the initialization order in `app.js` to create Clan Analysis before Category Analysis
+   - Removed redundant function calls between Analytics sections
+   - Enhanced tooltips in charts to prevent "Cannot read properties of undefined" errors
+   - Improved chart visualization and data labeling
    - Initialization sequence in `app.js` has been corrected to ensure proper loading order
    - Cross-module utility references have been fixed to prevent "utils is not defined" errors
    - Data cleaning and processing has been improved for better handling of numeric values
@@ -30,31 +36,41 @@ The application has been refactored from its original monolithic script.js file 
    - Sort icon visibility and rendering has been enhanced
 
 ### Immediate Tasks
+- Test all Analytics page improvements
+- Ensure tooltips display correctly in all charts
+- Verify that the Category Analysis and Clan Analysis sections work properly with the new ordering
 
 ## Key Decisions
 
-1. **Modular Architecture**
+1. **Analytics Page Organization**
+   - Clan Analysis section is now displayed first
+   - Category Analysis section follows Clan Analysis
+   - Function call order has been modified to match this new UI flow
+   - Removed redundant nested initialization to prevent circular dependencies
+
+2. **Modular Architecture**
    - Each module has a clear responsibility
    - Modules export a well-defined interface
    - Cross-module dependencies are explicitly set
    - State is managed centrally in the app module
 
-2. **Testing Approach**
+3. **Testing Approach**
    - Test-driven development for new features
    - Unit tests focus on isolated functionality
    - Integration tests verify module interactions
    - Mocking approach for browser APIs
 
-3. **Code Organization**
+4. **Code Organization**
    - Flat module structure for now
    - Clear separation of concerns
    - Functions grouped by logical purpose
    - Core constants defined at module level
 
-4. **Bug Fixing Strategy**
+5. **Bug Fixing Strategy**
    - Prioritize initialization and cross-module dependencies
    - Focus on critical data flow paths
    - Implement defensive programming techniques
+   - Add safety checks for tooltip functions to prevent errors
    - Add more detailed logging for debugging
 
 ## Current Challenges
@@ -65,12 +81,29 @@ The application has been refactored from its original monolithic script.js file 
    - Managing state initialization
    - Preventing circular dependencies
 
+2. **Chart Tooltip Safety**
+   - Implementing robust null/undefined checks in tooltip functions
+   - Ensuring data properties are safely accessed
+   - Providing fallback options when data is missing
+
 ## Next Developmental Phases
+- Further refinement of chart visualizations
+- Additional analytics features
+- Improved mobile responsiveness
 
-
-## Current Focus: UI Refinements and Table Improvements
+## Current Focus: UI Refinements and Table/Chart Improvements
 
 ### Recent Changes
+- **Analytics Page Reorganization**
+  - Reordered sections to show Clan Analysis first, followed by Category Analysis
+  - Updated the initialization order in `app.js` to match the new UI flow
+  - Removed redundant function calls to prevent duplication
+
+- **Chart Enhancement**
+  - Added robust safety checks in tooltip functions to prevent "Cannot read properties of undefined" errors
+  - Improved data labels in the "Quellenimportanz" (Source Importance) chart
+  - Enhanced tooltip styling to match the overall dashboard theme
+
 - **Sort Icon Visibility and Behavior**
   - Fixed sort icons to display with proper opacity (100% for active column, 50% for inactive)
   - Ensured correct arrow direction logic (▲ for ascending, ▼ for descending)
@@ -94,19 +127,18 @@ The application has been refactored from its original monolithic script.js file 
 - Applied more robust CSS styling techniques using specific selectors to target table elements
 - Improved hover effects with proper transition animations
 - Enhanced table readability through consistent spacing and alignment
-
+- Implemented comprehensive safety checks in chart tooltip functions
+- Updated initialization flow to ensure proper component creation order
 
 ## Next Steps
-
+- Continue testing all UI improvements
+- Consider additional analytics features
+- Explore options for more interactive visualizations
 
 ## Technical Considerations
-factor Plan for script.js Modularization
-
-
-
 ### Module Structure:
 
-The new codebase structure will be organized as follows:
+The new codebase structure is organized as follows:
 
 app/
 ├── main.js               // Entry point: initializes the app and wires up modules.
@@ -119,5 +151,5 @@ app/
     ├── dashboardRenderer.js      // Render functions for the dashboard (stats, ranking table, chart widgets).
     ├── tableRenderer.js          // Rendering for the full detailed data table view.
     ├── chartRenderer.js          // Chart rendering functions (using ApexCharts) for various charts.
-    └── playerDetailRenderer.js   // Rendering for the player detail view (stats, breakdown, radar chart).
-    └── playerDetailRenderer.js   // Rendering for the player detail view (stats, breakdown, radar chart).
+    ├── playerDetailRenderer.js   // Rendering for the player detail view (stats, breakdown, radar chart).
+    └── analyticsRenderer.js      // Rendering for analytics views (charts, visualizations, category analyses).

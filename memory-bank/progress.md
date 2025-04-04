@@ -2,7 +2,7 @@
 
 ## Overall Status
 
-The project is in a transition phase from "Chest Analyzer" to "ChefScore Analytics Dashboard" with a focus on implementing a proper folder structure, creating testing infrastructure from scratch, and enhancing features. Recently, we've made significant progress in fixing critical initialization and data loading issues.
+The project is in a transition phase from "Chest Analyzer" to "ChefScore Analytics Dashboard" with a focus on implementing a proper folder structure, creating testing infrastructure from scratch, and enhancing features. Recently, we've made significant progress in fixing critical initialization and data loading issues, as well as improving the Analytics page organization and chart functionality.
 
 ## Completed Tasks
 
@@ -40,6 +40,7 @@ The project is in a transition phase from "Chest Analyzer" to "ChefScore Analyti
   - [x] Fixed `dashboardSortState` initialization to prevent "Cannot read properties of null" errors
   - [x] Properly set up utility function references in `dataLoader.js`
   - [x] Improved error handling in data loading process
+  - [x] Fixed references to removed functions in `createClanAnalysisView`
 
 - [x] Fixed data cleaning and processing:
   - [x] Enhanced handling of numeric values in CSV data
@@ -51,6 +52,25 @@ The project is in a transition phase from "Chest Analyzer" to "ChefScore Analyti
   - [x] Improved sort icon initialization and visibility in tables
   - [x] Enhanced rendering of sortable columns and their indicators
   - [x] Fixed issues with UI updates after data loading
+  - [x] Reordered Analytics page sections for better flow
+  - [x] Added safety checks to prevent chart tooltip errors
+
+### Analytics Page Improvements
+
+- [x] **Reordered Analytics Sections**
+  - [x] Moved Clan Analysis to appear first on the page
+  - [x] Updated the HTML structure to show Clan Analysis before Category Analysis
+  - [x] Adjusted the styling to maintain visual consistency
+
+- [x] **Fixed Initialization Order**
+  - [x] Modified the `handleViewNavigation` function to create Clan Analysis view first
+  - [x] Removed redundant calls to create Clan Analysis from the Category Analysis creation function
+  - [x] Ensured proper data flow between the different sections
+
+- [x] **Improved Chart Tooltips**
+  - [x] Added comprehensive safety checks to prevent "Cannot read properties of undefined" errors
+  - [x] Implemented fallbacks for missing data in tooltips
+  - [x] Enhanced tooltip styling for better readability
 
 ## In Progress
 
@@ -96,6 +116,8 @@ The project is in a transition phase from "Chest Analyzer" to "ChefScore Analyti
 - [x] Fixed module initialization and cross-module utility usage
 - [x] Enhanced data processing and cleaning routines
 - [x] Improved sorting functionality and visual indicators
+- [x] Reorganized Analytics page for better user flow
+- [x] Enhanced chart tooltips with robust safety checks
 
 ## Pending Features
 
@@ -114,6 +136,7 @@ The project is in a transition phase from "Chest Analyzer" to "ChefScore Analyti
 | Initial Setup | ✅ Complete | Project structure and dependencies set up |
 | Modularization | ✅ Complete | Code successfully modularized into separate files |
 | Bug Fixes | ✅ Complete | Fixed critical initialization and data loading issues |
+| Analytics Improvements | ✅ Complete | Reordered sections and fixed tooltip issues |
 | Test Infrastructure | 🔄 In Progress | Basic tests working, fixing issues with DOM mocking |
 | Test Coverage | 🔄 In Progress | Current progress: 1 module fully tested, others partially working |
 | Documentation | 🔄 In Progress | Core documentation created, needs updates to reflect current state |
@@ -121,6 +144,14 @@ The project is in a transition phase from "Chest Analyzer" to "ChefScore Analyti
 | Production Release | ⏳ Not Started | Pending completion of testing and feature enhancements |
 
 ## Recent Updates
+
+### Analytics Improvements (Completed)
+We've improved the Analytics page organization and functionality:
+1. Reordered sections to show Clan Analysis first, followed by Category Analysis
+2. Fixed references to removed functions in the `createClanAnalysisView` function
+3. Updated initialization order in `app.js` to match the new UI flow
+4. Added comprehensive safety checks in chart tooltip functions to prevent errors
+5. Improved tooltip styling and data label visibility
 
 ### Bug Fixes (Completed)
 We've fixed several critical issues in the application:
@@ -142,6 +173,8 @@ We've made significant progress on fixing test failures:
 2. Implement missing tests for the empty test suites
 3. Create proper mocks for integration tests
 4. Further refine error handling and edge cases
+5. Continue testing analytics page improvements
+6. Consider additional data visualization enhancements
 
 ### Current Test Stats
 - Total test suites: 11
@@ -177,11 +210,32 @@ We've made significant progress on fixing test failures:
   - Implemented multiple fallback approaches to ensure styling consistency
   - Applied performance optimizations for hover effects
 
+## Chart Improvements
+
+### ✅ Completed
+- **Analytics Page Organization**
+  - Reordered sections to show Clan Analysis first, followed by Category Analysis
+  - Improved UI flow and logical progression of information
+  - Updated styling to maintain visual consistency between sections
+
+- **Tooltip Enhancement**
+  - Added robust safety checks to prevent "Cannot read properties of undefined" errors
+  - Implemented fallback options for missing data
+  - Enhanced tooltip styling to match dashboard theme
+  - Improved data labels visibility
+
+- **Chart Initialization**
+  - Fixed the initialization order to ensure proper rendering
+  - Removed redundant function calls to prevent duplication
+  - Ensured data consistency between different visualizations
+
 ### 🔄 In Progress
 - Testing table responsiveness on different screen sizes
-- Evaluating performance with larger datasets
+- Evaluating chart performance with larger datasets
+- Fine-tuning tooltip behavior across all charts
 
 ### 📝 Planned
 - Add export functionality for table data
 - Consider additional filtering options
-- Explore pagination for very large datasets 
+- Explore pagination for very large datasets
+- Add more interactive chart features 

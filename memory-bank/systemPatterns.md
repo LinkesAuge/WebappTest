@@ -34,7 +34,7 @@ The Chest Analyzer follows a client-side single-page application architecture wi
 
 ### View Layer
 - **UI Components**: Dashboard, tables, modals, navigation elements
-- **ApexCharts**: Various chart types (donut, bar, scatter, radar)
+- **ApexCharts**: Various chart types (donut, bar, scatter, radar, treemap)
 - **Internationalization**: Language switching functionality
 
 ## Key Technical Decisions
@@ -45,20 +45,23 @@ The application runs entirely in the browser without a backend server. This deci
 - Simplify hosting requirements
 - Enable direct loading of local CSV files
 
-### 2. Monolithic JavaScript Structure
-The codebase is organized in a single script.js file with:
-- **State Variables**: Application state tracking
-- **DOM Element References**: Cached references to frequent DOM elements
-- **Function Groups**: Functions organized by purpose
-- **Event Handlers**: Functions to handle user interactions
+### 2. Modular JavaScript Structure
+The codebase is organized into multiple logical modules:
+- **app.js**: Core application logic and integration point for all modules
+- **dataLoader.js**: Loading, parsing, and processing data
+- **domManager.js**: DOM reference management and UI operations
+- **i18n.js**: Internationalization and language handling
+- **utils.js**: Utility functions for formatting, sorting, etc.
+- **renderer/**: Specialized rendering modules for different views and charts
 
 ### 3. Chart Library Selection
 ApexCharts was selected as the visualization library because it:
-- Provides all required chart types (donut, bar, scatter, radar)
+- Provides all required chart types (donut, bar, scatter, radar, treemap)
 - Has good performance with datasets
 - Offers consistent styling and interaction patterns
 - Supports responsive sizing
 - Has good integration with the dark theme
+- Provides customizable tooltips for enhanced data visualization
 
 ### 4. Internationalization Approach
 Internationalization is implemented using:
@@ -70,43 +73,123 @@ Internationalization is implemented using:
 ## Implementation Patterns
 
 ### Function Organization
-The application organizes code by function purpose:
+The application organizes code by module purpose:
 
 ```javascript
-// --- CONFIGURATION CONSTANTS ---
-const CSV_FILE_PATH = "./data/data.csv";
-const RULES_CSV_FILE_PATH = "./data/rules.csv";
+// --- app.js - Core application logic ---
+// State variables
+let allPlayersData = [];
+let displayData = [];
 
-// --- STATE VARIABLES ---
-let allPlayersData = []; // Holds the raw, cleaned data for all players
-let displayData = []; // Holds the data currently being displayed
-
-// --- DOM ELEMENT REFERENCES ---
-let statusArea, loadingSpinner, statusMessage; // etc.
-
-// --- INITIALIZATION ---
+// Initialization
 function initializeApp() {
   // Application bootstrap logic
 }
 
-// --- EVENT HANDLERS ---
-function handleFilter(event) {
-  // Filter implementation
+// View navigation
+function handleViewNavigation(viewName) {
+  // Handle changing between views
 }
 
-// --- DATA PROCESSING ---
-async function loadStaticCsvData() {
+// --- dataLoader.js - Data handling ---
+async function loadStaticCsvData(playersArray, displayArray, columnHeaders, sortFunction, sortState, saveCallback) {
   // Data loading and processing logic
 }
 
-// --- UI RENDERING ---
-function renderDashboard() {
-  // Dashboard rendering logic
+// --- renderer/analyticsRenderer.js - Analytics specific rendering ---
+function renderSourceImportance(containerId, data) {
+  // Render treemap chart for source importance
 }
 
-// --- CHART RENDERING ---
-function renderTopSourcesChart(containerId) {
-  // Chart creation logic
+function renderClanComposition(containerId, data) {
+  // Render clan composition chart
+}
+```
+
+### View Initialization Pattern
+The application uses a sequential initialization approach for complex views like Analytics:
+
+```javascript
+function handleViewNavigation(viewName) {
+  // Show the appropriate section
+  domManager.showView(viewName);
+  
+  // Update active nav state
+  domManager.updateNavLinkActiveState(viewName);
+  
+  // Handle specific view logic
+  switch (viewName) {
+    case 'analytics':
+      // Analytics initialization - sequential creation order is important
+      if (allPlayersData.length > 0) {
+        // First create Clan Analysis
+        createClanAnalysisView(allPlayersData);
+        // Then create Category Analysis
+        createCategoryAnalysisView(allPlayersData);
+      }
+      break;
+    // Other cases...
+  }
+}
+```
+
+### Analytics Page Organization Pattern
+The Analytics page is structured with a logical flow from clan-level analysis to category-level details:
+
+```javascript
+// Clan Analysis is created first
+function createClanAnalysisView(data) {
+  // Calculate clan metrics
+  const clanMetrics = calculateClanMetrics(data);
+  
+  // Update clan summary statistics
+  updateClanSummaryStats(clanMetrics);
+  
+  // Render clan-specific charts
+  renderClanComposition('clan-composition-container', data);
+  renderContributionCurve('contribution-curve-container', data);
+}
+
+// Category Analysis is created second
+function createCategoryAnalysisView(data) {
+  // Render source importance as treemap
+  renderSourceImportance('source-importance-container', data);
+  
+  // Render all sources by score
+  renderAllSourcesByScore('all-sources-container', data);
+  
+  // Render top sources with player contributions
+  renderTop10SourcesWithPlayers('top-sources-players-container', data);
+}
+```
+
+### Error Handling in Chart Tooltips
+The application implements robust error handling for chart tooltips:
+
+```javascript
+function renderSourceImportance(containerId, data) {
+  // Chart configuration
+  const options = {
+    // ... other options ...
+    tooltip: {
+      custom: function({series, seriesIndex, dataPointIndex, w}) {
+        // Safety checks to prevent undefined errors
+        if (!w || !w.globals || !w.globals.labels || dataPointIndex >= w.globals.labels.length) {
+          return '<div class="custom-tooltip">No data available</div>';
+        }
+        
+        // Safe access to data with fallbacks
+        const label = w.globals.labels[dataPointIndex] || 'Unknown';
+        const value = series[seriesIndex][dataPointIndex] || 0;
+        
+        // Construct tooltip HTML
+        return `<div class="custom-tooltip">
+                  <span>${label}</span>
+                  <span class="value">${value}</span>
+                </div>`;
+      }
+    }
+  };
 }
 ```
 
@@ -131,21 +214,17 @@ function setupEventListeners() {
 The application uses a view switching approach to show/hide sections:
 
 ```javascript
-function switchView(viewName, contextData = null) {
+function showView(viewName) {
   // Hide all sections
-  [dashboardSection, detailedTableSection, /* etc */].forEach(section => {
+  allSections.forEach(section => {
     if (section) section.classList.add("hidden");
   });
   
   // Show the requested section
-  if (viewName === "dashboard" && dashboardSection) {
-    dashboardSection.classList.remove("hidden");
-    // Additional dashboard setup...
-  } else if (viewName === "detailed-table" && detailedTableSection) {
-    detailedTableSection.classList.remove("hidden");
-    // Additional detailed table setup...
+  const targetSection = document.getElementById(`${viewName}-section`);
+  if (targetSection) {
+    targetSection.classList.remove("hidden");
   }
-  // Additional view handling...
 }
 ```
 
@@ -164,7 +243,9 @@ function switchView(viewName, contextData = null) {
   - **Dashboard View**: Main overview with statistics, ranking table, and charts
   - **Detailed Table View**: Full data table with all columns
   - **Charts View**: Expanded versions of dashboard charts
-  - **Analytics View**: Category-based analysis
+  - **Analytics View**: 
+    - **Clan Analysis**: Clan metrics, composition charts, and contribution curve
+    - **Category Analysis**: Source importance treemap, score analysis, and player contributions
   - **Score System View**: Scoring rules table
   - **Player Detail View**: Individual player statistics and charts
 
@@ -174,4 +255,6 @@ function switchView(viewName, contextData = null) {
 2. **Graceful Degradation**: Show meaningful content when operations fail
 3. **User Feedback**: Display status messages for operations
 4. **Console Logging**: Detailed logs for debugging
-5. **Try/Catch Blocks**: Contain errors to prevent application crashes 
+5. **Try/Catch Blocks**: Contain errors to prevent application crashes
+6. **Safety Checks in Chart Tooltips**: Comprehensive null/undefined checks to prevent errors
+7. **Data Access Safety**: Using optional chaining and nullish coalescing for safe property access 

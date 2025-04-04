@@ -20,9 +20,10 @@
 
 ### Key Dependencies
 - **ApexCharts**: 
-  - Used for all data visualizations (donut, bar, scatter, radar charts)
+  - Used for all data visualizations (donut, bar, scatter, radar charts, treemaps)
   - Provides consistent styling and interaction options
   - Supports responsive sizing and theming
+  - Custom tooltips with enhanced data visualization
 - **PapaParse**: 
   - Handles CSV parsing with header support
   - Enables dynamic typing and error handling
@@ -38,43 +39,40 @@
 ### Local Development
 1. Clone the repository
 2. Install dependencies with `npm install` or `uv install`
-3. For development, open index.html directly or use a local server
+3. For development, use a local server like Python's `http.server` or any static file server
+4. Test on different device sizes for responsive behavior
 
 ### Current Project Structure
 ```
 /
-├── index.html         # Main application HTML
-├── script.js          # Application JavaScript (all client-side logic)
-├── icon.png           # Application icon
-├── icon_xl.png        # Larger application icon
-├── data/              # Data files
-│   ├── data.csv       # Player chest data
-│   └── rules.csv      # Scoring rules
-├── memory-bank/       # Project documentation
-├── .babelrc           # Babel configuration
-├── .eslintrc          # ESLint configuration
-└── package.json       # Package dependencies
-```
-
-### Planned Project Structure
-```
-/
-├── app/                   # Application source code
-│   ├── index.html         # Main application HTML
-│   ├── script.js          # Application JavaScript logic
-│   └── assets/            # Static assets (icons, etc.)
-├── scripts/               # Utility scripts
-├── tests/                 # Test files
-│   ├── unit/              # Unit tests
-│   ├── integration/       # Integration tests
-│   └── e2e/               # End-to-end tests
-├── memory-bank/           # Project documentation
-├── data/                  # Data files
-│   ├── data.csv           # Player chest data
-│   └── rules.csv          # Scoring rules
-├── .babelrc               # Babel configuration
-├── .eslintrc              # ESLint configuration
-└── package.json           # Package dependencies
+├── app/                        # Application source code
+│   ├── index.html              # Main application HTML
+│   ├── app.js                  # Core application logic and integration
+│   ├── dataLoader.js           # Data loading and processing
+│   ├── domManager.js           # DOM management functions
+│   ├── eventListeners.js       # Event handling
+│   ├── i18n.js                 # Internationalization
+│   ├── utils.js                # Utility functions
+│   ├── index.js                # Entry point
+│   ├── renderer/               # Rendering modules
+│   │   ├── analyticsRenderer.js # Analytics visualization
+│   │   ├── chartRenderer.js    # Chart creation and management
+│   │   ├── dashboardRenderer.js # Dashboard components
+│   │   ├── playerDetailRenderer.js # Player details
+│   │   └── tableRenderer.js    # Table rendering
+│   ├── styles/                 # CSS styles 
+│   └── assets/                 # Static assets (icons, etc.)
+├── data/                       # Data files
+│   ├── data.csv                # Player chest data
+│   └── rules.csv               # Scoring rules
+├── tests/                      # Test files
+│   ├── unit/                   # Unit tests
+│   ├── integration/            # Integration tests
+│   └── setup/                  # Test setup
+├── memory-bank/                # Project documentation
+├── .babelrc                    # Babel configuration
+├── .eslintrc                   # ESLint configuration
+└── package.json                # Package dependencies
 ```
 
 ## Technical Constraints
@@ -104,6 +102,7 @@
 
 ### Code Style
 - ES6+ JavaScript features
+- Modular approach with clear separation of concerns
 - Functional programming approach
 - Clear variable and function names
 - Comments for complex logic
@@ -114,27 +113,37 @@
 - Use arrow functions where appropriate 
 - Leverage modern array methods (map, filter, reduce)
 - Handle errors with try/catch blocks
+- Use optional chaining (?.) and nullish coalescing (??) for safer property access
 - Follow ESLint configuration
 
 ### DOM Manipulation
-- Direct DOM manipulation (no frameworks)
+- DOM management via dedicated module
 - DOM element references stored in variables
 - Event delegation for dynamically created elements
 - Status indicators for loading and operations
+- Clear separation between DOM management and business logic
 
 ### Data Processing
 - Load CSV data with PapaParse
 - Clean and transform data for visualization
 - Sort and filter based on user selections
 - Calculate aggregate statistics from raw data
+- Centralized data management
 
 ### Charts and Visualizations
 - Consistent color scheme using CSS variables
-- Clear labels and tooltips
+- Clear labels and tooltips with comprehensive safety checks
 - Interactive features (expandable charts, tooltips)
 - Responsive sizing for all device types
+- Error handling to prevent "Cannot read properties of undefined" errors
 
 ## Integration Points
+
+### Module Integration
+- Clear module APIs with minimal cross-module dependencies
+- Explicit function exports and imports
+- State management via the app module
+- Event-driven communication between modules
 
 ### Data Files
 - data.csv: Contains player names, scores, chest counts, and chest sources
@@ -150,4 +159,10 @@
 - Tailwind CSS utility classes for responsive layout
 - Mobile-first navigation with hamburger menu
 - Flexible chart sizing
-- Scrollable tables for small screens 
+- Scrollable tables for small screens
+
+### Error Handling
+- Comprehensive safety checks in chart tooltips
+- Fallback options for missing data
+- Defensive programming approach to prevent runtime errors
+- Clear error messages in UI and console 
