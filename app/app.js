@@ -19,12 +19,19 @@ import * as chartRenderer from './renderer/chartRenderer.js';
 import * as dashboardRenderer from './renderer/dashboardRenderer.js';
 import * as playerDetailRenderer from './renderer/playerDetailRenderer.js';
 import * as analyticsRenderer from './renderer/analyticsRenderer.js';
+// PapaParse is loaded via script tag in index.html
+// Using global Papa object instead of import
+
+// Use dataLoader's getWeekDateRange function
+const { getAvailableWeeks, getLatestWeek, getWeekDateRange } = dataLoader;
 
 // State variables
 let allPlayersData = [];
 let displayData = [];
 let allColumnHeaders = [];
 let scoreRulesData = [];
+let currentWeek = null; // Current selected week number
+let availableWeeks = []; // Array of available weeks
 
 // Sort state - will be initialized properly in initializeApp
 let dashboardSortState = {
@@ -38,99 +45,210 @@ const detailedTableSortState = {
 };
 
 const scoreRulesSortState = {
-  column: 'Typ',
-  direction: 'asc'
+  column: 'Punkte',
+  direction: 'desc'
 };
 
 /**
  * Initialize the application
  */
 async function initializeApp() {
-  console.log('Initializing application...');
-  
   try {
-    // Initialize language settings first
-    await i18n.initLanguage();
+    console.log('Initializing app...');
     
-    // Set up cross-module references immediately after i18n init
-    utils.setI18n(i18n.getText);  // Pass getText directly
-    dataLoader.setUtils({
-      setStatus: utils.setStatus,
-      showLoading: utils.showLoading,
-      hideLoading: utils.hideLoading,
-      getText: i18n.getText,
-      resetStateAndUI: resetStateAndUI
-    });
-    i18n.setRenderFunctions(domManager);
-    i18n.setUpdateSortIcons(utils.updateSortIcons);
+    // Initialize DOM elements first
+    domManager.assignElementReferences();
     
-    // Initialize sort state with default values
-    dashboardSortState = {
-      column: utils.CORE_COLUMNS.TOTAL_SCORE,
-      direction: 'desc'
-    };
+    // Set initial status
+    utils.setStatus(i18n.getText('status.initializing') || 'Initializing...');
+    utils.showLoading();
+
+    // Make dataLoader available globally for date formatting in i18n.js
+    window.dataLoader = dataLoader;
     
-    // Assign DOM element references first
-    const referencesAssigned = domManager.assignElementReferences();
-    if (!referencesAssigned) {
-      console.error('Failed to assign all DOM references');
-      return;
-    }
+    // Set all utility references for other modules
+    setReferences();
     
-    // Ensure all required container elements exist
-    domManager.ensureRequiredContainers();
-    
-    // Now that we have DOM references, we can show the dashboard view
-    domManager.showView('dashboard');
-    domManager.updateNavLinkActiveState('dashboard');
-    
-    // Initialize sort icons with the default state
-    utils.updateSortIcons(dashboardSortState.column, dashboardSortState.direction, '#ranking-table-container th[data-column]');
-    
-    // Set up event listeners
+    // Setup event listeners
     initEventListeners();
     
-    // Try to load data from localStorage first
-    const storedData = dataLoader.loadDataFromLocalStorage();
-    if (storedData) {
-      console.log('Using data from localStorage');
-      utils.setStatus(i18n.getText('status.usingLocalData'), 'info', 3000);
+    // Show default view
+    domManager.showView('dashboard');
+    
+    // Initialize language
+    const userLang = localStorage.getItem('tbAnalyzerLanguage') || 'de';
+    i18n.setLanguage(userLang);
+    document.querySelector(`#lang-${userLang}`)?.classList.add('text-primary', 'font-semibold');
+    
+    // Check for available week files first
+    console.log('Fetching available weeks...');
+    const availableWeeks = await dataLoader.getAvailableWeeks();
+    console.log('Available weeks found:', availableWeeks);
+    
+    // Determine which week to show
+    console.log('Determining latest week...');
+    let currentWeek = null;
+    
+    if (availableWeeks.length > 0) {
+      // Get the latest available week
+      currentWeek = Math.max(...availableWeeks);
+      console.log('Latest week determined:', currentWeek);
       
-      // Load fresh data with isFirstInit=true to ensure proper initialization
-      await loadAndRenderData(true);
+      // Get the date range for display
+      console.log('Getting week date range for current week...');
+      const weekRange = utils.getWeekDateRange(currentWeek);
+      console.log('Week range:', weekRange);
+      
+      // Update week display information immediately before loading data
+      // This ensures the date is shown correctly on first load
+      const weekSelectorBtn = document.getElementById('week-selector-button');
+      const currentWeekDisplayDate = document.getElementById('current-week-display-date');
+      const currentWeekDisplayWeek = document.getElementById('current-week-display-week');
+      
+      // Update desktop date selector
+      if (currentWeekDisplayDate) {
+        currentWeekDisplayDate.textContent = weekRange.formattedRange;
+      }
+      if (currentWeekDisplayWeek) {
+        currentWeekDisplayWeek.textContent = weekRange.weekText;
+        // Update the data-i18n-replacements attribute with the current week number
+        currentWeekDisplayWeek.setAttribute('data-i18n-replacements', JSON.stringify({"0": currentWeek.toString()}));
+      }
+      
+      // Verify that the selectors were updated
+      console.log('Week selector values set immediately:', {
+        date: currentWeekDisplayDate?.textContent,
+        week: currentWeekDisplayWeek?.textContent
+      });
+      
+      // Initialize the calendar and week selector
+      console.log('Initializing calendar...');
+      domManager.initializeWeekSelector(
+        availableWeeks, 
+        currentWeek, 
+        handleWeekSelection
+      );
+      
+      // Also ensure the display text is fully updated
+      console.log('Updating week selector display...');
+      domManager.updateWeekSelectorDisplay(currentWeek, weekRange.formattedRange);
+      
+      console.log('Week selector initialization complete');
+      
+      // Load data for the selected week
+      await loadAndRenderData(true, currentWeek);
     } else {
-      // Load fresh data with isFirstInit=true
+      console.warn('No weeks available, falling back to standard data file');
+      // If no week files found, use the standard data.csv
       await loadAndRenderData(true);
     }
-
-    // Add window resize listener for handling responsive changes
-    let isMobile = window.innerWidth <= 640;
-    window.addEventListener('resize', utils.debounce(() => {
-      const newIsMobile = window.innerWidth <= 640;
-      // Only re-render if we've crossed the mobile threshold
-      if (isMobile !== newIsMobile) {
-        isMobile = newIsMobile;
-        
-        // Get the current view to determine what to re-render
-        const currentView = getCurrentView();
-        
-        if (currentView === 'dashboard' && displayData.length > 0) {
-          // Re-render the dashboard table if we're on the dashboard
-          renderPlayerTable(displayData);
-        } else if (currentView === 'detailed-table') {
-          // Re-render the detailed table if we're on that view
-          renderDetailedDataTable();
-          
-          // Apply sticky column for detailed table
-          setTimeout(() => {
-            applyDetailedTableStickyColumn();
-          }, 200);
-        }
-      }
-    }, 250)); // 250ms debounce to avoid excessive re-renders
+    
+    // Everything is ready
+    utils.setStatus(i18n.getText('status.ready') || 'Ready', 'success');
+    utils.hideLoading();
+    
+    // Show the download button only if data is loaded
+    domManager.updateHeaderButtonsVisibility(true);
+    
+    return true;
   } catch (error) {
-    console.error('Error during initialization:', error);
-    utils.setStatus(i18n.getText('status.error'), 'error');
+    console.error('Error during app initialization:', error);
+    utils.setStatus((i18n.getText('status.initError') || 'Initialization error') + ': ' + error.message, 'error');
+    utils.hideLoading();
+    return false;
+  }
+}
+
+/**
+ * Handle the selection of a different week
+ * @param {number} weekNumber - The selected week number
+ */
+async function handleWeekSelection(weekNumber) {
+  try {
+    console.log(`Week ${weekNumber} selected`);
+    
+    // Get the current view before loading new data
+    const currentView = getCurrentView();
+    console.log('Current active view:', currentView);
+    
+    // Show loading state
+    utils.showLoading(i18n.getText('status.loading'));
+    
+    // Get the week date range for display
+    const weekRange = utils.getWeekDateRange(weekNumber);
+    console.log('Selected week range:', weekRange);
+    
+    // Update UI to show the selected week
+    domManager.updateWeekSelectorDisplay(weekNumber, weekRange.formattedRange);
+    
+    // Load data for the selected week
+    await loadAndRenderData(false, weekNumber);
+    
+    // Update the current week global variable
+    currentWeek = weekNumber;
+    
+    // Make sure we update the current view with new data
+    refreshCurrentView(currentView);
+    
+    // Hide loading state
+    utils.hideLoading();
+    utils.setStatus(i18n.getText('status.ready') || 'Ready', 'success');
+    
+    return true;
+  } catch (error) {
+    console.error('Error handling week selection:', error);
+    utils.setStatus(i18n.getText('status.weekSelectError', [error.message]), 'error');
+    utils.hideLoading();
+    return false;
+  }
+}
+
+/**
+ * Refresh the current view with new data
+ * @param {string} viewName - The view to refresh
+ */
+function refreshCurrentView(viewName) {
+  console.log('Refreshing view:', viewName);
+  
+  switch (viewName) {
+    case 'dashboard':
+      renderDashboard();
+      renderPlayerTable(displayData);
+      break;
+      
+    case 'detailed-table':
+      renderDetailedDataTable();
+      setTimeout(() => {
+        applyDetailedTableStickyColumn();
+      }, 100);
+      break;
+      
+    case 'charts':
+      initializeChartsSection();
+      break;
+      
+    case 'analytics':
+      if (allPlayersData.length > 0) {
+        createClanAnalysisView(allPlayersData);
+        createCategoryAnalysisView(allPlayersData);
+      }
+      break;
+      
+    case 'score-system':
+      if (scoreRulesData.length > 0) {
+        renderScoreRulesTable(scoreRulesData);
+      }
+      break;
+      
+    case 'playerDetails':
+      // Since player details view depends on a specific player,
+      // we should redirect back to dashboard when changing weeks
+      handleViewNavigation('dashboard');
+      break;
+      
+    default:
+      console.warn('Unknown view name:', viewName);
+      break;
   }
 }
 
@@ -286,56 +404,61 @@ function handleSortClick(event) {
 }
 
 /**
- * Load and render data
+ * Load and render data for the application
  * @param {boolean} isFirstInit - Whether this is the first initialization
- * @returns {Promise<void>}
+ * @param {number} [weekNumber] - Optional week number to load data for
+ * @returns {Promise<boolean>} True if data was loaded successfully
  */
-export async function loadAndRenderData(isFirstInit = false) {
-  console.log('Loading and rendering data...');
-  utils.showLoading(i18n.getText('status.loading'));
-
+async function loadAndRenderData(isFirstInit = false, weekNumber = null) {
+  console.log(`Loading data: isFirstInit=${isFirstInit}, weekNumber=${weekNumber}`);
+  
   try {
-    // Load data
-    await dataLoader.loadStaticCsvData(
+    utils.setStatus(i18n.getText('status.loading'));
+    utils.showLoading();
+    
+    // Clear previous data
+    allPlayersData.length = 0;
+    displayData.length = 0;
+    allColumnHeaders.length = 0;
+    
+    // Load data from the CSV file
+    const dataLoaded = await dataLoader.loadStaticCsvData(
       allPlayersData,
       displayData,
       allColumnHeaders,
       utils.sortData,
       dashboardSortState,
-      saveDataToLocalStorage
+      dataLoader.saveDataToLocalStorage,
+      weekNumber
     );
-
-    // Share player data with domManager for modal charts
-    domManager.setPlayerData(allPlayersData);
-
-    // Update UI state
+    
+    if (!dataLoaded || allPlayersData.length === 0) {
+      console.error('Failed to load data');
+      utils.setStatus(i18n.getText('status.dataLoadError'), 'error');
+      document.getElementById('empty-state-section').classList.remove('hidden');
+      utils.hideLoading();
+      return false;
+    }
+    
+    // If it's first initialization, render the dashboard view
+    if (isFirstInit) {
+      renderDashboard();
+      renderPlayerTable(displayData);
+    }
+    // Else, if changing weeks, we'll let the calling function handle view updates
+    
+    // Update the header buttons to show download options
     domManager.updateHeaderButtonsVisibility(true);
     
-    // Render dashboard
-    renderDashboard();
-
-    // Always show dashboard view on first init
-    if (isFirstInit) {
-      domManager.showView('dashboard');
-      domManager.updateNavLinkActiveState('dashboard');
-      document.body.dataset.initialized = 'true';
-    }
-
-    // Update UI text after rendering
-    i18n.updateUIText(
-      dashboardSortState,
-      { column: null, direction: null }, // detailedTableSortState
-      { column: null, direction: null }, // scoreRulesSortState
-      'dashboard',
-      null,
-      document.getElementById('category-select')
-    );
-    
     utils.hideLoading();
+    utils.setStatus(i18n.getText('status.dataLoaded'), 'success', 3000);
+    
+    return true;
   } catch (error) {
     console.error('Error loading data:', error);
-    utils.setStatus(i18n.getText('status.error'), 'error');
+    utils.setStatus(i18n.getText('status.error', { 0: error.message }), 'error');
     utils.hideLoading();
+    return false;
   }
 }
 
@@ -884,8 +1007,8 @@ function resetStateAndUI() {
   // Reset sort states
   dashboardSortState.column = utils.CORE_COLUMNS.TOTAL_SCORE;
   dashboardSortState.direction = 'desc';
-  scoreRulesSortState.column = 'Typ';
-  scoreRulesSortState.direction = 'asc';
+  scoreRulesSortState.column = 'Punkte';
+  scoreRulesSortState.direction = 'desc';
   
   // Reset UI
   domManager.showView('dashboard');
@@ -1124,12 +1247,159 @@ function getCurrentView() {
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-// Export all functions needed by other modules
+// Public exports 
 export {
   initializeApp,
   handleViewNavigation,
   handleFilter,
   handleSortClick,
   resetStateAndUI,
-  toggleTheme
-}; 
+  toggleTheme,
+  downloadCsv,
+  downloadPlayerJson,
+  getCurrentWeek,
+  loadAndRenderData
+};
+
+/**
+ * Set references to utils functions for other modules
+ */
+function setReferences() {
+  utils.setI18n(i18n.getText);
+  dataLoader.setUtils({
+    setStatus: utils.setStatus,
+    showLoading: utils.showLoading,
+    hideLoading: utils.hideLoading,
+    getText: i18n.getText,
+    resetStateAndUI: resetStateAndUI
+  });
+  i18n.setRenderFunctions(domManager);
+  i18n.setUpdateSortIcons(utils.updateSortIcons);
+}
+
+/**
+ * Get the currently selected week
+ * @returns {number|null} The current week number or null if no week is selected
+ */
+function getCurrentWeek() {
+  return currentWeek;
+}
+
+/**
+ * Download the current players data as a CSV file
+ * @returns {void}
+ */
+function downloadCsv() {
+  console.log('Downloading CSV...');
+  
+  if (!allPlayersData || allPlayersData.length === 0) {
+    utils.setStatus(i18n.getText('status.noDataToDownload'), 'error', 3000);
+    return;
+  }
+  
+  try {
+    // Get the current week number for the filename
+    const weekNum = getCurrentWeek();
+    
+    // Always include week number in filename, fallback to 'unknown' if not available
+    const filename = `clan-data-week-${weekNum || 'unknown'}.csv`;
+    
+    // Prepare data for conversion, making a copy to avoid modifying the original
+    const dataToExport = JSON.parse(JSON.stringify(allPlayersData));
+    
+    // Convert to CSV using PapaParse
+    const csvContent = Papa.unparse({
+      fields: allColumnHeaders,
+      data: dataToExport
+    });
+    
+    // Trigger the download
+    utils.triggerDownload(csvContent, filename, 'text/csv;charset=utf-8;');
+    
+    utils.setStatus(i18n.getText('status.csvDownloaded'), 'success', 3000);
+  } catch (error) {
+    console.error('Error downloading CSV:', error);
+    utils.setStatus(i18n.getText('status.errorDownloading'), 'error', 3000);
+  }
+}
+
+/**
+ * Download player details as JSON
+ * Used when viewing individual player details
+ */
+function downloadPlayerJson() {
+  console.log('Downloading player details as JSON...');
+  
+  // Get the currently displayed player data
+  const playerName = document.getElementById('player-name-detail')?.textContent;
+  const playerRank = document.getElementById('player-rank-detail')?.textContent;
+  const playerScore = document.getElementById('player-score-detail')?.textContent;
+  const playerChests = document.getElementById('player-chests-detail')?.textContent;
+  
+  if (!playerName || playerName === '[Player Name]') {
+    utils.setStatus(i18n.getText('status.noDataToDownload'), 'error', 3000);
+    return;
+  }
+  
+  try {
+    // Find the full player data in allPlayersData
+    const playerData = allPlayersData.find(player => player[0] === playerName);
+    
+    if (!playerData) {
+      utils.setStatus(i18n.getText('status.playerNotFound'), 'error', 3000);
+      return;
+    }
+    
+    // Create a structured player object with column headers
+    const playerObject = {};
+    
+    // Add the basic player info
+    playerObject.name = playerName;
+    playerObject.rank = playerRank;
+    playerObject.totalScore = playerScore;
+    playerObject.totalChests = playerChests;
+    
+    // Add all columns from the data
+    allColumnHeaders.forEach((header, index) => {
+      playerObject[header] = playerData[index];
+    });
+    
+    // Get detailed breakdown if available
+    const breakdownList = document.getElementById('player-breakdown-list');
+    if (breakdownList) {
+      const breakdownItems = Array.from(breakdownList.querySelectorAll('p'));
+      const breakdown = [];
+      
+      breakdownItems.forEach(item => {
+        const text = item.textContent.trim();
+        if (text && !text.includes('Loading')) {
+          const parts = text.split(':');
+          if (parts.length >= 2) {
+            const source = parts[0].trim();
+            const value = parts[1].trim();
+            breakdown.push({ source, value });
+          }
+        }
+      });
+      
+      if (breakdown.length > 0) {
+        playerObject.breakdown = breakdown;
+      }
+    }
+    
+    // Create filename
+    const currentDate = new Date();
+    const dateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const safePlayerName = playerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const filename = `player-${safePlayerName}-${dateString}.json`;
+    
+    // Convert to JSON and download
+    const jsonContent = JSON.stringify(playerObject, null, 2);
+    utils.triggerDownload(jsonContent, filename, 'application/json');
+    
+    utils.setStatus(i18n.getText('status.jsonDownloaded') || 'Player data downloaded', 'success', 3000);
+  } catch (error) {
+    console.error('Error downloading player JSON:', error);
+    utils.setStatus(i18n.getText('status.errorDownloading'), 'error', 3000);
+  }
+} 

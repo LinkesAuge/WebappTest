@@ -19,6 +19,143 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <!-- Flatpickr Calendar -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
+    <!-- Custom styles for Flatpickr -->
+    <style>
+      /* Custom Calendar Styling */
+      .flatpickr-calendar {
+        background: #1e293b;
+        border: 1px solid #475569;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      }
+      
+      .flatpickr-calendar.open {
+        z-index: 9999;
+        position: fixed !important;
+        top: 5rem !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        margin: 0 !important;
+        border: 1px solid rgba(245, 158, 11, 0.3) !important;
+      }
+      
+      @media (min-width: 768px) {
+        .flatpickr-calendar.open {
+          position: absolute !important;
+          top: 100% !important;
+          left: 50% !important;
+          transform: translateX(-50%) !important;
+          margin-top: 0.5rem !important;
+        }
+      }
+      
+      .flatpickr-day {
+        color: #cbd5e1;
+      }
+      
+      .flatpickr-day.disabled {
+        color: #475569;
+      }
+      
+      .flatpickr-day.selected {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: #1e293b;
+      }
+      
+      .flatpickr-day:hover {
+        background: #334155;
+      }
+      
+      .flatpickr-months .flatpickr-month {
+        color: #f8fafc;
+      }
+      
+      .flatpickr-current-month {
+        color: #f8fafc;
+      }
+      
+      .flatpickr-weekday {
+        color: #f59e0b;
+      }
+      
+      .flatpickr-weekdays {
+        background: #1e293b;
+      }
+      
+      .numInputWrapper span.arrowUp,
+      .numInputWrapper span.arrowDown {
+        border-color: #475569;
+      }
+      
+      /* Week numbers display */
+      .flatpickr-weeks {
+        background: #1e293b;
+        color: #f59e0b;
+      }
+      
+      .flatpickr-weekwrapper .flatpickr-weeks {
+        padding: 5px;
+      }
+      
+      .flatpickr-weekwrapper span.flatpickr-day {
+        color: #f59e0b;
+        font-weight: bold;
+      }
+      
+      /* Active Navigation Link Styling */
+      .nav-link.active {
+        color: #f59e0b !important;
+        border-bottom-color: #f59e0b !important;
+        font-weight: 600;
+      }
+      
+      /* Mobile nav active state */
+      #mobile-menu .nav-link.active {
+        background-color: #1e293b !important;
+        color: #f59e0b !important;
+        border-left: 3px solid #f59e0b !important;
+        padding-left: calc(0.75rem - 3px);
+        font-weight: 600;
+      }
+      
+      /* Z-index control to prevent sticky columns from overlapping UI elements */
+      .sticky-column-container {
+        z-index: 10 !important;
+      }
+      
+      .flatpickr-calendar.open,
+      #chart-modal,
+      .header {
+        z-index: 20 !important;
+      }
+      
+      /* Font size for smaller text */
+      .text-2xs {
+        font-size: 0.65rem;
+        line-height: 0.9rem;
+      }
+      
+      /* Active navigation styles */
+      .nav-link.active, .mobile-nav-link.active {
+        color: #f59e0b; /* amber-500 */
+        font-weight: 600;
+        border-bottom: 2px solid #f59e0b;
+      }
+      
+      .mobile-nav-link.active {
+        background-color: rgba(245, 158, 11, 0.1); /* subtle amber background */
+      }
+      
+      /* Make sure sticky columns don't overlap other content */
+      .sticky-column-container {
+        z-index: 10;
+      }
+    </style>
+
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="./styles/output.css">
 
@@ -26,6 +163,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <!-- ApexCharts Library -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Flatpickr Library -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 </head>
 <body class="bg-background text-foreground font-sans">
@@ -33,7 +172,7 @@
     <!-- Header -->
     <header class="bg-card border-b border-border shadow-md sticky top-0 z-30">
         <div class="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
-            <div class="flex items-center justify-between gap-4 h-16">
+            <div class="flex items-center h-16">
                 <!-- Hamburger Button (Visible on Mobile) - Moved to the left -->
                 <div class="md:hidden flex items-center">
                     <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary" aria-controls="mobile-menu" aria-expanded="false">
@@ -49,42 +188,55 @@
                     </button>
                 </div>
                 
-                <!-- Title and Clan Name - Further reduced for mobile -->
-                <div class="flex-shrink-0 flex items-center gap-x-1 sm:gap-x-3">
-                     <!-- Added fallback styles in case image fails to load -->
-                     <img src="./assets/icon_xl.png" alt="Clan Logo" class="h-7 w-7 sm:h-10 sm:w-10 mr-1 sm:mr-2" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
-                     <div class="hidden h-7 w-7 sm:h-10 sm:w-10 mr-1 sm:mr-2 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 font-bold">TB</div>
-                     <!-- Further reduced font size for mobile -->
-                     <h1 class="text-xs sm:text-lg md:text-xl lg:text-2xl font-heading font-bold text-primary whitespace-nowrap">
-                        <i class="fa-solid fa-treasure-chest mr-1 sm:mr-2 text-amber-400"></i>
-                        <span data-i18n-key="appTitle">Lade Titel...</span>
-                     </h1>
-                     <!-- Adjusted font size for clan name literal as well -->
-                     <span class="text-sm sm:text-lg md:text-xl lg:text-2xl font-heading font-bold text-primary hidden md:inline" data-i18n-key="clanNameLiteral">- The Chiller</span>
-                </div>
-
-                <!-- Desktop Navigation -->
-                 <nav class="hidden md:flex md:items-center md:space-x-2 lg:space-x-4">
-                    <a href="#" id="nav-dashboard" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="dashboard" data-i18n-key="nav.dashboard">Übersicht</a>
-                    <a href="#" id="nav-data" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="detailed-table" data-i18n-key="nav.data">Daten</a>
-                    <a href="#" id="nav-charts" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="charts" data-i18n-key="nav.charts">Diagramme</a>
-                    <a href="#" id="nav-analytics" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="analytics" data-i18n-key="nav.analytics">Analytik</a>
-                    <a href="#" id="nav-score-system" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="score-system" data-i18n-key="nav.scoreSystem">Punktesystem</a>
-                 </nav>
-
-                 <!-- Header Controls: Language Switcher, CSV Download -->
-                <div class="flex items-center gap-2 sm:gap-3">
-                     <!-- Language Switcher -->
-                     <div class="flex items-center border border-slate-700 rounded-md text-xs">
-                         <button id="lang-de" class="lang-button px-3 py-1.5 rounded-l-md hover:bg-slate-700 focus-visible:ring-inset focus-visible:ring-1">DE</button>
-                         <span class="bg-slate-700 h-4 w-px"></span>
-                         <button id="lang-en" class="lang-button px-3 py-1.5 rounded-r-md hover:bg-slate-700 focus-visible:ring-inset focus-visible:ring-1">EN</button>
-                     </div>
-                     <!-- Desktop CSV Download -->
-                     <button id="download-csv-header-button" title="Download Processed Data as CSV" class="hidden md:inline-flex items-center px-3 py-1.5 border border-amber-600 text-amber-600 text-xs font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150">
-                         <i class="fa-solid fa-file-csv mr-2"></i>
-                         <span class="hidden sm:inline" data-i18n-key="button.downloadCsv">Download CSV</span>
-                     </button>
+                <!-- Three-section header layout: Logo, Date Selector, Controls -->
+                <div class="flex flex-1 items-center justify-between space-x-8 md:space-x-12">
+                    <!-- Logo section - Left -->
+                    <div class="flex-shrink-0 flex items-center w-1/4 justify-start ml-0 md:ml-2">
+                        <img src="./assets/icon_xl.png" alt="Clan Logo" class="h-7 w-7 sm:h-10 sm:w-10 mr-1 sm:mr-2" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
+                        <div class="hidden h-7 w-7 sm:h-10 sm:w-10 mr-1 sm:mr-2 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 font-bold">TB</div>
+                        <h1 class="text-sm sm:text-lg md:text-xl lg:text-2xl font-heading font-bold text-primary whitespace-nowrap">
+                            <i class="fa-solid fa-treasure-chest mr-1 sm:mr-2 text-amber-400"></i>
+                            <span data-i18n-key="clanNameLiteral">The Chiller</span>
+                        </h1>
+                    </div>
+                    
+                    <!-- Week Selector - Centered in middle section -->
+                    <div class="flex-1 flex justify-center items-center w-1/2">
+                        <button id="week-selector-button" class="flex items-center justify-center px-2 py-1 sm:px-2 sm:py-0.5 bg-slate-700 border border-amber-400 text-amber-400 text-xs font-medium rounded-md hover:bg-slate-600 hover:border-amber-500/50 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-amber-500/30 transition-colors duration-150">
+                            <i class="fa-solid fa-calendar text-lg sm:text-xl mr-1.5 sm:mr-2.5"></i>
+                            <div class="flex flex-col items-start leading-tight">
+                                <span id="current-week-display-date" class="whitespace-nowrap text-2xs sm:text-xs">31.03-06.04.2025</span>
+                                <span id="current-week-display-week" class="whitespace-nowrap text-2xs text-amber-300 font-medium" data-i18n-key="week.weekNumber" data-i18n-replacements='{"0": "14"}'>Week 14</span>
+                            </div>
+                        </button>
+                        <input type="text" id="week-calendar" class="hidden" />
+                    </div>
+                    
+                    <!-- Desktop Navigation and Controls - Right -->
+                    <div class="hidden md:flex w-1/4 items-center justify-end">
+                        <nav class="flex items-center space-x-2 lg:space-x-4 mr-6">
+                            <a href="#" id="nav-dashboard" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors active" data-view="dashboard" data-i18n-key="nav.dashboard">Übersicht</a>
+                            <a href="#" id="nav-data" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="detailed-table" data-i18n-key="nav.data">Daten</a>
+                            <a href="#" id="nav-charts" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="charts" data-i18n-key="nav.charts">Diagramme</a>
+                            <a href="#" id="nav-analytics" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="analytics" data-i18n-key="nav.analytics">Analytik</a>
+                            <a href="#" id="nav-score-system" class="nav-link text-sm font-medium px-2 py-2 lg:px-3 rounded-md border-b-2 border-transparent hover:text-primary hover:border-amber-500/50 transition-colors" data-view="score-system" data-i18n-key="nav.scoreSystem">Punktesystem</a>
+                        </nav>
+                        
+                        <!-- Header Controls: Language Switcher, CSV Download -->
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <!-- Language Switcher -->
+                            <div class="flex items-center border border-slate-700 rounded-md text-xs">
+                                <button id="lang-de" class="lang-button px-2 sm:px-3 py-1.5 rounded-l-md hover:bg-slate-700 focus-visible:ring-inset focus-visible:ring-1">DE</button>
+                                <span class="bg-slate-700 h-4 w-px"></span>
+                                <button id="lang-en" class="lang-button px-2 sm:px-3 py-1.5 rounded-r-md hover:bg-slate-700 focus-visible:ring-inset focus-visible:ring-1">EN</button>
+                            </div>
+                            <!-- Desktop CSV Download -->
+                            <button id="download-csv-header-button" title="Download Processed Data as CSV" class="inline-flex items-center px-2 sm:px-3 py-1.5 border border-amber-600 text-amber-600 text-xs font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150">
+                                <i class="fa-solid fa-file-csv mr-1 sm:mr-2"></i>
+                                <span class="hidden sm:inline" data-i18n-key="button.downloadCsv">Download CSV</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,11 +251,24 @@
                 <a href="#" id="mobile-nav-analytics" class="nav-link text-slate-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" data-view="analytics" data-i18n-key="nav.analytics">Analytik</a>
                 <a href="#" id="mobile-nav-score-system" class="nav-link text-slate-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" data-view="score-system" data-i18n-key="nav.scoreSystem">Punktesystem</a>
             </div>
-             <!-- Mobile Download CSV -->
-             <div class="pt-4 pb-3 border-t border-slate-700 px-3 hidden" id="mobile-download-container">
-                 <button id="download-csv-mobile-button" title="Download Processed Data as CSV" class="w-full flex items-center justify-center px-3 py-2 border border-amber-600 text-amber-600 text-sm font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150" disabled>
-                     <i class="fa-solid fa-file-csv mr-2"></i> <span data-i18n-key="button.downloadCsv">Download CSV</span>
-                 </button>
+            
+            <!-- Mobile Language Switcher -->
+            <div class="pt-4 pb-3 border-t border-slate-700 px-3">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="text-sm text-slate-400">Language / Sprache</div>
+                    <div class="flex items-center border border-slate-700 rounded-md text-xs">
+                        <button id="mobile-lang-de" class="lang-button px-3 py-1.5 rounded-l-md hover:bg-slate-700 focus-visible:ring-inset focus-visible:ring-1">DE</button>
+                        <span class="bg-slate-700 h-4 w-px"></span>
+                        <button id="mobile-lang-en" class="lang-button px-3 py-1.5 rounded-r-md hover:bg-slate-700 focus-visible:ring-inset focus-visible:ring-1">EN</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Download CSV -->
+            <div class="pt-2 pb-3 px-3" id="mobile-download-container">
+                <button id="download-csv-mobile-button" title="Download Processed Data as CSV" class="w-full flex items-center justify-center px-3 py-2 border border-amber-600 text-amber-600 text-sm font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150">
+                    <i class="fa-solid fa-file-csv mr-2"></i> <span data-i18n-key="button.downloadCsv">Download CSV</span>
+                </button>
             </div>
         </div>
     </header>
@@ -143,7 +308,7 @@
         <!-- Dashboard Section -->
         <section id="dashboard-section" class="space-y-4 hidden">
             <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="dashboard.statsTitle">Overall Statistics</h2>
-            <p id="last-updated-info" class="text-sm text-amber-300 font-semibold text-center mb-4"></p>
+            <p id="last-updated-info" class="text-sm text-amber-300 font-semibold text-center mb-4" data-i18n-key="status.lastUpdatedLabel">Last updated:</p>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
@@ -162,7 +327,7 @@
                     </div>
                 </div>
                 <div class="bg-card border border-border rounded-lg p-3 sm:p-4 shadow-lg flex items-center gap-3 sm:gap-4">
-                    <i class="fa-solid fa-treasure-chest fa-lg sm:fa-2x text-orange-500"></i>
+                    <i class="fa-solid fa-box-open fa-lg sm:fa-2x text-amber-500"></i>
                     <div>
                         <div class="text-xs uppercase text-slate-400 tracking-wider" data-i18n-key="dashboard.statTotalChests">Total Chests</div>
                         <div id="stat-total-chests" class="text-lg sm:text-xl md:text-2xl font-bold text-primary mt-1">-</div>
@@ -176,7 +341,7 @@
                     </div>
                 </div>
                 <div class="bg-card border border-border rounded-lg p-3 sm:p-4 shadow-lg flex items-center gap-3 sm:gap-4">
-                    <i class="fa-solid fa-box-archive fa-lg sm:fa-2x text-orange-600"></i>
+                    <i class="fa-solid fa-chess-rook fa-lg sm:fa-2x text-amber-500"></i>
                     <div>
                         <div class="text-xs uppercase text-slate-400 tracking-wider" data-i18n-key="dashboard.statAvgChests">Avg Chests</div>
                         <div id="stat-avg-chests" class="text-lg sm:text-xl md:text-2xl font-bold text-primary mt-1">-</div>
@@ -200,7 +365,7 @@
                 <div class="lg:col-span-1 space-y-6">
                     <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                         <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="topChests"><i class="fas fa-expand fa-fw"></i></button>
-                        <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-box-archive text-orange-600"></i> <span data-i18n-key="dashboard.topChestsTitle">Top10 by Chest Count</span></h3>
+                        <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-box-open text-amber-500"></i> <span data-i18n-key="dashboard.topChestsTitle">Top10 by Chest Count</span></h3>
                         <div id="top-chests-chart-container" class="min-h-[320px] pt-4 flex items-center justify-center">
                             <span class="text-slate-500 text-sm" data-i18n-key="charts.loading">Loading chart...</span>
                         </div>
@@ -235,7 +400,7 @@
                 <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="detailedTable.title">Full Data Table</h2>
                 <button id="back-to-dashboard-from-detailed-table" class="inline-flex items-center px-4 py-1.5 border border-amber-600 text-amber-600 text-xs font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150"><i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n-key="nav.dashboard">Dashboard</span></button>
             </div>
-            <div id="detailed-table-container" class="overflow-x-scroll overflow-y-auto bg-card border border-border rounded-lg shadow-lg p-2 max-h-[80vh] sticky-column-container" style="position: relative !important;">
+            <div id="detailed-table-container" class="overflow-x-scroll overflow-y-auto bg-card border border-border rounded-lg shadow-lg p-2 max-h-[80vh] sticky-column-container" style="position: relative !important; z-index: 10;">
                 <div class="text-center py-12 text-slate-500" data-i18n-key="table.loadingDetailed">Loading detailed table...</div>
             </div>
         </section>
@@ -300,7 +465,7 @@
                         </div>
                     </div>
                     <div class="bg-card border border-border rounded-lg p-3 sm:p-4 shadow-lg flex items-center gap-3 sm:gap-4">
-                        <i class="fa-solid fa-treasure-chest fa-lg sm:fa-2x text-orange-500"></i>
+                        <i class="fa-solid fa-box-open fa-lg sm:fa-2x text-amber-500"></i>
                         <div>
                             <div class="text-xs uppercase text-slate-400 tracking-wider" data-i18n-key="analytics.totalChests">Total Chests</div>
                             <div id="clan-total-chests" class="text-lg sm:text-xl md:text-2xl font-bold text-primary mt-1">0</div>
@@ -398,7 +563,7 @@
 
     <!-- Footer -->
     <footer class="mt-16 py-6 border-t border-slate-800">
-        <p class="text-center text-xs text-slate-500">Total Battle Chest Analyzer - Client Side Version (Static Data)</p>
+        <p class="text-center text-xs text-slate-500">The Chiller - Total Battle Truhenanalyse</p>
     </footer>
 
     <!-- Modular JavaScript Files -->

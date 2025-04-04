@@ -2,7 +2,7 @@
 
 ## Overall Status
 
-The project is in a transition phase from "Chest Analyzer" to "ChefScore Analytics Dashboard" with a focus on implementing a proper folder structure, creating testing infrastructure from scratch, and enhancing features. Recently, we've made significant progress in fixing critical initialization and data loading issues, as well as improving the Analytics page organization and chart functionality.
+The project is in a transition phase with a focus on implementing a proper folder structure, creating testing infrastructure from scratch, and enhancing features. Recently, we've made significant progress in fixing critical initialization and data loading issues, as well as improving the Analytics page organization and chart functionality. We are now working on implementing a week selection feature to allow users to view data from different weeks.
 
 ## Completed Tasks
 
@@ -74,8 +74,21 @@ The project is in a transition phase from "Chest Analyzer" to "ChefScore Analyti
 
 ## In Progress
 
+### Week Selection Feature
+- [x] Create the directory structure for storing weekly data
+- [x] Update `dataLoader.js` to support loading data from different weeks
+- [x] Implement function to detect available weeks from file system
+- [x] Create week number to date range conversion functionality 
+- [x] Add Flatpickr calendar widget to the header
+- [x] Style calendar to match application theme
+- [x] Update application logic to handle week switching
+- [x] Create sample weekly data files for testing
+
 ### Testing
 
+- [ ] Achieve 90%+ test coverage across all modules
+- [ ] Implement end-to-end tests
+- [ ] Add performance tests for critical functions
 
 ### Documentation
 
@@ -84,19 +97,31 @@ The project is in a transition phase from "Chest Analyzer" to "ChefScore Analyti
 
 ## Planned Tasks
 
+### Week Selection Feature
+- [ ] Implement UI for week selection in the header
+- [ ] Add support for detecting available weeks automatically
+- [ ] Create date range formatter (DD.MM-DD.MM.YYYY format)
+- [ ] Implement "latest week" detection and default selection
+- [ ] Make calendar widget highlight only weeks with available data
+- [ ] Add mobile responsiveness for the calendar widget
+- [ ] Test the feature across all application views
+
 ### Testing
 
 - [ ] Achieve 90%+ test coverage across all modules
 - [ ] Implement end-to-end tests
 - [ ] Add performance tests for critical functions
 
-### Feature Enhancements
+## Planned Features
 
-
-
-### Code Quality
-
-
+- [ ] **Week Selection**
+  - Allow users to select data from different weeks
+  - Automatically detect available week data files
+  - Display date range in German format (DD.MM-DD.MM.YYYY)
+  - Show week number alongside date range
+  - Default to latest available week
+  - Maintain selected view when switching weeks
+  - Ensure mobile compatibility
 
 ## Completed Features
 

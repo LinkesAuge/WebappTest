@@ -16,8 +16,9 @@ let currentLanguage = DEFAULT_LANGUAGE;
 // Language dictionaries
 const TEXT_CONTENT = {
   de: {
-    appTitle: "Truhenauswertung",
-    clanNameLiteral: "- The Chiller",
+    appTitle: "Truhenanalyse",
+    appDescription: "Analysiere Truhen und Punktzahlen im Clan",
+    clanNameLiteral: "The Chiller",
     nav: {
       dashboard: "Übersicht",
       data: "Daten",
@@ -145,40 +146,50 @@ const TEXT_CONTENT = {
       }
     },
     status: {
-      initializing: "Initialisiere...",
-      loading: "Lade...",
-      loadingData: "Lade Daten von {0}...",
-      parsing: "Verarbeite CSV...",
-      processing: "Verarbeite Daten...",
-      saving: "Speichere Daten...",
-      loadingRules: "Lade Punktesystem von {0}...",
-      success: "Erfolgreich {0} Spieler verarbeitet.",
-      successRules: "Punktesystem geladen.",
-      usingLocalData: "Verwende gespeicherte Daten...",
-      error: "Fehler",
-      info: "Info",
-      dataLoadError:
-        "Daten konnten nicht geladen werden. Konsole prüfen oder sicherstellen, dass '{0}' existiert.",
-      parseError: "Fehler beim Parsen von {0}.",
-      processError: "Fehler bei Datenverarbeitung.",
-      renderError: "Fehler bei Anzeige.",
-      kvError: "Fehler beim Speichern/Laden.",
-      genericLoadError: "Fehler beim Laden der Daten: {0}",
-      chartError: "Diagramm konnte nicht geladen werden.",
-      generatingCsv: "Generiere CSV...",
-      downloadInitiated: "{0} Download gestartet.",
-      downloadError: "Fehler beim Generieren von {0} für Download.",
-      generatingJson: "Generiere JSON...",
-      noPlayerData: "Keine Spielerdaten ausgewählt.",
-      lastUpdatedLabel: "Datenstand:",
-      lastUpdatedUnavailable: "Datenstand nicht verfügbar",
+      initializing: "Anwendung wird initialisiert...",
+      ready: "Bereit",
+      loading: "Laden...",
+      dataLoaded: "Daten erfolgreich geladen",
+      dataLoadError: "Fehler beim Laden der Daten aus {0}",
+      error: "Fehler beim Laden der Daten",
+      initError: "Initialisierungsfehler",
+      weekSelectError: "Fehler bei Wochenauswahl: {0}",
       dateUnavailable: "Datum nicht verfügbar",
+      lastUpdatedLabel: "Zuletzt aktualisiert:",
+      lastUpdatedUnavailable: "Letztes Update nicht verfügbar",
+      noDataToDownload: "Keine Daten zum Herunterladen verfügbar",
+      csvDownloaded: "CSV-Datei wurde heruntergeladen",
+      jsonDownloaded: "Spielerdaten wurden heruntergeladen",
+      playerNotFound: "Spielerdaten nicht gefunden",
+      errorDownloading: "Fehler beim Herunterladen der Datei",
+      empty: "Keine Daten verfügbar",
+      success: "Daten erfolgreich geladen"
     },
     modal: { close: "Schließen" },
+    week: {
+      label: "Woche",
+      selector: "Woche auswählen",
+      current: "Aktuelle Woche",
+      notAvailable: "Keine Wochen verfügbar",
+      select: "Woche auswählen",
+      weekNumber: "Woche {0}",
+      format: {
+        dateRange: "{0}.{1}-{2}.{3}.{4}",
+        weekPart: "Woche {0}"
+      }
+    },
+    page: {
+      detailedTable: "Detaillierte Daten",
+      charts: "Grafiken",
+      analytics: "Analysen",
+      scoreSystem: "Punktesystem",
+      playerDetails: "Spielerdetails"
+    },
   },
   en: {
-    appTitle: "Chest Analytics",
-    clanNameLiteral: "- The Chiller",
+    appTitle: "Chest Analysis",
+    appDescription: "Analyze chest collection and scores in the clan",
+    clanNameLiteral: "The Chiller",
     nav: {
       dashboard: "Dashboard",
       data: "Data",
@@ -196,15 +207,15 @@ const TEXT_CONTENT = {
       statPlayers: "Players",
       statTotalScore: "Total Score",
       statTotalChests: "Total Chests",
-      statAvgScore: "Average Score",
-      statAvgChests: "Average Chests",
+      statAvgScore: "Avg Score",
+      statAvgChests: "Avg Chests",
       rankingTitle: "Overall Ranking",
-      filterPlaceholder: "Filter by player name...",
-      chartTopSourcesTitle: "Top10 Sources by Score",
+      filterPlaceholder: "Filter by Player Name...",
+      chartTopSourcesTitle: "Top Sources by Score",
       chartScoreDistTitle: "Score Distribution",
       chartScoreVsChestsTitle: "Score vs. Chests",
-      chartFreqSourcesTitle: "Top10 Most Frequent Sources",
-      topChestsTitle: "Top10 by Chest Count",
+      chartFreqSourcesTitle: "Most Frequent Sources",
+      topChestsTitle: "Top Players by Chest Count",
     },
     charts: {
       title: "Charts Overview",
@@ -250,7 +261,7 @@ const TEXT_CONTENT = {
       valueAdded: "Value Added",
       strength: "Strength",
       sourceImportance: "Source Importance",
-      top10SourcesWithPlayers: "All Sources with Player Contributions",
+      top10SourcesWithPlayers: "Sources with Player Contributions",
       allSourcesByScore: "All Sources by Score",
       others: "Others",
     },
@@ -280,9 +291,9 @@ const TEXT_CONTENT = {
       headerScore: "Score",
       headerChests: "Chests",
       headerPlayers: "Players",
-      noData: "No data loaded.",
+      noData: "No data available",
       noFilterMatch: "No players match the filter.",
-      loading: "Loading...",
+      loading: "Loading data...",
       loadingDetailed: "Loading detailed table...",
       showMore: "Show All Players",
       headers: {
@@ -302,41 +313,70 @@ const TEXT_CONTENT = {
         average: "Average",
         min: "Minimum",
         max: "Maximum",
-        description: "Description"
+        description: "Details"
       }
     },
     status: {
-      initializing: "Initializing...",
+      initializing: "Initializing application...",
+      ready: "Ready",
       loading: "Loading...",
-      loadingData: "Loading data from {0}...",
-      parsing: "Processing CSV...",
-      processing: "Processing data...",
-      saving: "Saving data...",
-      loadingRules: "Loading score system from {0}...",
-      success: "Successfully processed {0} players.",
-      successRules: "Score system loaded.",
-      usingLocalData: "Using stored data...",
-      error: "Error",
-      info: "Info",
-      dataLoadError:
-        "Could not load analysis data. Check console or ensure '{0}' exists.",
-      parseError: "Error parsing {0}.",
-      processError: "Error processing data rows.",
-      renderError: "Error displaying dashboard.",
-      kvError: "Error saving/loading data.",
-      genericLoadError: "Failed to load data: {0}",
-      chartError: "Could not render chart.",
-      generatingCsv: "Generating CSV...",
-      downloadInitiated: "{0} download initiated.",
-      downloadError: "Failed to generate {0} for download.",
-      generatingJson: "Generating JSON...",
-      noPlayerData: "No player data selected.",
-      lastUpdatedLabel: "Data Last Updated:",
-      lastUpdatedUnavailable: "Last update time unavailable",
+      dataLoaded: "Data loaded successfully",
+      dataLoadError: "Error loading data from {0}",
+      error: "Error loading data",
+      initError: "Initialization error",
+      weekSelectError: "Week selection error: {0}",
       dateUnavailable: "Date unavailable",
+      lastUpdatedLabel: "Last updated:",
+      lastUpdatedUnavailable: "Last update unavailable",
+      noDataToDownload: "No data available to download",
+      csvDownloaded: "CSV file has been downloaded",
+      jsonDownloaded: "Player data has been downloaded",
+      playerNotFound: "Player data not found",
+      errorDownloading: "Error downloading file",
+      empty: "No data available",
+      success: "Data loaded successfully"
     },
     modal: { close: "Close" },
+    week: {
+      label: "Week",
+      selector: "Select Week",
+      current: "Current Week",
+      notAvailable: "No weeks available",
+      select: "Select Week",
+      weekNumber: "Week {0}",
+      format: {
+        dateRange: "{0}/{1}-{2}/{3}/{4}",
+        weekPart: "Week {0}"
+      }
+    },
+    page: {
+      detailedTable: "Detailed Data",
+      charts: "Charts",
+      analytics: "Analytics",
+      scoreSystem: "Score System",
+      playerDetails: "Player Details"
+    },
   },
+};
+
+// Ensure all dictionaries have status and week objects
+TEXT_CONTENT.de.status = TEXT_CONTENT.de.status || {};
+TEXT_CONTENT.en.status = TEXT_CONTENT.en.status || {};
+TEXT_CONTENT.de.week = {
+  ...TEXT_CONTENT.de.week,
+  label: "Woche",
+  current: "Aktuelle Woche",
+  notAvailable: "Keine Wochen verfügbar",
+  select: "Woche auswählen",
+  weekNumber: "Woche {0}"
+};
+TEXT_CONTENT.en.week = {
+  ...TEXT_CONTENT.en.week,
+  label: "Week", 
+  current: "Current Week",
+  notAvailable: "No weeks available",
+  select: "Select Week",
+  weekNumber: "Week {0}"
 };
 
 /**
@@ -448,6 +488,153 @@ function updateLanguageUI() {
       element.placeholder = getText(key);
     }
   });
+
+  // Update the week selector display with the new language format
+  try {
+    // Find the week display elements
+    const currentWeekDisplayWeek = document.getElementById('current-week-display-week');
+    
+    if (currentWeekDisplayWeek) {
+      // Extract the current week number from the week display
+      let weekNum = null;
+      
+      // Try to get the week number from data-i18n-replacements
+      if (currentWeekDisplayWeek.dataset.i18nReplacements) {
+        try {
+          const replacements = JSON.parse(currentWeekDisplayWeek.dataset.i18nReplacements);
+          weekNum = parseInt(replacements['0']);
+        } catch (e) {
+          console.error('Error parsing week number from replacements:', e);
+        }
+      }
+      
+      // If we couldn't get the week number from attributes, try to extract it from the text
+      if (!weekNum) {
+        const weekText = currentWeekDisplayWeek.textContent;
+        const weekMatch = weekText.match(/(\d+)/);
+        if (weekMatch && weekMatch[1]) {
+          weekNum = parseInt(weekMatch[1]);
+        }
+      }
+      
+      if (weekNum) {
+        console.log(`Updating week selector for language: ${currentLanguage}, week: ${weekNum}`);
+        
+        // Use our internal utility function to update the week selector
+        updateWeekSelectorWithLanguage(weekNum);
+      } else {
+        console.warn('Could not determine current week number for selector update');
+      }
+    }
+  } catch (error) {
+    console.error('Error updating week selector display during language change:', error);
+  }
+  
+  // Update the "Last updated" timestamp format
+  try {
+    const lastUpdatedInfo = document.getElementById('last-updated-info');
+    
+    if (lastUpdatedInfo) {
+      let originalText = lastUpdatedInfo.textContent;
+      
+      // If the text is empty or showing "not available", try to get from localStorage
+      if (!originalText || originalText.includes(getText('status.lastUpdatedUnavailable'))) {
+        // Try to get saved timestamp from localStorage
+        const savedTimestamp = localStorage.getItem('lastModifiedTimestamp');
+        if (savedTimestamp) {
+          console.log('Retrieved timestamp from localStorage:', savedTimestamp);
+          originalText = `${getText('status.lastUpdatedLabel')} ${savedTimestamp}`;
+        }
+      }
+      
+      if (originalText && originalText.trim() !== '') {
+        // Find the timestamp part - it comes after the label
+        const labelKey = 'status.lastUpdatedLabel';
+        const label = getText(labelKey);
+        
+        // Extract the timestamp from the original text
+        const timestamp = originalText.includes(label) 
+          ? originalText.split(label)[1].trim() 
+          : originalText;
+        
+        if (timestamp && timestamp !== getText('status.lastUpdatedUnavailable')) {
+          // Try to parse the date from the timestamp
+          try {
+            // Format: "DD. MMM. YYYY, HH:MM" - extract parts
+            const parts = timestamp.match(/(\d+)\.\s+(\w+)\.\s+(\d+),\s+(\d+):(\d+)/);
+            if (parts) {
+              const [_, day, month, year, hours, minutes] = parts;
+              
+              // Create a date object
+              const date = new Date(year, 0, 1, hours, minutes); // Start with January 1st
+              
+              // Adjust the month based on the localized month name
+              const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              const monthIndex = months.findIndex(m => 
+                month.toLowerCase().includes(m.toLowerCase())
+              );
+              
+              if (monthIndex !== -1) {
+                date.setMonth(monthIndex);
+              }
+              
+              // Set the day
+              date.setDate(parseInt(day));
+              
+              // Format the date using dataLoader's formatDate function if available
+              let formattedDate;
+              if (window.dataLoader && typeof window.dataLoader.formatDate === 'function') {
+                formattedDate = window.dataLoader.formatDate(date);
+              } else {
+                // Fallback to a basic date formatter if dataLoader is not available
+                formattedDate = formatDate(date);
+              }
+              
+              // Update the last updated info with the new format
+              lastUpdatedInfo.textContent = `${label} ${formattedDate}`;
+              console.log('Updated last updated timestamp with new format:', formattedDate);
+            } else {
+              // Handle American format MM/DD/YYYY, HH:MM
+              const amParts = timestamp.match(/(\d+)\/(\d+)\/(\d+),\s+(\d+):(\d+)/);
+              if (amParts) {
+                const [_, month, day, year, hours, minutes] = amParts;
+                
+                // Create a date object
+                const date = new Date(year, parseInt(month) - 1, parseInt(day), hours, minutes);
+                
+                // Format the date
+                let formattedDate;
+                if (window.dataLoader && typeof window.dataLoader.formatDate === 'function') {
+                  formattedDate = window.dataLoader.formatDate(date);
+                } else {
+                  formattedDate = formatDate(date);
+                }
+                
+                // Update the last updated info with the new format
+                lastUpdatedInfo.textContent = `${label} ${formattedDate}`;
+                console.log('Updated last updated timestamp from American format:', formattedDate);
+              } else {
+                // If we can't parse the timestamp, just update the label
+                lastUpdatedInfo.textContent = `${label} ${timestamp}`;
+              }
+            }
+          } catch (e) {
+            console.error('Error reformatting timestamp:', e);
+            // If there's an error with reformatting, just update the label
+            lastUpdatedInfo.textContent = `${label} ${timestamp}`;
+          }
+        } else {
+          // If no timestamp or it's unavailable, just show the unavailable message
+          lastUpdatedInfo.textContent = getText('status.lastUpdatedUnavailable');
+        }
+      } else {
+        // If there's no text at all, show the unavailable message
+        lastUpdatedInfo.textContent = getText('status.lastUpdatedUnavailable');
+      }
+    }
+  } catch (error) {
+    console.error('Error updating last updated info during language change:', error);
+  }
   
   // Force update document title
   document.title = getText('appTitle');
@@ -654,4 +841,131 @@ export const constants = {
 // Export current language for access by other modules
 export function getCurrentLanguage() {
   return currentLanguage;
+}
+
+/**
+ * Utility function to update week selector display with the proper language formatting
+ * @param {number} weekNumber - The week number to display
+ */
+export function updateWeekSelectorWithLanguage(weekNumber) {
+  if (!weekNumber || isNaN(weekNumber)) {
+    console.warn('Invalid week number for selector update:', weekNumber);
+    return;
+  }
+
+  try {
+    const currentWeekDisplayDate = document.getElementById('current-week-display-date');
+    const currentWeekDisplayWeek = document.getElementById('current-week-display-week');
+    
+    if (!currentWeekDisplayDate || !currentWeekDisplayWeek) {
+      console.warn('Week selector elements not found');
+      return;
+    }
+    
+    // Get the current year
+    const year = new Date().getFullYear();
+    
+    // Calculate the date range for this week
+    // This replicates the getWeekDateRange function logic for when it's not directly available
+    
+    // Calculate the date of the first Monday in the target week (Jan 4th is always in week 1)
+    const jan4th = new Date(year, 0, 4);
+    
+    // Find first Monday of week 1
+    const firstMondayWeek1 = new Date(jan4th);
+    const dayOfWeek = jan4th.getDay() || 7; // Convert Sunday (0) to 7
+    firstMondayWeek1.setDate(jan4th.getDate() - dayOfWeek + 1);
+    
+    // Calculate Monday of target week
+    const targetMonday = new Date(firstMondayWeek1);
+    targetMonday.setDate(firstMondayWeek1.getDate() + (weekNumber - 1) * 7);
+    
+    // Set start date (Monday of target week)
+    const startDate = new Date(targetMonday);
+    
+    // Calculate end date (Sunday of target week)
+    const endDate = new Date(targetMonday);
+    endDate.setDate(targetMonday.getDate() + 6);
+    
+    // Get date components for formatting
+    const startDay = startDate.getDate();
+    const startMonth = startDate.getMonth() + 1; // JavaScript months are 0-based
+    const endDay = endDate.getDate();
+    const endMonth = endDate.getMonth() + 1;
+    
+    // Format date range based on language
+    let formattedRange = '';
+    const isGerman = currentLanguage === 'de';
+    
+    if (isGerman) {
+      // German format: DD.MM-DD.MM.YYYY
+      formattedRange = getText('week.format.dateRange', [
+        startDay.toString().padStart(2, '0'),
+        startMonth.toString().padStart(2, '0'),
+        endDay.toString().padStart(2, '0'),
+        endMonth.toString().padStart(2, '0'),
+        year
+      ]);
+    } else {
+      // English format: MM/DD-MM/DD/YYYY
+      formattedRange = getText('week.format.dateRange', [
+        startMonth.toString().padStart(2, '0'),
+        startDay.toString().padStart(2, '0'),
+        endMonth.toString().padStart(2, '0'),
+        endDay.toString().padStart(2, '0'),
+        year
+      ]);
+    }
+    
+    // Update the date display
+    currentWeekDisplayDate.textContent = formattedRange;
+    
+    // Update the week text
+    const weekText = getText('week.weekNumber', [weekNumber]);
+    currentWeekDisplayWeek.textContent = weekText;
+    
+    // Update the replacements attribute for future reference
+    currentWeekDisplayWeek.setAttribute('data-i18n-replacements', JSON.stringify({"0": weekNumber.toString()}));
+    
+    console.log('Week selector updated with internal function:', {
+      weekNumber,
+      formattedRange,
+      weekText
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error in updateWeekSelectorWithLanguage:', error);
+    return false;
+  }
+}
+
+/**
+ * Simple fallback date formatter when dataLoader is not available
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string
+ */
+function formatDate(date) {
+  try {
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return getText('status.dateUnavailable');
+    }
+    
+    // Use a simple fallback format with the current language
+    const isGerman = currentLanguage === 'de';
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    if (isGerman) {
+      return `${day}.${month}.${year}, ${hours}:${minutes}`;
+    } else {
+      return `${month}/${day}/${year}, ${hours}:${minutes}`;
+    }
+  } catch (error) {
+    console.error('Error in fallback formatDate:', error);
+    return getText('status.dateUnavailable');
+  }
 }

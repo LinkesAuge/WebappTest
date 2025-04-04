@@ -4,7 +4,7 @@
 
 We are actively working on modernizing the application's architecture by implementing a modular approach and establishing a solid testing infrastructure. We have recently fixed critical initialization and data loading issues that were preventing the application from functioning correctly, and we've made significant improvements to the Analytics page layout and functionality.
 
-### Current Stage: Modularization & Testing + Bug Fixing + UI Improvements
+### Current Stage: Modularization & Testing + Bug Fixing + UI Improvements + Week Selection Implementation
 
 The application has been refactored from its original monolithic script.js file into a modular structure with clear separation of concerns:
 
@@ -35,38 +35,77 @@ The application has been refactored from its original monolithic script.js file 
    - Sort state initialization has been fixed to prevent null reference errors
    - Sort icon visibility and rendering has been enhanced
 
+### New Feature: Week Selection Implementation
+
+We are implementing a new feature that allows users to select data from different weeks. The implementation plan includes:
+
+1. **Core Data Loading Updates**
+   - Update `dataLoader.js` to handle week-based data loading
+   - Create functions to detect available weeks from the `/data/week/` directory
+   - Implement week number to date range conversion (e.g., week 13 → 24.03-30.03.2025)
+   - Modify data loading functions to load from selected week's CSV file
+
+2. **UI Implementation with Flatpickr**
+   - Add Flatpickr calendar widget to the header 
+   - Style it to match the existing dark fantasy theme
+   - Display weeks as Monday-Sunday blocks
+   - Visually highlight and make selectable only weeks with available data
+   - Format date display as "24.03-30.03.2025 (Week 13)" using German date format
+   - Make the calendar appear as a dropdown when clicking a week selector button
+   - Ensure the UI is mobile-responsive
+
+3. **Application Logic Changes**
+   - Update app initialization to detect and load the latest available week by default
+   - Implement week switching functionality to load data on-demand
+   - Update all views to reflect the selected week's data
+   - Maintain the current view/tab when switching weeks
+
 ### Immediate Tasks
+- Implement week detection functionality in `dataLoader.js`
+- Create the calendar widget UI in the header
+- Update data loading flow to work with week-specific files
+- Test the week selection feature across all views
+- Ensure mobile compatibility for the calendar widget
 - Test all Analytics page improvements
 - Ensure tooltips display correctly in all charts
 - Verify that the Category Analysis and Clan Analysis sections work properly with the new ordering
 
 ## Key Decisions
 
-1. **Analytics Page Organization**
+1. **Week Selection Implementation**
+   - Use Flatpickr library for the calendar widget
+   - Only weeks with available data will be selectable
+   - Default to the latest available week
+   - Format: "24.03-30.03.2025 (Week 13)"
+   - Load data on-demand rather than caching all weeks
+   - No transitions when switching between weeks
+   - No persistence of selected week between sessions
+
+2. **Analytics Page Organization**
    - Clan Analysis section is now displayed first
    - Category Analysis section follows Clan Analysis
    - Function call order has been modified to match this new UI flow
    - Removed redundant nested initialization to prevent circular dependencies
 
-2. **Modular Architecture**
+3. **Modular Architecture**
    - Each module has a clear responsibility
    - Modules export a well-defined interface
    - Cross-module dependencies are explicitly set
    - State is managed centrally in the app module
 
-3. **Testing Approach**
+4. **Testing Approach**
    - Test-driven development for new features
    - Unit tests focus on isolated functionality
    - Integration tests verify module interactions
    - Mocking approach for browser APIs
 
-4. **Code Organization**
+5. **Code Organization**
    - Flat module structure for now
    - Clear separation of concerns
    - Functions grouped by logical purpose
    - Core constants defined at module level
 
-5. **Bug Fixing Strategy**
+6. **Bug Fixing Strategy**
    - Prioritize initialization and cross-module dependencies
    - Focus on critical data flow paths
    - Implement defensive programming techniques

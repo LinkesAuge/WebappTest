@@ -50,6 +50,9 @@ export function initEventListeners() {
   
   // Set up detailed table view event listeners
   setupDetailedTableViewListeners();
+  
+  // Note: Week selector initialization is handled in app.js since it requires async operations
+  // to get available weeks and determine the latest week
 }
 
 /**
@@ -99,22 +102,33 @@ function setupNavigationListeners() {
  * Setup language switchers
  */
 function setupLanguageSwitchers() {
-  const langDe = document.getElementById('lang-de');
-  const langEn = document.getElementById('lang-en');
-  
-  if (langDe) {
-    langDe.addEventListener('click', () => {
+  // Setup desktop language switchers
+  const langDeButton = document.getElementById('lang-de');
+  if (langDeButton) {
+    langDeButton.addEventListener('click', () => {
       i18n.setLanguage('de');
-      langDe.classList.add('bg-amber-900/30');
-      langEn.classList.remove('bg-amber-900/30');
     });
   }
   
-  if (langEn) {
-    langEn.addEventListener('click', () => {
+  const langEnButton = document.getElementById('lang-en');
+  if (langEnButton) {
+    langEnButton.addEventListener('click', () => {
       i18n.setLanguage('en');
-      langEn.classList.add('bg-amber-900/30');
-      langDe.classList.remove('bg-amber-900/30');
+    });
+  }
+  
+  // Setup mobile language switchers
+  const mobileLangDeButton = document.getElementById('mobile-lang-de');
+  if (mobileLangDeButton) {
+    mobileLangDeButton.addEventListener('click', () => {
+      i18n.setLanguage('de');
+    });
+  }
+  
+  const mobileLangEnButton = document.getElementById('mobile-lang-en');
+  if (mobileLangEnButton) {
+    mobileLangEnButton.addEventListener('click', () => {
+      i18n.setLanguage('en');
     });
   }
 }

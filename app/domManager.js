@@ -35,6 +35,14 @@ let elements = {
   breadcrumbCurrentPageItem: null,
   breadcrumbCurrentPageName: null,
   
+  // Week Selector
+  weekSelectorButton: null,
+  currentWeekDisplay: null,
+  weekCalendar: null,
+  mobileWeekSelectorButton: null,
+  mobileCurrentWeekDisplay: null,
+  mobileWeekCalendar: null,
+  
   // Main sections
   emptyStateSection: null,
   dashboardSection: null,
@@ -100,7 +108,10 @@ let elements = {
   mobileDownloadContainer: null,
   downloadCsvMobileButton: null,
   iconMenuClosed: null,
-  iconMenuOpen: null
+  iconMenuOpen: null,
+  
+  // Additional elements
+  langButtons: null
 };
 
 // Additional element collections
@@ -113,17 +124,42 @@ let collections = {
 };
 
 /**
- * Assigns references to frequently used DOM elements to variables.
- * This improves performance by avoiding repeated querySelector calls.
- * @returns {boolean} True if all references were assigned successfully
+ * Assign references to all required DOM elements
+ * @returns {boolean} True if all required elements were found
  */
 export function assignElementReferences() {
-  console.log("Assigning DOM Element References...");
+  console.log("Assigning DOM element references...");
+  
   try {
     // Status elements
     elements.statusArea = document.getElementById("status-area");
     elements.loadingSpinner = document.getElementById("loading-spinner");
     elements.statusMessage = document.getElementById("status-message");
+    
+    // Header Controls and Week Selector elements
+    elements.weekSelectorButton = document.getElementById('week-selector-button');
+    elements.weekCalendar = document.getElementById('week-calendar');
+    elements.currentWeekDisplay = {
+      date: document.getElementById('current-week-display-date'),
+      week: document.getElementById('current-week-display-week')
+    };
+    
+    // Mobile elements - these might not exist if we're on desktop or if mobile layout changes
+    elements.mobileWeekSelectorButton = document.getElementById('mobile-week-selector-button');
+    elements.mobileWeekCalendar = document.getElementById('mobile-week-calendar');
+    elements.mobileCurrentWeekDisplay = {
+      date: document.getElementById('mobile-current-week-display-date'),
+      week: document.getElementById('mobile-current-week-display-week')
+    };
+    
+    console.log('Week selector elements found:', {
+      weekSelectorButton: !!elements.weekSelectorButton,
+      mobileWeekSelectorButton: !!elements.mobileWeekSelectorButton,
+      weekCalendar: !!elements.weekCalendar,
+      mobileWeekCalendar: !!elements.mobileWeekCalendar,
+      currentWeekDisplay: elements.currentWeekDisplay.week,
+      mobileCurrentWeekDisplay: elements.mobileCurrentWeekDisplay.week
+    });
     
     // Header and navigation
     elements.downloadCsvHeaderButton = document.getElementById("download-csv-header-button");
@@ -131,6 +167,7 @@ export function assignElementReferences() {
     elements.breadcrumbDashboardLink = document.getElementById("breadcrumb-dashboard-link");
     elements.breadcrumbCurrentPageItem = document.getElementById("breadcrumb-current-page-item");
     elements.breadcrumbCurrentPageName = document.getElementById("breadcrumb-current-page-name");
+    elements.langButtons = document.querySelectorAll(".lang-button");
     
     // Main sections
     elements.emptyStateSection = document.getElementById("empty-state-section");
@@ -140,16 +177,12 @@ export function assignElementReferences() {
     elements.analyticsSection = document.getElementById("analytics-section");
     elements.scoreSystemSection = document.getElementById("score-system-section");
     elements.detailSection = document.getElementById("detail-section");
-    
-    // Statistics and info
     elements.statTotalPlayers = document.getElementById("stat-total-players");
     elements.statTotalScore = document.getElementById("stat-total-score");
     elements.statTotalChests = document.getElementById("stat-total-chests");
     elements.statAvgScore = document.getElementById("stat-avg-score");
     elements.statAvgChests = document.getElementById("stat-avg-chests");
     elements.lastUpdatedInfo = document.getElementById("last-updated-info");
-    
-    // Chart containers
     elements.topSourcesChartContainer = document.getElementById("top-sources-chart-container");
     elements.scoreDistributionChartContainer = document.getElementById("score-distribution-chart-container");
     elements.scoreVsChestsChartContainer = document.getElementById("score-vs-chests-chart-container");
@@ -161,37 +194,25 @@ export function assignElementReferences() {
     elements.categoryChartContainer = document.getElementById("category-chart-container");
     elements.playerChartContainer = document.getElementById("player-chart-container");
     elements.modalChartContainer = document.getElementById("modal-chart-container");
-    
-    // Tables and filters
     elements.rankingTableBody = document.getElementById("ranking-table-body");
     elements.topChestsTableBody = document.getElementById("top-chests-table-body");
     elements.detailedTableContainer = document.getElementById("detailed-table-container");
     elements.filterInput = document.getElementById("filter-input");
-    
-    // Player details
     elements.playerNameDetail = document.getElementById("player-name-detail");
     elements.playerRankDetail = document.getElementById("player-rank-detail");
     elements.playerScoreDetail = document.getElementById("player-score-detail");
     elements.playerChestsDetail = document.getElementById("player-chests-detail");
     elements.playerBreakdownList = document.getElementById("player-breakdown-list");
-    
-    // Category analysis
     elements.categorySelect = document.getElementById("category-select");
     elements.categoryAnalysisContent = document.getElementById("category-analysis-content");
     elements.categoryPrompt = document.getElementById("category-prompt");
     elements.categoryRankingBody = document.getElementById("category-ranking-body");
     elements.categoryNameTable = document.getElementById("category-name-table");
     elements.categoryNameChart = document.getElementById("category-name-chart");
-    
-    // Score rules
     elements.scoreRulesTableContainer = document.getElementById("score-rules-table-container");
-    
-    // Modal
     elements.chartModal = document.getElementById("chart-modal");
     elements.modalChartTitle = document.getElementById("modal-chart-title");
     elements.modalCloseButton = document.getElementById("modal-close-button");
-    
-    // Mobile elements
     elements.mobileMenu = document.getElementById("mobile-menu");
     elements.mobileMenuButton = document.getElementById("mobile-menu-button");
     elements.mobileDownloadContainer = document.getElementById("mobile-download-container");
@@ -213,14 +234,41 @@ export function assignElementReferences() {
       document.getElementById("lang-en")
     ].filter(Boolean);
 
-    console.log("DOM Element References assigned.");
-    return true; // Return true to indicate successful assignment
+    // Log missing elements
+    const missingElements = [];
+
+    // Desktop elements - these are critical
+    if (!elements.weekSelectorButton) missingElements.push('weekSelectorButton');
+    if (!elements.weekCalendar) missingElements.push('weekCalendar');
+    if (!elements.currentWeekDisplay.date) missingElements.push('currentWeekDisplayDate');
+    if (!elements.currentWeekDisplay.week) missingElements.push('currentWeekDisplayWeek');
+
+    // Mobile elements - not critical for basic functionality
+    // Other elements that might be missing but aren't displayed initially
+    if (!elements.mobileWeekSelectorButton) missingElements.push('mobileWeekSelectorButton');
+    if (!elements.mobileWeekCalendar) missingElements.push('mobileWeekCalendar');
+    if (!elements.mobileCurrentWeekDisplay?.date) missingElements.push('mobileCurrentWeekDisplayDate');
+    if (!elements.mobileCurrentWeekDisplay?.week) missingElements.push('mobileCurrentWeekDisplayWeek');
+    // ... (other non-critical elements)
+
+    if (missingElements.length > 0) {
+      console.warn('Missing DOM elements:', missingElements);
+      
+      // Check for critical desktop elements only
+      const criticalDesktopMissing = ['weekSelectorButton', 'weekCalendar', 
+        'currentWeekDisplayDate', 'currentWeekDisplayWeek'].some(el => missingElements.includes(el));
+        
+      if (criticalDesktopMissing) {
+        console.error('Critical week selector elements are missing. Week selector may not function properly.');
+      } else {
+        console.log('Mobile week selector elements missing, but desktop elements are available. This is normal when mobile view is not shown.');
+      }
+    }
+    
+    return true;
   } catch (error) {
     console.error("Error assigning DOM element references:", error);
-    if (elements.statusMessage)
-      elements.statusMessage.textContent = "Critical error: UI elements missing.";
-    if (elements.statusArea) elements.statusArea.classList.add("text-red-500");
-    return false; // Return false to indicate failure
+    return false;
   }
 }
 
@@ -290,19 +338,19 @@ function updateBreadcrumb(viewName) {
   let pageName = '';
   switch (viewName) {
     case 'detailed-table':
-      pageName = 'Detailed Data';
+      pageName = i18n.getText('page.detailedTable');
       break;
     case 'charts':
-      pageName = 'Charts';
+      pageName = i18n.getText('page.charts');
       break;
     case 'analytics':
-      pageName = 'Analytics';
+      pageName = i18n.getText('page.analytics');
       break;
     case 'score-system':
-      pageName = 'Score System';
+      pageName = i18n.getText('page.scoreSystem');
       break;
     case 'playerDetails':
-      pageName = 'Player Details';
+      pageName = i18n.getText('page.playerDetails');
       break;
   }
   
@@ -821,6 +869,187 @@ export function ensureRequiredContainers() {
   }
   
   // Similar checks can be added for other dynamically created elements
+}
+
+/**
+ * Update the week selector display with the selected week
+ * @param {number} weekNumber - The selected week number
+ * @param {string} dateRange - The formatted date range string
+ * @returns {boolean} Success status
+ */
+export function updateWeekSelectorDisplay(weekNumber, dateRange) {
+  console.log(`Updating week selector display: Week ${weekNumber}, Range: ${dateRange}`);
+  
+  try {
+    // Format week number text using i18n
+    const weekText = i18n.getText('week.weekNumber', [weekNumber]);
+    
+    // Update desktop week selector
+    const weekDisplayDate = document.getElementById('current-week-display-date');
+    const weekDisplayWeek = document.getElementById('current-week-display-week');
+    
+    if (weekDisplayDate) {
+      weekDisplayDate.textContent = dateRange || '';
+    }
+    
+    if (weekDisplayWeek) {
+      weekDisplayWeek.textContent = weekText || '';
+    }
+    
+    // Update mobile week selector if it exists
+    const mobileWeekDisplayDate = document.getElementById('mobile-current-week-display-date');
+    const mobileWeekDisplayWeek = document.getElementById('mobile-current-week-display-week');
+    
+    if (mobileWeekDisplayDate) {
+      mobileWeekDisplayDate.textContent = dateRange || '';
+    }
+    
+    if (mobileWeekDisplayWeek) {
+      mobileWeekDisplayWeek.textContent = weekText || '';
+    }
+    
+    console.log('Week selector display updated successfully');
+    return true;
+  } catch (error) {
+    console.error('Error updating week selector display:', error);
+    return false;
+  }
+}
+
+/**
+ * Initialize the week selector UI component
+ * @param {Array<number>} availableWeeks - Array of available week numbers
+ * @param {number} selectedWeek - Currently selected week number
+ * @param {Function} onWeekSelect - Callback function when a week is selected
+ */
+export function initializeWeekSelector(availableWeeks, selectedWeek, onWeekSelect) {
+  console.log('DOM: Initializing week selector with:', { availableWeeks, selectedWeek });
+  
+  // Log all elements to see what's missing
+  console.log('DOM: Week calendar element:', elements.weekCalendar);
+  console.log('DOM: Mobile week calendar element:', elements.mobileWeekCalendar);
+  console.log('DOM: Current week display:', elements.currentWeekDisplay);
+  console.log('DOM: Mobile current week display:', elements.mobileCurrentWeekDisplay);
+  
+  // Try to get the elements if they're not in our cache
+  if (!elements.weekCalendar) {
+    console.log('DOM: Week calendar element not found. Searching DOM directly:', document.getElementById('week-calendar'));
+    elements.weekCalendar = document.getElementById('week-calendar');
+  }
+  
+  // Check if desktop calendar exists - only this is required
+  if (!elements.weekCalendar || !elements.weekSelectorButton) {
+    console.error('Cannot initialize week selector: Required desktop elements not found');
+    return;
+  }
+  
+  try {
+    // Check if Flatpickr is available
+    if (typeof flatpickr !== 'function') {
+      console.error('Flatpickr library not found. Make sure it is properly loaded.');
+      return;
+    }
+    
+    // Initialize desktop calendar
+    console.log('Initializing desktop week calendar...');
+    
+    // Get all available dates for the available weeks
+    const enabledDates = [];
+    const currentYear = new Date().getFullYear();
+    
+    // For each available week, add all days of that week to enabled dates
+    availableWeeks.forEach(weekNum => {
+      // Get the date range for this week
+      const weekRange = utils.getWeekDateRange(weekNum, currentYear);
+      const startDate = new Date(weekRange.startDate);
+      const endDate = new Date(weekRange.endDate);
+      
+      console.log(`Adding week ${weekNum} dates from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+      
+      // Add all days between start and end (inclusive)
+      const currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        enabledDates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    });
+    
+    // Configure the flatpickr instance with week numbers
+    const fpConfig = {
+      inline: false,
+      weekNumbers: true,
+      dateFormat: "d.m.Y",
+      locale: { firstDayOfWeek: 1 }, // Start weeks on Monday
+      enable: enabledDates,
+      disableMobile: "true",
+      static: true,
+      onChange: (selectedDates) => {
+        if (selectedDates && selectedDates.length > 0) {
+          // Find which week the selected date belongs to
+          const selectedDate = selectedDates[0];
+          
+          // Get week number using the ISO week numbering
+          const weekNumber = getISOWeek(selectedDate);
+          
+          console.log(`Date selected: ${selectedDate.toLocaleDateString()}, Week: ${weekNumber}`);
+          
+          if (availableWeeks.includes(weekNumber)) {
+            onWeekSelect(weekNumber);
+          } else {
+            console.warn(`Selected week ${weekNumber} is not in available weeks:`, availableWeeks);
+          }
+        }
+      }
+    };
+    
+    // Initialize desktop calendar
+    const desktopCalendar = flatpickr(elements.weekCalendar, fpConfig);
+    console.log('Desktop calendar initialized successfully');
+    
+    // Set up click handler for the desktop calendar button
+    elements.weekSelectorButton.addEventListener('click', function() {
+      console.log('Week selector button clicked, opening calendar');
+      desktopCalendar.open();
+    });
+  
+    // Initialize mobile calendar only if elements exist
+    if (elements.mobileWeekCalendar && elements.mobileWeekSelectorButton) {
+      console.log('Initializing mobile week calendar...');
+      const mobileCalendar = flatpickr(elements.mobileWeekCalendar, fpConfig);
+      console.log('Mobile calendar initialized successfully');
+      
+      // Set up click handler for the mobile calendar button
+      elements.mobileWeekSelectorButton.addEventListener('click', function() {
+        mobileCalendar.open();
+      });
+    } else {
+      console.log('Mobile week selector elements not found, skipping mobile calendar initialization');
+    }
+    
+    console.log('Week selector initialization complete');
+    return true;
+  } catch (error) {
+    console.error('Error initializing week selector:', error);
+    return false;
+  }
+}
+
+// Helper function to get ISO week number
+function getISOWeek(date) {
+  // Create a copy of the date to avoid modifying the original
+  const d = new Date(date.getTime());
+  
+  // Set to nearest Thursday (considering Monday as first day of week)
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  
+  // Get first day of year
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  
+  // Calculate full weeks to nearest Thursday
+  const weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  
+  console.log(`getISOWeek calculation: date=${date.toISOString()}, weekNum=${weekNum}`);
+  return weekNum;
 }
 
 // Export element references and collections

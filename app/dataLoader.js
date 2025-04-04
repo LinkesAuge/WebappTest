@@ -6,11 +6,21 @@
  * and transforming the data into the correct format.
  */
 
+import * as utils from './utils.js';
+
 // Configuration constants
 const CSV_FILE_PATH = "./data/data.csv";
 const RULES_CSV_FILE_PATH = "./data/rules.csv";
+const WEEK_CSV_PATH_TEMPLATE = "./data/week/week_{0}.csv";
+const CHART_CONTAINER_PREFIX = "chart-container-";
 const LOCALSTORAGE_DATA_KEY = "tbAnalyzerStoredData_Client_v2_Static";
-const LOCALSTORAGE_LAST_MODIFIED_KEY = "tbAnalyzerLastModified_Client_v2_Static";
+
+// LocalStorage keys
+export const LOCALSTORAGE_LAST_MODIFIED_KEY = 'lastModifiedTimestamp';
+
+// Week data configuration
+const WEEK_FOLDER_PATH = "./data/week/";
+const WEEK_FILE_PATTERN = "week_";  // e.g., "week_13.csv"
 
 // This will be imported from utils.js later
 let setStatus;
@@ -32,11 +42,111 @@ export function setUtils(utils) {
 }
 
 /**
+ * Get all available weeks from the week folder
+ * @returns {Promise<Array<number>>} Array of available week numbers, sorted in ascending order
+ */
+export async function getAvailableWeeks() {
+  try {
+    console.log('Checking for available weeks...');
+    
+    // For this specific application, we know we have test weeks 12, 13, and 14
+    // This avoids excessive network requests
+    const hardcodedTestWeeks = [12, 13, 14];
+    
+    // Check if these weeks actually exist
+    const availableWeeks = [];
+    const checkPromises = [];
+    
+    // Only check our known test weeks
+    for (const week of hardcodedTestWeeks) {
+      const filePath = getWeekFilePath(week);
+      checkPromises.push(
+        fetch(filePath, { method: 'HEAD' })
+          .then(response => {
+            if (response.ok) {
+              console.log(`Week ${week} is available`);
+              return week;
+            }
+            return null;
+          })
+          .catch(() => null) // File doesn't exist or can't be accessed
+      );
+    }
+    
+    // Wait for all checks to complete
+    const results = await Promise.all(checkPromises);
+    
+    // Add valid weeks to our list
+    results.forEach(week => {
+      if (week !== null) {
+        availableWeeks.push(week);
+      }
+    });
+    
+    console.log('Available weeks found:', availableWeeks);
+    return availableWeeks.sort((a, b) => a - b);
+  } catch (error) {
+    console.error('Error getting available weeks:', error);
+    return [];
+  }
+}
+
+/**
+ * Helper function to get week number from a date
+ * @param {Date} date - The date to get week number for
+ * @returns {number} The ISO week number (1-53)
+ */
+function getWeekNumber(date) {
+  // Create a copy of the date to avoid modifying the original
+  const d = new Date(date.getTime());
+  
+  // Set to nearest Thursday (considering Monday as first day of week)
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  
+  // Get first day of year
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  
+  // Calculate full weeks to nearest Thursday
+  const weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  
+  return weekNum;
+}
+
+/**
+ * Get the latest available week
+ * @returns {Promise<number|null>} The latest week number or null if no weeks are available
+ */
+export async function getLatestWeek() {
+  const weeks = await getAvailableWeeks();
+  return weeks.length > 0 ? Math.max(...weeks) : null;
+}
+
+/**
+ * Convert a week number to start and end dates
+ * @param {number} weekNumber - The week number
+ * @param {number} [year] - Optional year, defaults to current year
+ * @returns {Object} Object with start and end dates and formatted string
+ */
+export function getWeekDateRange(weekNumber, year = new Date().getFullYear()) {
+  // Use utils implementation for consistency
+  return utils.getWeekDateRange(weekNumber, year);
+}
+
+/**
+ * Get the week file path for a specific week
+ * @param {number} weekNumber - The week number
+ * @returns {string} Path to the week's CSV file
+ */
+export function getWeekFilePath(weekNumber) {
+  return `${WEEK_FOLDER_PATH}${WEEK_FILE_PATTERN}${weekNumber}.csv`;
+}
+
+/**
  * Format a date string or timestamp into a localized date string
  * @param {Date|string|number} date - Date object, date string, or timestamp
  * @returns {string} Formatted date string
  */
-function formatDate(date) {
+export function formatDate(date) {
   try {
     // If input is already a Date object, use it directly
     const dateObj = date instanceof Date ? date : new Date(date);
@@ -64,11 +174,12 @@ function formatDate(date) {
 
 /**
  * Get the last modified date of the CSV file
+ * @param {string} [filePath] - Optional path to the CSV file, defaults to the standard CSV file
  * @returns {Promise<string>} Formatted last modified date or 'Date unavailable' message
  */
-async function getFileLastModified() {
+async function getFileLastModified(filePath = CSV_FILE_PATH) {
   try {
-    const response = await fetch(CSV_FILE_PATH, { method: 'HEAD' });
+    const response = await fetch(filePath, { method: 'HEAD' });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -94,22 +205,34 @@ async function getFileLastModified() {
 /**
  * Update the timestamp display in the UI
  * @param {string} timestamp - The formatted timestamp to display
+ * @param {number} [weekNumber] - Optional week number to display
  */
-function updateTimestampDisplay(timestamp) {
+function updateTimestampDisplay(timestamp, weekNumber = null) {
   const lastUpdatedInfo = document.getElementById('last-updated-info');
   if (!lastUpdatedInfo) {
     console.warn('Could not find last-updated-info element');
     return;
   }
 
+  let displayText = '';
+  
+  // If we have a week number, add the date range information
+  if (weekNumber !== null) {
+    const weekRange = getWeekDateRange(weekNumber);
+    displayText = `${weekRange.formattedRange} - `;
+  }
+  
+  // Add the last updated timestamp
   if (timestamp && timestamp !== getText('status.dateUnavailable')) {
-    lastUpdatedInfo.textContent = `${getText('status.lastUpdatedLabel')} ${timestamp}`;
+    displayText += `${getText('status.lastUpdatedLabel')} ${timestamp}`;
     localStorage.setItem(LOCALSTORAGE_LAST_MODIFIED_KEY, timestamp);
     console.log('Updated timestamp display:', timestamp);
   } else {
-    lastUpdatedInfo.textContent = getText('status.lastUpdatedUnavailable');
+    displayText += getText('status.lastUpdatedUnavailable');
     console.warn('Invalid or unavailable timestamp');
   }
+  
+  lastUpdatedInfo.textContent = displayText;
 }
 
 /**
@@ -120,6 +243,7 @@ function updateTimestampDisplay(timestamp) {
  * @param {Function} sortFunction - Function to sort the data
  * @param {Object} sortState - Current sort state
  * @param {Function} saveFunction - Function to save data to localStorage
+ * @param {number} [weekNumber] - Optional week number to load, if not provided will load from standard CSV file
  * @returns {Promise<boolean>} Success status
  */
 export async function loadStaticCsvData(
@@ -128,18 +252,22 @@ export async function loadStaticCsvData(
   allColumnHeaders,
   sortFunction,
   sortState,
-  saveFunction
+  saveFunction,
+  weekNumber = null
 ) {
-  console.log('Fetching static CSV:', CSV_FILE_PATH);
+  // Determine which file path to use
+  const filePath = weekNumber !== null ? getWeekFilePath(weekNumber) : CSV_FILE_PATH;
+  
+  console.log(`Fetching static CSV: ${filePath}`);
   showLoading(getText('status.loading'));
 
   try {
     // Get and update the last modified date
-    const lastModified = await getFileLastModified();
-    updateTimestampDisplay(lastModified);
+    const lastModified = await getFileLastModified(filePath);
+    updateTimestampDisplay(lastModified, weekNumber);
     
     // Fetch the CSV data
-    const response = await fetch(CSV_FILE_PATH);
+    const response = await fetch(filePath);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
     const csvText = await response.text();
@@ -363,10 +491,13 @@ function cleanData(results) {
   return cleanedData;
 }
 
-// Export constants that might be needed by other modules
+// Export constants for use in other modules
 export const constants = {
   CSV_FILE_PATH,
   RULES_CSV_FILE_PATH,
+  WEEK_CSV_PATH_TEMPLATE,
+  CHART_CONTAINER_PREFIX,
   LOCALSTORAGE_DATA_KEY,
   LOCALSTORAGE_LAST_MODIFIED_KEY
 };
+

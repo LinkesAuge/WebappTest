@@ -5,6 +5,9 @@
  * These include formatting, sorting, and generic helper functions.
  */
 
+// First, add import for i18n at the top if not already present
+import * as i18n from './i18n.js';
+
 // Consistent number formatting (using German locale for punctuation)
 const NUMERIC_FORMATTER = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
 
@@ -345,6 +348,82 @@ export function handleError(error, context, showUser = true) {
  */
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+/**
+ * Convert a week number to start and end dates
+ * @param {number} weekNumber - The week number (ISO week standard)
+ * @param {number} [year] - Optional year, defaults to current year
+ * @returns {Object} Object with start and end dates and formatted string
+ */
+export function getWeekDateRange(weekNumber, year = new Date().getFullYear()) {
+  console.log(`Calculating date range for week ${weekNumber}, year ${year}`);
+  
+  // Calculate the date of the first Monday in the target week
+  // January 4th is always in week 1 (by ISO 8601 standard)
+  const jan4th = new Date(year, 0, 4);
+  
+  // Figure out the first Monday of week 1
+  // Jan 4th is in week 1, so we go to the Monday of that week
+  const firstMondayWeek1 = new Date(jan4th);
+  const dayOfWeek = jan4th.getDay() || 7; // Convert Sunday (0) to 7
+  // If jan4th is not a Monday (1), adjust days to get to the Monday of that week
+  firstMondayWeek1.setDate(jan4th.getDate() - dayOfWeek + 1);
+  
+  // Calculate the Monday of our target week
+  const targetMonday = new Date(firstMondayWeek1);
+  targetMonday.setDate(firstMondayWeek1.getDate() + (weekNumber - 1) * 7);
+  
+  // Set as start date (Monday of the target week)
+  const startDate = new Date(targetMonday);
+  
+  // Calculate end date (Sunday of the target week)
+  const endDate = new Date(targetMonday);
+  endDate.setDate(targetMonday.getDate() + 6);
+  
+  console.log(`Week ${weekNumber} date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+  
+  // Check current language
+  const currentLanguage = i18n.getCurrentLanguage();
+  const isGerman = currentLanguage === 'de';
+  
+  // Get date components for formatting
+  const startDay = startDate.getDate();
+  const startMonth = startDate.getMonth() + 1; // JavaScript months are 0-based
+  const endDay = endDate.getDate();
+  const endMonth = endDate.getMonth() + 1;
+  
+  // Format the date range based on language
+  let formattedRange = '';
+  
+  if (isGerman) {
+    // German format: DD.MM-DD.MM.YYYY (e.g., "31.03-06.04.2025")
+    formattedRange = i18n.getText('week.format.dateRange', [
+      startDay.toString().padStart(2, '0'),
+      startMonth.toString().padStart(2, '0'),
+      endDay.toString().padStart(2, '0'),
+      endMonth.toString().padStart(2, '0'),
+      year
+    ]);
+  } else {
+    // English format: MM/DD-MM/DD/YYYY (e.g., "03/31-04/06/2025")
+    formattedRange = i18n.getText('week.format.dateRange', [
+      startMonth.toString().padStart(2, '0'),
+      startDay.toString().padStart(2, '0'),
+      endMonth.toString().padStart(2, '0'),
+      endDay.toString().padStart(2, '0'),
+      year
+    ]);
+  }
+  
+  const weekText = i18n.getText('week.weekNumber', [weekNumber]);
+  
+  return {
+    startDate,
+    endDate,
+    formattedRange,
+    weekText
+  };
 }
 
 // Export constants for use by other modules
