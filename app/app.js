@@ -33,6 +33,9 @@ let scoreRulesData = [];
 let currentWeek = null; // Current selected week number
 let availableWeeks = []; // Array of available weeks
 
+// Expose allPlayersData to window for chart rendering fallback
+window.allPlayersData = allPlayersData;
+
 // Sort state - will be initialized properly in initializeApp
 let dashboardSortState = {
   column: 'TOTAL_SCORE',
@@ -65,6 +68,7 @@ async function initializeApp() {
 
     // Make dataLoader available globally for date formatting in i18n.js
     window.dataLoader = dataLoader;
+    window.utils = utils;
     
     // Set all utility references for other modules
     setReferences();
@@ -439,6 +443,9 @@ async function loadAndRenderData(isFirstInit = false, weekNumber = null) {
       utils.hideLoading();
       return false;
     }
+    
+    // Set player data reference in domManager for charts access
+    domManager.setPlayerData(allPlayersData);
     
     // If it's first initialization, render the dashboard view
     if (isFirstInit) {

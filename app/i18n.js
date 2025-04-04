@@ -535,6 +535,118 @@ function updateLanguageUI() {
     const lastUpdatedInfo = document.getElementById('last-updated-info');
     
     if (lastUpdatedInfo) {
+      // First, try to get the saved display text directly from localStorage
+      const savedDisplayText = localStorage.getItem('lastUpdatedDisplayText');
+      
+      // If we have saved display text, adjust it for the current language
+      if (savedDisplayText) {
+        // The display text might include a date range for the week, so we need to parse carefully
+        const currentLabel = getText('status.lastUpdatedLabel');
+        
+        // If there's a date range separator " - ", extract the timestamp part
+        let timestamp = '';
+        if (savedDisplayText.includes(' - ')) {
+          // Format: "DD.MM-DD.MM.YYYY - Last updated: DD. MMM. YYYY, HH:MM"
+          const parts = savedDisplayText.split(' - ');
+          if (parts.length > 1) {
+            // Extract just the timestamp from the second part (after old label)
+            const oldTimestampPart = parts[1];
+            const oldLabelIndex = oldTimestampPart.indexOf(':');
+            if (oldLabelIndex !== -1) {
+              timestamp = oldTimestampPart.substring(oldLabelIndex + 1).trim();
+            }
+          }
+        } else {
+          // Format: "Last updated: DD. MMM. YYYY, HH:MM"
+          const oldLabelIndex = savedDisplayText.indexOf(':');
+          if (oldLabelIndex !== -1) {
+            timestamp = savedDisplayText.substring(oldLabelIndex + 1).trim();
+          }
+        }
+        
+        // If we successfully extracted the timestamp
+        if (timestamp) {
+          console.log('Using timestamp from savedDisplayText:', timestamp);
+          
+          // Create a Date object from the timestamp
+          try {
+            // Try to parse different date formats
+            let date = null;
+            
+            // German format: "DD. MMM. YYYY, HH:MM"
+            const germanParts = timestamp.match(/(\d+)\.\s+(\w+)\.\s+(\d+),\s+(\d+):(\d+)/);
+            if (germanParts) {
+              const [_, day, month, year, hours, minutes] = germanParts;
+              
+              // Create a date object
+              date = new Date(year, 0, 1, hours, minutes); // Start with January 1st
+              
+              // Adjust the month based on the localized month name
+              const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              const monthIndex = months.findIndex(m => 
+                month.toLowerCase().includes(m.toLowerCase())
+              );
+              
+              if (monthIndex !== -1) {
+                date.setMonth(monthIndex);
+              }
+              
+              // Set the day
+              date.setDate(parseInt(day));
+            } else {
+              // American format "MM/DD/YYYY, HH:MM"
+              const americanParts = timestamp.match(/(\d+)\/(\d+)\/(\d+),\s+(\d+):(\d+)/);
+              if (americanParts) {
+                const [_, month, day, year, hours, minutes] = americanParts;
+                date = new Date(year, parseInt(month) - 1, parseInt(day), hours, minutes);
+              }
+            }
+            
+            // If we have a valid date, format it according to the current language
+            if (date && !isNaN(date.getTime())) {
+              let formattedDate;
+              if (window.dataLoader && typeof window.dataLoader.formatDate === 'function') {
+                formattedDate = window.dataLoader.formatDate(date);
+                console.log('Reformatted date using dataLoader:', formattedDate);
+              } else {
+                formattedDate = formatDate(date);
+                console.log('Reformatted date using fallback formatter:', formattedDate);
+              }
+              
+              // Get any current week range text
+              let weekRangeText = '';
+              const currentWeekDisplayWeek = document.getElementById('current-week-display-week');
+              if (currentWeekDisplayWeek && currentWeekDisplayWeek.dataset.i18nReplacements) {
+                try {
+                  const replacements = JSON.parse(currentWeekDisplayWeek.dataset.i18nReplacements);
+                  const weekNum = parseInt(replacements['0']);
+                  
+                  if (!isNaN(weekNum)) {
+                    const weekRange = window.utils?.getWeekDateRange ? window.utils.getWeekDateRange(weekNum) : null;
+                    if (weekRange && weekRange.formattedRange) {
+                      weekRangeText = `${weekRange.formattedRange} - `;
+                    }
+                  }
+                } catch (e) {
+                  console.error('Error getting week range during language switch:', e);
+                }
+              }
+              
+              // Update the display with the reformatted date
+              const newDisplayText = `${weekRangeText}${currentLabel} ${formattedDate}`;
+              lastUpdatedInfo.textContent = newDisplayText;
+              
+              // Save the updated display text
+              localStorage.setItem('lastUpdatedDisplayText', newDisplayText);
+              return; // Exit early if we successfully updated
+            }
+          } catch (e) {
+            console.error('Error parsing saved timestamp:', e);
+          }
+        }
+      }
+      
+      // If we couldn't use the saved display text, fall back to the original approach
       let originalText = lastUpdatedInfo.textContent;
       
       // If the text is empty or showing "not available", try to get from localStorage

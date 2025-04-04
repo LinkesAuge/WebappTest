@@ -161,16 +161,23 @@ export function getBaseChartOptions(theme = 'dark') {
 
 /**
  * Create donut chart
- * @param {string} containerId - ID of the container element
+ * @param {string|HTMLElement} container - ID of the container element or the container element itself
  * @param {Array} series - Data series
  * @param {Array} labels - Chart labels
  * @param {string} title - Chart title (not used internally, but kept for API consistency)
  * @returns {Object} ApexCharts instance
  */
-export function createDonutChart(containerId, series, labels, title) {
-  const chartContainer = document.getElementById(containerId);
+export function createDonutChart(container, series, labels, title) {
+  // Handle both string ID and direct HTML element
+  let chartContainer;
+  if (typeof container === 'string') {
+    chartContainer = document.getElementById(container);
+  } else {
+    chartContainer = container;
+  }
+  
   if (!chartContainer) {
-    console.error(`Container element #${containerId} not found`);
+    console.error(`Container element not found: ${typeof container === 'string' ? container : 'DOM element'}`);
     return null;
   }
   
@@ -280,7 +287,9 @@ export function createDonutChart(containerId, series, labels, title) {
   const chart = new ApexCharts(chartContainer, options);
   
   // Register chart
-  chartRegistry[containerId] = chart;
+  if (typeof container === 'string') {
+    chartRegistry[container] = chart;
+  }
   
   // Render chart
   chart.render();
@@ -290,17 +299,24 @@ export function createDonutChart(containerId, series, labels, title) {
 
 /**
  * Create bar chart
- * @param {string} containerId - ID of the container element
+ * @param {string|HTMLElement} container - ID of the container element or the container element itself
  * @param {Array} series - Data series
  * @param {Array} categories - X-axis categories
  * @param {string} title - Chart title (not used internally, but kept for API consistency)
  * @param {Array} customColors - Optional array of colors to use for the bars
  * @returns {Object} ApexCharts instance
  */
-export function createBarChart(containerId, series, categories, title, customColors) {
-  const chartContainer = document.getElementById(containerId);
+export function createBarChart(container, series, categories, title, customColors) {
+  // Handle both string ID and direct HTML element
+  let chartContainer;
+  if (typeof container === 'string') {
+    chartContainer = document.getElementById(container);
+  } else {
+    chartContainer = container;
+  }
+  
   if (!chartContainer) {
-    console.error(`Container element #${containerId} not found`);
+    console.error(`Container element not found: ${typeof container === 'string' ? container : 'DOM element'}`);
     return null;
   }
   
@@ -439,7 +455,9 @@ export function createBarChart(containerId, series, categories, title, customCol
   const chart = new ApexCharts(chartContainer, options);
   
   // Register chart
-  chartRegistry[containerId] = chart;
+  if (typeof container === 'string') {
+    chartRegistry[container] = chart;
+  }
   
   // Render chart
   chart.render();
@@ -449,17 +467,24 @@ export function createBarChart(containerId, series, categories, title, customCol
 
 /**
  * Create scatter chart
- * @param {string} containerId - ID of the container element
+ * @param {string|HTMLElement} container - ID of the container element or the container element itself
  * @param {Array} data - Data points as [x, y, playerName] arrays
  * @param {string} title - Chart title (not used internally, but kept for API consistency)
  * @param {string} xAxisTitle - X-axis title
  * @param {string} yAxisTitle - Y-axis title
  * @returns {Object} ApexCharts instance
  */
-export function createScatterChart(containerId, data, title, xAxisTitle, yAxisTitle) {
-  const chartContainer = document.getElementById(containerId);
+export function createScatterChart(container, data, title, xAxisTitle, yAxisTitle) {
+  // Handle both string ID and direct HTML element
+  let chartContainer;
+  if (typeof container === 'string') {
+    chartContainer = document.getElementById(container);
+  } else {
+    chartContainer = container;
+  }
+  
   if (!chartContainer) {
-    console.error(`Container element #${containerId} not found`);
+    console.error(`Container element not found: ${typeof container === 'string' ? container : 'DOM element'}`);
     return null;
   }
   
@@ -711,7 +736,9 @@ export function createScatterChart(containerId, data, title, xAxisTitle, yAxisTi
   const chart = new ApexCharts(chartContainer, options);
   
   // Register chart
-  chartRegistry[containerId] = chart;
+  if (typeof container === 'string') {
+    chartRegistry[container] = chart;
+  }
   
   // Render chart
   chart.render();
@@ -721,16 +748,23 @@ export function createScatterChart(containerId, data, title, xAxisTitle, yAxisTi
 
 /**
  * Create radar chart
- * @param {string} containerId - ID of the container element
+ * @param {string|HTMLElement} container - ID of the container element or the container element itself
  * @param {Array} series - Data series
  * @param {Array} categories - Radar chart categories
  * @param {string} title - Chart title
  * @returns {Object} ApexCharts instance
  */
-export function createRadarChart(containerId, series, categories, title) {
-  const chartContainer = document.getElementById(containerId);
+export function createRadarChart(container, series, categories, title) {
+  // Handle both string ID and direct HTML element
+  let chartContainer;
+  if (typeof container === 'string') {
+    chartContainer = document.getElementById(container);
+  } else {
+    chartContainer = container;
+  }
+  
   if (!chartContainer) {
-    console.error(`Container element #${containerId} not found`);
+    console.error(`Container element not found: ${typeof container === 'string' ? container : 'DOM element'}`);
     return null;
   }
   
@@ -946,16 +980,6 @@ export function createRadarChart(containerId, series, categories, title) {
             style: {
               fontSize: '12px'
             }
-          },
-          tooltip: {
-            // Simplified tooltip for mobile
-            custom: function({series, seriesIndex, dataPointIndex, w}) {
-              const value = series[seriesIndex][dataPointIndex];
-              const category = categories[dataPointIndex];
-              return `<div style="background:#0f172a;border:1px solid #334155;padding:6px 8px;font-size:10px;">
-                <b>${category}</b>: ${utils.formatNumber(value)}
-              </div>`;
-            }
           }
         }
       }
@@ -966,7 +990,9 @@ export function createRadarChart(containerId, series, categories, title) {
   const chart = new ApexCharts(chartContainer, options);
   
   // Register chart
-  chartRegistry[containerId] = chart;
+  if (typeof container === 'string') {
+    chartRegistry[container] = chart;
+  }
   
   // Render chart
   chart.render();

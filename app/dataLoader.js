@@ -225,8 +225,13 @@ function updateTimestampDisplay(timestamp, weekNumber = null) {
   // Add the last updated timestamp
   if (timestamp && timestamp !== getText('status.dateUnavailable')) {
     displayText += `${getText('status.lastUpdatedLabel')} ${timestamp}`;
+    
+    // Save both the raw timestamp and the display text to localStorage
     localStorage.setItem(LOCALSTORAGE_LAST_MODIFIED_KEY, timestamp);
+    localStorage.setItem('lastUpdatedDisplayText', displayText);
+    
     console.log('Updated timestamp display:', timestamp);
+    console.log('Saved to localStorage with key:', LOCALSTORAGE_LAST_MODIFIED_KEY);
   } else {
     displayText += getText('status.lastUpdatedUnavailable');
     console.warn('Invalid or unavailable timestamp');

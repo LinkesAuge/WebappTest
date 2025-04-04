@@ -146,6 +146,13 @@ function setupChartExpansionListeners() {
       
       console.log(`Expanding chart: ${chartType}`); // Debug logging
       
+      // Debug player data availability
+      console.log('Player data reference:', {
+        exists: !!domManager.playerDataRef,
+        isArray: Array.isArray(domManager.playerDataRef),
+        length: domManager.playerDataRef ? domManager.playerDataRef.length : 0
+      });
+      
       // Get modal elements
       const chartModal = document.getElementById('chart-modal');
       const modalChartContainer = document.getElementById('modal-chart-container');
@@ -190,6 +197,9 @@ function setupChartExpansionListeners() {
         chartRenderer.chartRegistry.modalChart.destroy();
         delete chartRenderer.chartRegistry.modalChart;
       }
+      
+      // Check if player data is available
+      console.log('Chart expansion - checking player data availability for modal rendering');
       
       // Directly render the appropriate chart based on type
       switch (chartType) {

@@ -14,6 +14,11 @@ import * as utils from './utils.js';
 let playerDataRef = [];
 
 /**
+ * Export playerDataRef for debugging
+ */
+export { playerDataRef };
+
+/**
  * Set player data reference
  * @param {Array} data - The player data array
  */
@@ -482,37 +487,49 @@ export function openChartModal(chartType, event) {
 }
 
 /**
- * Render the Top10 by Chest Count table in the modal
+ * Render the Top Chests chart in the modal
  * @param {HTMLElement} container - The container element to render the chart in
  */
 export function renderTopChestsInModal(container = elements.modalChartContainer) {
   try {
+    console.log('renderTopChestsInModal - Player data status:', {
+      exists: !!playerDataRef,
+      isArray: Array.isArray(playerDataRef),
+      length: playerDataRef ? playerDataRef.length : 0
+    });
+    
+    // If player data is not available, try to get it from the app's global variables
     if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
-      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
-      return;
+      // Try to check if the window.allPlayersData is available as a fallback
+      if (window.allPlayersData && window.allPlayersData.length > 0) {
+        console.log('Using fallback from window.allPlayersData');
+        playerDataRef = window.allPlayersData;
+      } else {
+        container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+        return;
+      }
     }
     
-    // Sort data by chest count
-    const sortedData = [...playerDataRef]
-      .sort((a, b) => b.CHEST_COUNT - a.CHEST_COUNT)
-      .slice(0, 10); // Show exactly top 10 players
+    // Prepare data for charts
+    const topPlayers = playerDataRef
+      .sort((a, b) => Number(b.CHEST_COUNT) - Number(a.CHEST_COUNT))
+      .slice(0, 10);
     
-    // Prepare data for chart
-    const players = sortedData.map(player => player.PLAYER);
-    const chestCounts = sortedData.map(player => player.CHEST_COUNT);
+    const labels = topPlayers.map(player => player.PLAYER);
+    const data = topPlayers.map(player => Number(player.CHEST_COUNT));
     
-    // Create chart
+    // Render the chart
     const chart = chartRenderer.createBarChart(
-      'modal-chart-container',
+      container,
       [{
         name: i18n.getText('table.headerChests'),
-        data: chestCounts
+        data
       }],
-      players,
-      i18n.getText('dashboard.topChestsTitle')
+      labels,
+      i18n.getText('dashboard.chartTopChestsTitle')
     );
     
-    // Store the chart with a consistent key
+    // Store the chart in the registry
     chartRenderer.chartRegistry.modalChart = chart;
   } catch (error) {
     console.error('Error rendering top chests chart in modal:', error);
@@ -526,9 +543,22 @@ export function renderTopChestsInModal(container = elements.modalChartContainer)
  */
 export function renderTopSourcesInModal(container = elements.modalChartContainer) {
   try {
+    console.log('renderTopSourcesInModal - Player data status:', {
+      exists: !!playerDataRef,
+      isArray: Array.isArray(playerDataRef),
+      length: playerDataRef ? playerDataRef.length : 0
+    });
+    
+    // If player data is not available, try to get it from the app's global variables
     if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
-      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
-      return;
+      // Try to check if the window.allPlayersData is available as a fallback
+      if (window.allPlayersData && window.allPlayersData.length > 0) {
+        console.log('Using fallback from window.allPlayersData');
+        playerDataRef = window.allPlayersData;
+      } else {
+        container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+        return;
+      }
     }
 
     const { names, values } = getSourcesDataForCharts(playerDataRef);
@@ -537,9 +567,9 @@ export function renderTopSourcesInModal(container = elements.modalChartContainer
     const topNames = names.slice(0, 10);
     const topValues = values.slice(0, 10);
 
-    // Render the chart
+    // Render the chart - pass container element directly instead of ID
     const chart = chartRenderer.createDonutChart(
-      'modal-chart-container',
+      container,
       topValues,
       topNames,
       i18n.getText('dashboard.chartTopSourcesTitle')
@@ -559,9 +589,22 @@ export function renderTopSourcesInModal(container = elements.modalChartContainer
  */
 export function renderScoreDistributionInModal(container = elements.modalChartContainer) {
   try {
+    console.log('renderScoreDistributionInModal - Player data status:', {
+      exists: !!playerDataRef,
+      isArray: Array.isArray(playerDataRef),
+      length: playerDataRef ? playerDataRef.length : 0
+    });
+    
+    // If player data is not available, try to get it from the app's global variables
     if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
-      container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
-      return;
+      // Try to check if the window.allPlayersData is available as a fallback
+      if (window.allPlayersData && window.allPlayersData.length > 0) {
+        console.log('Using fallback from window.allPlayersData');
+        playerDataRef = window.allPlayersData;
+      } else {
+        container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+        return;
+      }
     }
 
     const data = playerDataRef;
@@ -596,9 +639,9 @@ export function renderScoreDistributionInModal(container = elements.modalChartCo
     const categories = Object.keys(brackets);
     const seriesData = Object.values(brackets);
 
-    // Create chart
+    // Create chart - pass container element directly instead of ID
     const chart = chartRenderer.createBarChart(
-      'modal-chart-container',
+      container,
       [{
         name: i18n.getText('table.headerPlayers'),
         data: seriesData
@@ -635,9 +678,9 @@ export function renderScoreVsChestsInModal(container = elements.modalChartContai
       player.PLAYER
     ]);
 
-    // Create chart
+    // Create chart - pass container element directly instead of ID
     const chart = chartRenderer.createScatterChart(
-      'modal-chart-container',
+      container,
       scatterData,
       i18n.getText('dashboard.chartScoreVsChestsTitle'),
       i18n.getText('table.headerChests'),
@@ -691,9 +734,9 @@ export function renderFrequentSourcesInModal(container = elements.modalChartCont
     const topKeys = Object.keys(sortedSources).slice(0, 10);
     const topValues = Object.values(sortedSources).slice(0, 10);
     
-    // Create chart
+    // Create chart - pass container element directly instead of ID
     const chart = chartRenderer.createBarChart(
-      'modal-chart-container',
+      container,
       [{
         name: i18n.getText('table.headerPlayers'),
         data: topValues
@@ -1050,6 +1093,58 @@ function getISOWeek(date) {
   
   console.log(`getISOWeek calculation: date=${date.toISOString()}, weekNum=${weekNum}`);
   return weekNum;
+}
+
+/**
+ * Render the Top Scores chart in the modal
+ * @param {HTMLElement} container - The container element to render the chart in
+ */
+export function renderTopScoresInModal(container = elements.modalChartContainer) {
+  try {
+    console.log('renderTopScoresInModal - Player data status:', {
+      exists: !!playerDataRef,
+      isArray: Array.isArray(playerDataRef),
+      length: playerDataRef ? playerDataRef.length : 0
+    });
+    
+    // If player data is not available, try to get it from the app's global variables
+    if (!playerDataRef || !Array.isArray(playerDataRef) || playerDataRef.length === 0) {
+      // Try to check if the window.allPlayersData is available as a fallback
+      if (window.allPlayersData && window.allPlayersData.length > 0) {
+        console.log('Using fallback from window.allPlayersData');
+        playerDataRef = window.allPlayersData;
+      } else {
+        container.innerHTML = '<div class="text-center text-slate-500">No data available</div>';
+        return;
+      }
+    }
+    
+    // Sort data by total score
+    const topPlayers = [...playerDataRef]
+      .sort((a, b) => Number(b.TOTAL_SCORE) - Number(a.TOTAL_SCORE))
+      .slice(0, 10); // Show exactly top 10 players
+    
+    // Prepare data for chart
+    const labels = topPlayers.map(player => player.PLAYER);
+    const data = topPlayers.map(player => Number(player.TOTAL_SCORE));
+    
+    // Create chart
+    const chart = chartRenderer.createBarChart(
+      container,
+      [{
+        name: i18n.getText('table.headerScore'),
+        data
+      }],
+      labels,
+      i18n.getText('dashboard.chartTopScoresTitle')
+    );
+    
+    // Store the chart in the registry
+    chartRenderer.chartRegistry.modalChart = chart;
+  } catch (error) {
+    console.error('Error rendering top scores chart in modal:', error);
+    container.innerHTML = '<div class="text-center text-red-500">Error rendering chart</div>';
+  }
 }
 
 // Export element references and collections
