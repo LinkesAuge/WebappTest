@@ -109,16 +109,16 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="container mx-auto py-8 px-2 sm:px-4 md:px-6 lg:px-8 space-y-10">
+    <main class="container mx-auto py-3 px-2 sm:px-4 md:px-6 lg:px-8 space-y-4">
 
         <!-- Status Area -->
-        <div id="status-area" class="text-center py-4 min-h-[2.5rem]" aria-live="polite">
+        <div id="status-area" class="text-center py-2 min-h-[2rem]" aria-live="polite">
             <div id="loading-spinner" class="hidden spinner"></div>
             <span id="status-message"></span>
         </div>
 
         <!-- Breadcrumb Navigation -->
-        <nav id="breadcrumb-nav" aria-label="Breadcrumb" class="text-sm text-slate-400 hidden mb-6">
+        <nav id="breadcrumb-nav" aria-label="Breadcrumb" class="text-sm text-slate-400 hidden mb-2">
             <ol class="inline-flex items-center space-x-1 md:space-x-2">
                 <li>
                     <a href="#" id="breadcrumb-dashboard-link" class="inline-flex items-center text-primary hover:underline focus-visible:ring-0 focus-visible:outline-none">
@@ -141,9 +141,9 @@
         </section>
 
         <!-- Dashboard Section -->
-        <section id="dashboard-section" class="space-y-8 hidden">
+        <section id="dashboard-section" class="space-y-4 hidden">
             <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="dashboard.statsTitle">Overall Statistics</h2>
-            <p id="last-updated-info" class="text-sm text-amber-300 font-semibold text-center mb-6"></p>
+            <p id="last-updated-info" class="text-sm text-amber-300 font-semibold text-center mb-4"></p>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
@@ -230,7 +230,7 @@
         </section>
 
         <!-- Detailed Table Section -->
-        <section id="detailed-table-section" class="space-y-6 hidden">
+        <section id="detailed-table-section" class="space-y-4 hidden">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="detailedTable.title">Full Data Table</h2>
                 <button id="back-to-dashboard-from-detailed-table" class="inline-flex items-center px-4 py-1.5 border border-amber-600 text-amber-600 text-xs font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150"><i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n-key="nav.dashboard">Dashboard</span></button>
@@ -241,34 +241,34 @@
         </section>
 
         <!-- Charts Section -->
-        <section id="charts-section" class="space-y-8 hidden">
+        <section id="charts-section" class="space-y-4 hidden">
             <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="charts.title">Charts Overview</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                     <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="topSources"><i class="fas fa-expand fa-fw"></i></button>
                     <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-sack-dollar text-amber-400"></i> <span data-i18n-key="dashboard.chartTopSourcesTitle">Top10 Sources by Score</span></h3>
-                    <div id="charts-top-sources-container" class="min-h-[350px] pt-4"></div>
+                    <div><div id="charts-top-sources-container" class="min-h-[350px] pt-4"></div></div>
                 </div>
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                      <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreDistribution"><i class="fas fa-expand fa-fw"></i></button>
                     <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-bar text-sky-400"></i> <span data-i18n-key="dashboard.chartScoreDistTitle">Score Distribution</span></h3>
-                    <div id="charts-distribution-container" class="min-h-[350px] pt-4"></div>
+                    <div><div id="charts-distribution-container" class="min-h-[350px] pt-4"></div></div>
                 </div>
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                      <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="scoreVsChests"><i class="fas fa-expand fa-fw"></i></button>
                     <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-arrows-up-down-left-right text-emerald-400"></i> <span data-i18n-key="dashboard.chartScoreVsChestsTitle">Score vs. Chests</span></h3>
-                    <div id="charts-score-vs-chests-container" class="min-h-[350px] pt-4"></div>
+                    <div><div id="charts-score-vs-chests-container" class="min-h-[350px] pt-4"></div></div>
                 </div>
                 <div class="bg-card border border-border rounded-lg shadow-lg p-4 md:p-6 relative">
                      <button class="absolute top-2 right-2 p-2 rounded-md text-slate-400 hover:text-primary focus-visible:ring-0" data-i18n-title-key="button.viewLarger" title="View Larger" data-chart-type="frequentSources"><i class="fas fa-expand fa-fw"></i></button>
                     <h3 class="text-base font-semibold text-amber-300 mb-4 flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-orange-400"></i> <span data-i18n-key="dashboard.chartFreqSourcesTitle">Top10 Most Frequent Sources</span></h3>
-                    <div id="charts-frequent-sources-container" class="min-h-[350px] pt-4"></div>
+                    <div><div id="charts-frequent-sources-container" class="min-h-[350px] pt-4"></div></div>
                 </div>
             </div>
         </section>
 
         <!-- Analytics Section -->
-        <section id="analytics-section" class="space-y-10 hidden">
+        <section id="analytics-section" class="space-y-4 hidden">
             <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="analytics.title">Analytics</h2>
             <div class="flex justify-end">
                 <button id="back-to-dashboard-from-analytics" class="inline-flex items-center px-4 py-1.5 border border-amber-600 text-amber-600 text-xs font-medium rounded-md hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-ring transition-colors duration-150"><i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n-key="nav.dashboard">Dashboard</span></button>
@@ -316,7 +316,7 @@
         </section>
 
         <!-- Score System Section -->
-        <section id="score-system-section" class="space-y-6 hidden">
+        <section id="score-system-section" class="space-y-4 hidden">
             <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="scoreSystem.title">Scoring System</h2>
             <div id="score-rules-table-container" class="overflow-auto bg-card border border-border rounded-lg shadow-lg p-2 max-h-[80vh]">
                 <div class="text-center py-12 text-slate-500" data-i18n-key="scoreSystem.loading">Loading scoring rules...</div>
@@ -324,7 +324,7 @@
         </section>
 
         <!-- Player Detail Section -->
-        <section id="detail-section" class="space-y-6 hidden">
+        <section id="detail-section" class="space-y-4 hidden">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <h2 class="text-xl font-semibold font-serif text-amber-300 border-l-4 border-primary pl-4" data-i18n-key="playerDetail.title">Player Details</h2>
                 <div class="flex items-center gap-4">

@@ -134,8 +134,8 @@ async function initializeApp() {
 }
 
 /**
- * Handle navigation to different views
- * @param {string} viewName - Name of the view to navigate to
+ * Handle view navigation
+ * @param {string} viewName - Name of the view to show
  */
 function handleViewNavigation(viewName) {
   if (!viewName) return;
@@ -166,8 +166,8 @@ function handleViewNavigation(viewName) {
       break;
       
     case 'charts':
-      // Re-render the charts to ensure correct sizing
-      chartRenderer.renderChartsSection(allPlayersData);
+      // Initialize charts in the charts section
+      initializeChartsSection();
       break;
       
     case 'analytics':
@@ -204,6 +204,12 @@ function handleViewNavigation(viewName) {
       console.warn('Unknown view name:', viewName);
       break;
   }
+
+  // Scroll to top
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
 }
 
 /**
@@ -560,6 +566,94 @@ function showPlayerDetails(player, rank) {
   // Show player details view
   domManager.showView('playerDetails');
   domManager.updateNavLinkActiveState('playerDetails');
+}
+
+/**
+ * Initialize charts in the charts section
+ */
+function initializeChartsSection() {
+  console.log('Initializing charts section...');
+  
+  if (!allPlayersData || allPlayersData.length === 0) {
+    console.error('No data available for charts');
+    return;
+  }
+  
+  // Replace chart container IDs with the IDs in the charts section
+  const originalIdMapping = {
+    'top-sources-chart-container': 'charts-top-sources-container',
+    'score-distribution-chart-container': 'charts-distribution-container',
+    'score-vs-chests-chart-container': 'charts-score-vs-chests-container',
+    'frequent-sources-chart-container': 'charts-frequent-sources-container'
+  };
+  
+  // Temporarily replace element IDs for rendering
+  const originalElements = {};
+  
+  try {
+    // Save original elements and replace them with charts-section elements
+    for (const [originalId, chartsId] of Object.entries(originalIdMapping)) {
+      const originalElement = document.getElementById(originalId);
+      const chartsElement = document.getElementById(chartsId);
+      
+      if (originalElement && chartsElement) {
+        // Save original
+        originalElements[originalId] = originalElement;
+        
+        // Replace element ID temporarily
+        originalElement.id = 'temp-storage-' + originalId;
+        chartsElement.id = originalId;
+      }
+    }
+    
+    // Now render charts with dashboardRenderer functions
+    // This will target our charts-section elements that now have the dashboard IDs
+    dashboardRenderer.renderDashboardCharts(allPlayersData);
+    
+  } finally {
+    // Restore original element IDs
+    for (const [originalId, chartsId] of Object.entries(originalIdMapping)) {
+      const tempElement = document.getElementById('temp-storage-' + originalId);
+      const currentChartsElement = document.getElementById(originalId);
+      
+      if (tempElement && currentChartsElement) {
+        // Restore original element ID
+        tempElement.id = originalId;
+        currentChartsElement.id = chartsId;
+      }
+    }
+  }
+  
+  // Force a resize event to ensure charts are properly rendered
+  // This is especially important for charts in containers that were initially hidden
+  setTimeout(() => {
+    console.log('Triggering resize event for charts section');
+    
+    // First trigger a resize event
+    if (window.dispatchEvent) {
+      window.dispatchEvent(new Event('resize'));
+    }
+    
+    // Then update all registered charts
+    if (chartRenderer.chartRegistry) {
+      Object.values(chartRenderer.chartRegistry).forEach(chart => {
+        if (chart && typeof chart.update === 'function') {
+          try {
+            chart.update();
+          } catch (error) {
+            console.error('Error updating chart:', error);
+          }
+        }
+      });
+    }
+    
+    // Set a second resize trigger after a longer delay to ensure everything is rendered
+    setTimeout(() => {
+      if (window.dispatchEvent) {
+        window.dispatchEvent(new Event('resize'));
+      }
+    }, 200);
+  }, 100);
 }
 
 /**
