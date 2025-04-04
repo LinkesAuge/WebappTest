@@ -96,6 +96,19 @@ function renderTableHeader(headers, sortState) {
         translationKey = 'scoreSystem.headerPunkte';
         break;
       default:
+        // Handle source columns with FROM_ prefix
+        if (header.startsWith('FROM_')) {
+          // Extract the source name without the prefix for display
+          const sourceName = header.replace('FROM_', '');
+          return `
+            <th scope="col" 
+                data-column="${header}" 
+                class="${columnPadding} py-3 ${textAlign} text-xs font-medium text-primary uppercase tracking-wider ${cursor} ${columnWidth}">
+              ${sourceName}
+              ${isSortable ? `<span class="sort-icon inline-block w-3 ml-1"></span>` : ''}
+            </th>
+          `;
+        }
         translationKey = `table.headers.${header.toLowerCase()}`;
     }
     
@@ -121,7 +134,7 @@ function renderTableHeader(headers, sortState) {
  */
 function renderTableBody(data, headers, clickable) {
   if (!data.length) {
-    return `<tr><td colspan="${headers.length}" class="text-center py-6 text-slate-500">No data available</td></tr>`;
+    return `<tr><td colspan="${headers.length}" class="text-center py-6 text-slate-500">${i18n.getText('table.noData')}</td></tr>`;
   }
 
   return data.map((row, index) => {

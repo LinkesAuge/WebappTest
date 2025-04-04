@@ -98,6 +98,25 @@ const TEXT_CONTENT = {
       noFilterMatch: "Keine Spieler entsprechen dem Filter.",
       loading: "Lade...",
       loadingDetailed: "Lade detaillierte Tabelle...",
+      headers: {
+        rank: "Rang",
+        player: "Spieler",
+        total_score: "Gesamtpunkte",
+        chest_count: "Truhenanzahl",
+        level: "Level",
+        punkte: "Punkte",
+        score: "Punkte",
+        chests: "Truhen",
+        typ: "Typ",
+        from_: "Quelle",
+        source: "Quelle",
+        category: "Kategorie",
+        count: "Anzahl",
+        average: "Durchschnitt",
+        min: "Minimum",
+        max: "Maximum",
+        description: "Beschreibung"
+      }
     },
     status: {
       initializing: "Initialisiere...",
@@ -249,37 +268,6 @@ const TEXT_CONTENT = {
   },
 };
 
-// These references will be set by the main module
-let updateSortIcons;
-let displayLastUpdatedTimestamp;
-let renderDashboard;
-let renderDetailedTable;
-let renderChartsView;
-let renderCategoryAnalysis;
-let renderCategoryChart;
-let renderPlayerDetail;
-let renderPlayerChart;
-let renderScoreRulesTable;
-
-// Function references that will be provided by other modules
-let renderFunctions;
-
-/**
- * Sets references to render functions from other modules
- * @param {Object} functions - Object containing render functions
- */
-export function setRenderFunctions(functions) {
-  renderFunctions = functions;
-}
-
-/**
- * Sets the updateSortIcons function reference
- * @param {Function} sortIconsFunction - Function to update sort icons
- */
-export function setUpdateSortIcons(sortIconsFunction) {
-  updateSortIcons = sortIconsFunction;
-}
-
 /**
  * Initialize language settings
  */
@@ -392,6 +380,29 @@ function updateLanguageUI() {
   
   // Force update document title
   document.title = getText('appTitle');
+  
+  // If we have references to domManager and updateSortIcons, use them to update UI
+  if (domManager && typeof domManager.updateElementText === 'function') {
+    // Update DOM elements using domManager if available
+    console.log('Using domManager to update UI text');
+    domManager.updateElementText();
+  }
+  
+  // Update sort icons if the function is available and there are sort headers
+  if (updateSortIcons && document.querySelector('[data-column]')) {
+    // Get the current sort state from the UI if possible
+    const sortHeaders = document.querySelectorAll('[data-column]');
+    const activeHeader = Array.from(sortHeaders).find(header => 
+      header.classList.contains('sort-asc') || header.classList.contains('sort-desc')
+    );
+    
+    if (activeHeader) {
+      const column = activeHeader.dataset.column;
+      const direction = activeHeader.classList.contains('sort-asc') ? 'asc' : 'desc';
+      console.log('Updating sort icons for', column, direction);
+      updateSortIcons(column, direction, '[data-column]');
+    }
+  }
 }
 
 /**
@@ -408,8 +419,7 @@ export function updateUIText(
   detailedTableSortState,
   scoreRulesSortState,
   currentView,
-  currentPlayerData,
-  categorySelect
+  currentPlayerData
 ) {
   console.log(`Updating UI text for language: ${currentLanguage}`);
   document.title = getText("appTitle");
@@ -482,32 +492,7 @@ export function updateUIText(
   document.querySelectorAll("[data-i18n-title-key]").forEach((el) => {
     el.title = getText(el.dataset.i18nTitleKey);
   });
-
-  // Update sort icons (important after text updates which might clear them)
-  if (sortState && typeof updateSortIcons === 'function') {
-    updateSortIcons(
-      sortState.column,
-      sortState.direction,
-      "#ranking-section thead th[data-column]"
-    );
-  }
   
-  if (detailedTableSortState && typeof updateSortIcons === 'function') {
-    updateSortIcons(
-      detailedTableSortState.column,
-      detailedTableSortState.direction,
-      "#detailed-table-container thead th[data-column]"
-    );
-  }
-  
-  if (scoreRulesSortState && typeof updateSortIcons === 'function') {
-    updateSortIcons(
-      scoreRulesSortState.column,
-      scoreRulesSortState.direction,
-      "#score-rules-table-container thead th[data-column]"
-    );
-  }
-
   // Update dynamic breadcrumb text if visible
   if (breadcrumbNav && !breadcrumbNav.classList.contains("hidden")) {
     const viewKeyMap = {
@@ -524,9 +509,32 @@ export function updateUIText(
       breadcrumbCurrentPageName.textContent = currentPlayerData.PLAYER; // Use player name for detail view
     }
   }
-  // Ensure timestamp is updated if needed
-  if (typeof displayLastUpdatedTimestamp === 'function') {
-    displayLastUpdatedTimestamp();
+  
+  // Use domManager if available for additional UI updates
+  if (domManager && typeof domManager.updateViewSpecificTexts === 'function') {
+    console.log('Using domManager to update view-specific texts');
+    domManager.updateViewSpecificTexts(currentView);
+  }
+  
+  // Update sort icons based on the provided sort states
+  if (updateSortIcons) {
+    // Update main ranking table sort icons
+    if (sortState && document.querySelector('#ranking-table-container th[data-column]')) {
+      console.log('Updating ranking table sort icons');
+      updateSortIcons(sortState.column, sortState.direction, '#ranking-table-container th[data-column]');
+    }
+    
+    // Update detailed table sort icons
+    if (detailedTableSortState && document.querySelector('#detailed-table-container th[data-column]')) {
+      console.log('Updating detailed table sort icons');
+      updateSortIcons(detailedTableSortState.column, detailedTableSortState.direction, '#detailed-table-container th[data-column]');
+    }
+    
+    // Update score rules table sort icons
+    if (scoreRulesSortState && document.querySelector('#score-rules-table-container th[data-column]')) {
+      console.log('Updating score rules table sort icons');
+      updateSortIcons(scoreRulesSortState.column, scoreRulesSortState.direction, '#score-rules-table-container th[data-column]');
+    }
   }
 }
 
@@ -540,6 +548,30 @@ export function updateLanguageSwitcherUI() {
   if (langDeButton) langDeButton.classList.toggle("active", currentLanguage === "de");
   if (langEnButton) langEnButton.classList.toggle("active", currentLanguage === "en");
 }
+
+/**
+ * Sets the reference to the DOM manager module for rendering functions
+ * @param {Object} domManagerReference - Reference to the domManager module
+ */
+export function setRenderFunctions(domManagerReference) {
+  // Store reference to domManager for potential use in i18n-related rendering
+  console.log('Setting render functions reference');
+  domManager = domManagerReference;
+}
+
+/**
+ * Sets the reference to the updateSortIcons function from utils
+ * @param {Function} updateSortIconsFunction - Reference to the updateSortIcons function
+ */
+export function setUpdateSortIcons(updateSortIconsFunction) {
+  // Store reference to updateSortIcons function for use in language updates
+  console.log('Setting updateSortIcons function reference');
+  updateSortIcons = updateSortIconsFunction;
+}
+
+// Variables to store module references
+let domManager = null;
+let updateSortIcons = null;
 
 // Export constants and TEXT_CONTENT for potential use by other modules
 export const constants = {

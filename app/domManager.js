@@ -216,37 +216,37 @@ export function assignElementReferences() {
 export function showView(viewName) {
   console.log(`Showing view: ${viewName}`);
   
-  // Hide all sections
-  elements.emptyStateSection.classList.add('hidden');
-  elements.dashboardSection.classList.add('hidden');
-  elements.detailedTableSection.classList.add('hidden');
-  elements.chartsSection.classList.add('hidden');
-  elements.analyticsSection.classList.add('hidden');
-  elements.scoreSystemSection.classList.add('hidden');
-  elements.detailSection.classList.add('hidden');
+  // Hide all sections - with null checks
+  if (elements.emptyStateSection) elements.emptyStateSection.classList.add('hidden');
+  if (elements.dashboardSection) elements.dashboardSection.classList.add('hidden');
+  if (elements.detailedTableSection) elements.detailedTableSection.classList.add('hidden');
+  if (elements.chartsSection) elements.chartsSection.classList.add('hidden');
+  if (elements.analyticsSection) elements.analyticsSection.classList.add('hidden');
+  if (elements.scoreSystemSection) elements.scoreSystemSection.classList.add('hidden');
+  if (elements.detailSection) elements.detailSection.classList.add('hidden');
   
-  // Show selected section
+  // Show selected section - with null checks
   switch (viewName) {
     case 'dashboard':
-      elements.dashboardSection.classList.remove('hidden');
+      if (elements.dashboardSection) elements.dashboardSection.classList.remove('hidden');
       break;
     case 'detailed-table':
-      elements.detailedTableSection.classList.remove('hidden');
+      if (elements.detailedTableSection) elements.detailedTableSection.classList.remove('hidden');
       break;
     case 'charts':
-      elements.chartsSection.classList.remove('hidden');
+      if (elements.chartsSection) elements.chartsSection.classList.remove('hidden');
       break;
     case 'analytics':
-      elements.analyticsSection.classList.remove('hidden');
+      if (elements.analyticsSection) elements.analyticsSection.classList.remove('hidden');
       break;
     case 'score-system':
-      elements.scoreSystemSection.classList.remove('hidden');
+      if (elements.scoreSystemSection) elements.scoreSystemSection.classList.remove('hidden');
       break;
     case 'playerDetails':
-      elements.detailSection.classList.remove('hidden');
+      if (elements.detailSection) elements.detailSection.classList.remove('hidden');
       break;
     default:
-      elements.emptyStateSection.classList.remove('hidden');
+      if (elements.emptyStateSection) elements.emptyStateSection.classList.remove('hidden');
   }
   
   // Update breadcrumb
@@ -258,6 +258,12 @@ export function showView(viewName) {
  * @param {string} viewName - The name of the current view
  */
 function updateBreadcrumb(viewName) {
+  // Check if breadcrumb element exists
+  if (!elements.breadcrumbNav) {
+    console.warn('Breadcrumb navigation element not found');
+    return;
+  }
+  
   if (viewName === 'dashboard') {
     elements.breadcrumbNav.classList.add('hidden');
     return;
@@ -285,7 +291,10 @@ function updateBreadcrumb(viewName) {
       break;
   }
   
-  elements.breadcrumbCurrentPageName.textContent = pageName;
+  // Check if breadcrumb current page name element exists
+  if (elements.breadcrumbCurrentPageName) {
+    elements.breadcrumbCurrentPageName.textContent = pageName;
+  }
 }
 
 /**
@@ -294,22 +303,30 @@ function updateBreadcrumb(viewName) {
  */
 export function updateNavLinkActiveState(viewName) {
   // Desktop nav links
-  collections.desktopNavLinks.forEach(link => {
-    if (link.dataset.view === viewName) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
-    }
-  });
+  if (collections.desktopNavLinks && collections.desktopNavLinks.length > 0) {
+    collections.desktopNavLinks.forEach(link => {
+      if (link && link.classList) {
+        if (link.dataset.view === viewName) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      }
+    });
+  }
   
   // Mobile nav links
-  collections.mobileNavLinks.forEach(link => {
-    if (link.dataset.view === viewName) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
-    }
-  });
+  if (collections.mobileNavLinks && collections.mobileNavLinks.length > 0) {
+    collections.mobileNavLinks.forEach(link => {
+      if (link && link.classList) {
+        if (link.dataset.view === viewName) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      }
+    });
+  }
 }
 
 /**
@@ -428,6 +445,62 @@ export function updateLastUpdatedTimestamp(timestamp, getText) {
     elements.lastUpdatedInfo.textContent = getText('status.lastUpdatedUnavailable');
     elements.lastUpdatedInfo.classList.add('text-red-500');
   }
+}
+
+/**
+ * Ensures that required container elements exist in the DOM
+ * This is useful for dynamically created elements that may not exist on page load
+ */
+export function ensureRequiredContainers() {
+  // Check and create ranking table body if it doesn't exist
+  const rankingTableContainer = document.getElementById('ranking-table-container');
+  if (rankingTableContainer) {
+    let rankingTableBody = document.getElementById('ranking-table-body');
+    
+    if (!rankingTableBody) {
+      console.log('Creating ranking-table-body element');
+      
+      // First check if there's already a table in the container
+      let existingTable = rankingTableContainer.querySelector('table');
+      
+      if (!existingTable) {
+        // Create the table structure if it doesn't exist
+        rankingTableContainer.innerHTML = `
+          <table class="min-w-full divide-y divide-slate-700/50">
+            <thead class="bg-slate-800/75 backdrop-blur-sm sticky top-0 z-10">
+              <tr>
+                <th data-column="RANK" class="pr-4 pl-2 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-150 w-16">Rank<span class="sort-icon inline-block w-3 ml-1"></span></th>
+                <th data-column="PLAYER" class="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-150">Player<span class="sort-icon inline-block w-3 ml-1"></span></th>
+                <th data-column="TOTAL_SCORE" class="px-4 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-150">Total Score<span class="sort-icon inline-block w-3 ml-1"></span></th>
+                <th data-column="CHEST_COUNT" class="px-4 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-150">Chest Count<span class="sort-icon inline-block w-3 ml-1"></span></th>
+              </tr>
+            </thead>
+            <tbody id="ranking-table-body" class="bg-slate-900/20">
+              <tr><td colspan="4" class="text-center py-12 text-slate-500">No data loaded.</td></tr>
+            </tbody>
+          </table>
+        `;
+      } else {
+        // If table exists but tbody doesn't, add an id to the existing tbody
+        const existingTbody = existingTable.querySelector('tbody');
+        if (existingTbody) {
+          existingTbody.id = 'ranking-table-body';
+        } else {
+          // If no tbody exists, create one
+          const tbody = document.createElement('tbody');
+          tbody.id = 'ranking-table-body';
+          tbody.className = 'bg-slate-900/20';
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-slate-500">No data loaded.</td></tr>';
+          existingTable.appendChild(tbody);
+        }
+      }
+      
+      // Update the elements reference
+      elements.rankingTableBody = document.getElementById('ranking-table-body');
+    }
+  }
+  
+  // Similar checks can be added for other dynamically created elements
 }
 
 // Export element references and collections

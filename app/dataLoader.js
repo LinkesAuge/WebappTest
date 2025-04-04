@@ -286,7 +286,7 @@ export function saveDataToLocalStorage(allPlayersData, allColumnHeaders, dataLas
       console.log("Last modified timestamp saved to localStorage:", dataLastModifiedTimestamp);
       
       // Update the UI with the timestamp
-      const lastUpdatedInfo = document.getElementById('lastUpdatedInfo');
+      const lastUpdatedInfo = document.getElementById('last-updated-info');
       if (lastUpdatedInfo) {
         lastUpdatedInfo.textContent = `${getText('status.lastUpdatedLabel')} ${dataLastModifiedTimestamp}`;
       }

@@ -24,8 +24,6 @@ let allPlayersData = [];
 let displayData = [];
 let allColumnHeaders = [];
 let scoreRulesData = [];
-let charts = {};
-let currentPlayerData = null;
 
 // Sort state - will be initialized properly in initializeApp
 let dashboardSortState = {
@@ -72,6 +70,9 @@ async function initializeApp() {
       console.error('Failed to assign all DOM references');
       return;
     }
+    
+    // Ensure all required container elements exist
+    domManager.ensureRequiredContainers();
     
     // Now that we have DOM references, we can show the dashboard view
     domManager.showView('dashboard');
@@ -356,10 +357,6 @@ function renderPlayerTable(data) {
  */
 function showPlayerDetails(player, rank) {
   console.log('Showing player details:', player.PLAYER);
-  
-  // Update current player data
-  currentPlayerData = player;
-  
   // Render player details
   playerDetailRenderer.renderPlayerDetails(player, rank);
   playerDetailRenderer.renderPlayerBreakdown(player, allColumnHeaders);
@@ -549,7 +546,6 @@ function resetStateAndUI() {
   displayData.length = 0;
   allColumnHeaders.length = 0;
   scoreRulesData.length = 0;
-  currentPlayerData = null;
   
   // Reset sort states
   dashboardSortState.column = utils.CORE_COLUMNS.TOTAL_SCORE;
@@ -568,7 +564,6 @@ function resetStateAndUI() {
       chart.destroy();
     }
   });
-  chartRenderer.chartRegistry = {};
 }
 
 // Initialize the application when the DOM is loaded
